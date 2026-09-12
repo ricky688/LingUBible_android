@@ -62,12 +62,43 @@ fun LingUBibleBottomBar(
     val currentDestination = navBackStackEntry?.destination
     val appLanguage by settingsManager.appLanguage.collectAsState()
 
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val dividerColor = if (isDark) {
-        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+    // Frosted glass styling colors & gradient palette aligned with M3 Expressive
+    val targetFrostedSurfaceColor = if (isDark) {
+        if (isOledBlackActive()) Color(0xFF000000).copy(alpha = 0.85f)
+        else MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
     } else {
-        Color(0xFFE2E8F0)
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.88f)
     }
+    val frostedSurfaceColor by animateColorAsState(
+        targetValue = targetFrostedSurfaceColor,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "bottomBarFrostedSurface"
+    )
+
+    val targetGlassHighlightColor = if (isDark) {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.70f)
+    } else {
+        Color(0xFFCBD5E1).copy(alpha = 0.85f)
+    }
+    val glassHighlightColor by animateColorAsState(
+        targetValue = targetGlassHighlightColor,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "bottomBarGlassHighlight"
+    )
+    val glassBorderColors = remember(glassHighlightColor) {
+        listOf(
+            glassHighlightColor.copy(alpha = 0.25f),
+            glassHighlightColor,
+            glassHighlightColor.copy(alpha = 0.25f)
+        )
+    }
+
+    val targetGlassSheenColor = if (isDark) Color.White.copy(alpha = 0.05f) else Color.White.copy(alpha = 0.25f)
+    val glassSheenColor by animateColorAsState(
+        targetValue = targetGlassSheenColor,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "bottomBarGlassSheen"
+    )
 
     // Spring physics for slide down / up with pure spring stiffness
     val barTranslationY by animateDpAsState(
@@ -127,20 +158,32 @@ fun LingUBibleBottomBar(
                 alpha = itemsAlpha
             }
     ) {
-        // Navigation Bar with Solid Opaque Surface and Crisp Divider Line
+        // Frosted Glass Navigation Bar with Specular Highlight and Inner Sheen
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .drawBehind {
-                    // 100% Solid opaque background for navigation bar
-                    drawRect(color = surfaceColor)
+                    // 1. Translucent frosted glass base surface
+                    drawRect(color = frostedSurfaceColor)
 
-                    // Crisp top divider line
+                    // 2. Fine specular linear gradient top border line
                     drawLine(
-                        color = dividerColor,
+                        brush = Brush.horizontalGradient(glassBorderColors),
                         start = Offset(0f, 0f),
                         end = Offset(size.width, 0f),
-                        strokeWidth = 1.dp.toPx()
+                        strokeWidth = 1.2.dp.toPx()
+                    )
+
+                    // 3. Subtle top specular sheen (inner edge highlight)
+                    drawRect(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                glassSheenColor,
+                                Color.Transparent
+                            ),
+                            startY = 0f,
+                            endY = 16.dp.toPx()
+                        )
                     )
                 }
         ) {
