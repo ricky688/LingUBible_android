@@ -33,7 +33,7 @@ sealed interface Screen {
     data object Home : Screen
 
     @Serializable
-    data class AcademicTools(val initialTab: Int = 0) : Screen
+    data class AcademicTools(val initialTab: Int = 0, val fromHome: Boolean = false) : Screen
 
     @Serializable
     data object Courses : Screen

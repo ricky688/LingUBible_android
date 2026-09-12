@@ -239,7 +239,19 @@ fun LingUBibleTopBar(
     }
 
     val isTopLevelTab = currentTabIndex != -1
-    val canNavigateBack = !isTopLevelTab && destination != null
+    val isFromHome = try {
+        destination?.hasRoute<Screen.AcademicTools>() == true &&
+            navBackStackEntry?.toRoute<Screen.AcademicTools>()?.fromHome == true
+    } catch (_: Exception) {
+        false
+    }
+    val canNavigateBack = destination != null && (
+        !isTopLevelTab ||
+        isFromHome ||
+        destination.hasRoute<Screen.Planner>() ||
+        destination.hasRoute<Screen.Calendar>() ||
+        destination.hasRoute<Screen.GpaHons>()
+    )
 
     // Frosted glass styling colors & gradient palette aligned with M3
     val targetFrostedSurfaceColor = if (isDark) {

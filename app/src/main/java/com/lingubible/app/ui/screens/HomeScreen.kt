@@ -71,6 +71,7 @@ fun HomeScreen(
     onNavigateToInstructor: (String) -> Unit,
     onNavigateToWriteReview: (String) -> Unit,
     onNavigateToPlanner: () -> Unit = {},
+    onNavigateToCalendar: () -> Unit = {},
     onNavigateToReviews: () -> Unit = {},
     homeViewModel: HomeViewModel = koinViewModel(),
     coursesViewModel: CoursesViewModel = koinViewModel(),
@@ -408,7 +409,7 @@ fun HomeScreen(
                                         RoundedCornerShape(16.dp)
                                     )
                                     .pointerHoverIcon(PointerIcon.Hand)
-                                    .clickable { onNavigateToPlanner() },
+                                    .clickable { onNavigateToCalendar() },
                                 shape = RoundedCornerShape(16.dp),
                                 color = MaterialTheme.colorScheme.surfaceContainer
                             ) {

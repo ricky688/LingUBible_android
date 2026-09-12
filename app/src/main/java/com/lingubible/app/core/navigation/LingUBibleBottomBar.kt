@@ -225,12 +225,23 @@ fun LingUBibleBottomBar(
                         modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
                         onClick = {
                             if (isVisible && !selected) {
-                                navController.navigate(destination.screen) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                                if (destination == BottomNavDestination.EXPLORE) {
+                                    navController.navigate(Screen.Home) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            inclusive = false
+                                            saveState = false
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = false
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
+                                } else {
+                                    navController.navigate(destination.screen) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
                             }
                         },

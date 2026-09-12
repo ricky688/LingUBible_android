@@ -79,7 +79,8 @@ fun LingUBibleNavHost(
                     else navController.navigate(Screen.Instructors)
                 },
                 onNavigateToWriteReview = { code -> navController.navigate(Screen.WriteReview(code)) },
-                onNavigateToPlanner = { navController.navigate(Screen.AcademicTools(0)) },
+                onNavigateToPlanner = { navController.navigate(Screen.AcademicTools(initialTab = 0, fromHome = true)) },
+                onNavigateToCalendar = { navController.navigate(Screen.AcademicTools(initialTab = 1, fromHome = true)) },
                 onNavigateToReviews = { navController.navigate(Screen.Reviews) }
             )
         }

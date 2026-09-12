@@ -80,6 +80,19 @@ class ScreenTest {
         val decodedGpaHons = json.decodeFromString<Screen>(gpaHonsJson)
         assertEquals(Screen.GpaHons, decodedGpaHons)
 
+        // Test AcademicTools route with default and custom parameters
+        val academicToolsDefault = Screen.AcademicTools()
+        val academicToolsDefaultJson = json.encodeToString<Screen>(academicToolsDefault)
+        val decodedAcademicToolsDefault = json.decodeFromString<Screen>(academicToolsDefaultJson) as Screen.AcademicTools
+        assertEquals(0, decodedAcademicToolsDefault.initialTab)
+        assertEquals(false, decodedAcademicToolsDefault.fromHome)
+
+        val academicToolsFromHome = Screen.AcademicTools(initialTab = 1, fromHome = true)
+        val academicToolsFromHomeJson = json.encodeToString<Screen>(academicToolsFromHome)
+        val decodedAcademicToolsFromHome = json.decodeFromString<Screen>(academicToolsFromHomeJson) as Screen.AcademicTools
+        assertEquals(1, decodedAcademicToolsFromHome.initialTab)
+        assertEquals(true, decodedAcademicToolsFromHome.fromHome)
+
         // Test Profile route
         val profileJson = json.encodeToString<Screen>(Screen.Profile)
         val decodedProfile = json.decodeFromString<Screen>(profileJson)
