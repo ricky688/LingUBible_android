@@ -62,22 +62,12 @@ fun LingUBibleBottomBar(
     val currentDestination = navBackStackEntry?.destination
     val appLanguage by settingsManager.appLanguage.collectAsState()
 
-    // Frosted glass styling colors & gradient palette aligned with M3
     val surfaceColor = MaterialTheme.colorScheme.surface
-    val frostedScrimBase = MaterialTheme.colorScheme.surface
-    val targetGlassHighlightColor = if (isDark) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f) else Color(0xFFCBD5E1).copy(alpha = 0.85f)
-    val glassHighlightColor by animateColorAsState(
-        targetValue = targetGlassHighlightColor,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "bottomBarGlassHighlight"
-    )
-
-    val targetGlassSheenColor = if (isDark) Color.White.copy(alpha = 0.05f) else Color.White.copy(alpha = 0.35f)
-    val glassSheenColor by animateColorAsState(
-        targetValue = targetGlassSheenColor,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "bottomBarGlassSheen"
-    )
+    val dividerColor = if (isDark) {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+    } else {
+        Color(0xFFE2E8F0)
+    }
 
     // Spring physics for slide down / up with pure spring stiffness
     val barTranslationY by animateDpAsState(
@@ -137,47 +127,7 @@ fun LingUBibleBottomBar(
                 alpha = itemsAlpha
             }
     ) {
-        // 1. Frosted Glass Top Gradient Scrim extending ABOVE the navigation bar at the bottom of the app
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .graphicsLayer {
-                    alpha = itemsAlpha
-                }
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            frostedScrimBase.copy(alpha = 0.08f),
-                            frostedScrimBase.copy(alpha = 0.25f),
-                            frostedScrimBase.copy(alpha = 0.50f),
-                            frostedScrimBase.copy(alpha = 0.78f),
-                            frostedScrimBase.copy(alpha = 0.95f),
-                            surfaceColor
-                        )
-                    )
-                )
-                .drawBehind {
-                    // Subtle top specular edge highlight
-                    drawLine(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                glassHighlightColor.copy(alpha = 0.20f),
-                                glassHighlightColor.copy(alpha = 0.40f),
-                                glassHighlightColor.copy(alpha = 0.20f),
-                                Color.Transparent
-                            )
-                        ),
-                        start = Offset(0f, 0f),
-                        end = Offset(size.width, 0f),
-                        strokeWidth = 1.dp.toPx()
-                    )
-                }
-        )
-
-        // 2. Navigation Bar with Solid Opaque Surface (zero text collisions) and Specular Boundary Line
+        // Navigation Bar with Solid Opaque Surface and Crisp Divider Line
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -185,30 +135,12 @@ fun LingUBibleBottomBar(
                     // 100% Solid opaque background for navigation bar
                     drawRect(color = surfaceColor)
 
-                    // Crisp specular divider line between the frosted scrim and navigation bar
+                    // Crisp top divider line
                     drawLine(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                glassHighlightColor.copy(alpha = 0.25f),
-                                glassHighlightColor,
-                                glassHighlightColor.copy(alpha = 0.25f)
-                            )
-                        ),
+                        color = dividerColor,
                         start = Offset(0f, 0f),
                         end = Offset(size.width, 0f),
-                        strokeWidth = 1.2.dp.toPx()
-                    )
-
-                    // Subtle top sheen
-                    drawRect(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                glassSheenColor,
-                                Color.Transparent
-                            ),
-                            startY = 0f,
-                            endY = 24.dp.toPx()
-                        )
+                        strokeWidth = 1.dp.toPx()
                     )
                 }
         ) {

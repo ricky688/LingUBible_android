@@ -273,6 +273,9 @@ fun ProfileScreen(
 
                         // Appearance & Customization Settings Entry
                         ListItem(
+                            colors = ListItemDefaults.colors(
+                                containerColor = Color.Transparent
+                            ),
                             headlineContent = {
                                 Text(if (isZh) "外觀與個人化自訂" else "Appearance & Customization", fontWeight = FontWeight.SemiBold)
                             },
@@ -308,6 +311,9 @@ fun ProfileScreen(
 
                         // My Reviews
                         ListItem(
+                            colors = ListItemDefaults.colors(
+                                containerColor = Color.Transparent
+                            ),
                             headlineContent = {
                                 Text(if (isZh) "我的評價" else "My Reviews", fontWeight = FontWeight.Medium)
                             },
@@ -324,6 +330,9 @@ fun ProfileScreen(
 
                         // Favorites
                         ListItem(
+                            colors = ListItemDefaults.colors(
+                                containerColor = Color.Transparent
+                            ),
                             headlineContent = {
                                 Text(if (isZh) "我的收藏" else "Saved Favorites", fontWeight = FontWeight.Medium)
                             },
