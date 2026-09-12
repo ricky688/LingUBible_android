@@ -62,12 +62,24 @@ fun LingUBibleBottomBar(
     val currentDestination = navBackStackEntry?.destination
     val appLanguage by settingsManager.appLanguage.collectAsState()
 
-    // Frosted glass styling colors & gradient palette aligned with M3 Expressive
-    val targetFrostedSurfaceColor = if (isDark) {
-        if (isOledBlackActive()) Color(0xFF000000).copy(alpha = 0.85f)
-        else MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+    // Frosted glass styling colors aligned with M3 Expressive
+    val targetFrostedBaseColor = if (isDark) {
+        if (isOledBlackActive()) Color(0xFF000000)
+        else MaterialTheme.colorScheme.surface
     } else {
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.88f)
+        MaterialTheme.colorScheme.surface
+    }
+    val frostedBaseColor by animateColorAsState(
+        targetValue = targetFrostedBaseColor,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "bottomBarFrostedBase"
+    )
+
+    val targetFrostedSurfaceColor = if (isDark) {
+        if (isOledBlackActive()) Color(0xFF000000).copy(alpha = 0.88f)
+        else MaterialTheme.colorScheme.surface.copy(alpha = 0.88f)
+    } else {
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.90f)
     }
     val frostedSurfaceColor by animateColorAsState(
         targetValue = targetFrostedSurfaceColor,
@@ -75,30 +87,23 @@ fun LingUBibleBottomBar(
         label = "bottomBarFrostedSurface"
     )
 
-    val targetGlassHighlightColor = if (isDark) {
-        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.70f)
+    val dividerColor = if (isDark) {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
     } else {
-        Color(0xFFCBD5E1).copy(alpha = 0.85f)
-    }
-    val glassHighlightColor by animateColorAsState(
-        targetValue = targetGlassHighlightColor,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "bottomBarGlassHighlight"
-    )
-    val glassBorderColors = remember(glassHighlightColor) {
-        listOf(
-            glassHighlightColor.copy(alpha = 0.25f),
-            glassHighlightColor,
-            glassHighlightColor.copy(alpha = 0.25f)
-        )
+        Color(0xFFCBD5E1).copy(alpha = 0.70f)
     }
 
-    val targetGlassSheenColor = if (isDark) Color.White.copy(alpha = 0.05f) else Color.White.copy(alpha = 0.25f)
-    val glassSheenColor by animateColorAsState(
-        targetValue = targetGlassSheenColor,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "bottomBarGlassSheen"
-    )
+    val frostedScrimColors = remember(frostedBaseColor, frostedSurfaceColor) {
+        listOf(
+            Color.Transparent,
+            frostedBaseColor.copy(alpha = 0.04f),
+            frostedBaseColor.copy(alpha = 0.15f),
+            frostedBaseColor.copy(alpha = 0.32f),
+            frostedBaseColor.copy(alpha = 0.58f),
+            frostedBaseColor.copy(alpha = 0.82f),
+            frostedSurfaceColor
+        )
+    }
 
     // Spring physics for slide down / up with pure spring stiffness
     val barTranslationY by animateDpAsState(
@@ -158,32 +163,33 @@ fun LingUBibleBottomBar(
                 alpha = itemsAlpha
             }
     ) {
-        // Frosted Glass Navigation Bar with Specular Highlight and Inner Sheen
+        // 1. Frosted Glass Gradient Scrim extending ABOVE the navigation bar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .graphicsLayer {
+                    alpha = itemsAlpha
+                }
+                .background(
+                    Brush.verticalGradient(frostedScrimColors)
+                )
+        )
+
+        // 2. Frosted Glass Navigation Bar with Crisp Boundary Line
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .drawBehind {
-                    // 1. Translucent frosted glass base surface
+                    // Translucent frosted glass base surface
                     drawRect(color = frostedSurfaceColor)
 
-                    // 2. Fine specular linear gradient top border line
+                    // Crisp top divider line
                     drawLine(
-                        brush = Brush.horizontalGradient(glassBorderColors),
+                        color = dividerColor,
                         start = Offset(0f, 0f),
                         end = Offset(size.width, 0f),
-                        strokeWidth = 1.2.dp.toPx()
-                    )
-
-                    // 3. Subtle top specular sheen (inner edge highlight)
-                    drawRect(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                glassSheenColor,
-                                Color.Transparent
-                            ),
-                            startY = 0f,
-                            endY = 16.dp.toPx()
-                        )
+                        strokeWidth = 1.dp.toPx()
                     )
                 }
         ) {
