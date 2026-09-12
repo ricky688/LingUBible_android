@@ -11,7 +11,7 @@
 
         <!-- Android 12+ (API 31+) Splash Screen attributes for Dark mode -->
         <item name="android:windowSplashScreenBackground">#0B0F19</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_lingubible_logo</item>
         <item name="android:windowSplashScreenIconBackgroundColor">#0B0F19</item>
     </style>
 </resources>

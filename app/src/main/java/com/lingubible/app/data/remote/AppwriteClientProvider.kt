@@ -5,6 +5,7 @@ import com.lingubible.app.di.AppConfig
 import io.appwrite.Client
 import io.appwrite.services.Account
 import io.appwrite.services.Databases
+import io.appwrite.services.Functions
 import io.appwrite.services.Storage
 
 class AppwriteClientProvider(
@@ -40,6 +41,7 @@ class AppwriteClientProvider(
 
     val account: Account? = client?.let { Account(it) }
     val databases: Databases? = client?.let { Databases(it) }
+    val functions: Functions? = client?.let { Functions(it) }
     val tablesDB: io.appwrite.services.TablesDB? = client?.let { io.appwrite.services.TablesDB(it) }
     val storage: Storage? = client?.let { Storage(it) }
     val databaseId: String = appConfig.databaseId

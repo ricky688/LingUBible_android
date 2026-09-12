@@ -6,6 +6,13 @@ import com.lingubible.app.domain.model.Course
 import com.lingubible.app.domain.model.TeachingRecord
 import com.lingubible.app.domain.repository.CourseRepository
 import io.appwrite.Query
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 class AppwriteCourseRepository(
@@ -18,6 +25,55 @@ class AppwriteCourseRepository(
     private val reviewsCol = "reviews"
     private val TAG = "CourseRepo"
 
+    private val cacheMutex = Mutex()
+    private var allCoursesCache: List<Course>? = null
+
+    private suspend fun getAllCourses(): List<Course> = withContext(Dispatchers.IO) {
+        cacheMutex.withLock {
+            allCoursesCache?.let { return@withLock it }
+            val databases = clientProvider.databases ?: return@withLock emptyList<Course>()
+
+            try {
+                val pageSize = 100
+                val totalExpected = 1100
+                val numPages = (totalExpected + pageSize - 1) / pageSize
+
+                val fetched = coroutineScope {
+                    (0 until numPages).map { pageIdx ->
+                        async {
+                            try {
+                                val response = databases.listDocuments(
+                                    databaseId = dbId,
+                                    collectionId = coursesCol,
+                                    queries = listOf(
+                                        Query.orderAsc("course_code"),
+                                        Query.limit(pageSize),
+                                        Query.offset(pageIdx * pageSize)
+                                    )
+                                )
+                                response.documents.map { doc ->
+                                    mapDocumentToCourse(doc.id, doc.data)
+                                }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Error fetching courses page $pageIdx: ${e.message}", e)
+                                emptyList()
+                            }
+                        }
+                    }.awaitAll().flatten().distinctBy { it.code }
+                }
+
+                if (fetched.isNotEmpty()) {
+                    allCoursesCache = fetched
+                    Log.d(TAG, "Cached ${fetched.size} courses in memory")
+                    return@withLock fetched
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to fetch all courses: ${e.message}", e)
+            }
+            emptyList<Course>()
+        }
+    }
+
     override suspend fun getCourses(
         search: String?,
         subject: String?,
@@ -26,33 +82,52 @@ class AppwriteCourseRepository(
         val databases = clientProvider.databases
             ?: return Result.success(emptyList())
 
-        Log.d(TAG, "getCourses called: databases=${databases != null}, dbId=$dbId, search=$search, subject=$subject")
+        Log.d(TAG, "getCourses called: search=$search, subject=$subject")
 
         return try {
-            val queries = mutableListOf<String>()
-            queries.add(Query.orderAsc("course_code"))
-            queries.add(Query.limit(50))
-            queries.add(Query.offset((page - 1) * 50))
+            val allCourses = getAllCourses()
+            if (allCourses.isEmpty()) {
+                val queries = mutableListOf<String>()
+                queries.add(Query.orderAsc("course_code"))
+                queries.add(Query.limit(100))
+                if (!search.isNullOrBlank()) {
+                    queries.add(Query.startsWith("course_code", search.trim().uppercase()))
+                } else if (!subject.isNullOrBlank() && !subject.equals("ALL", ignoreCase = true)) {
+                    queries.add(Query.startsWith("course_code", subject.trim().uppercase()))
+                }
+                val response = databases.listDocuments(dbId, coursesCol, queries)
+                val courses = response.documents.map { mapDocumentToCourse(it.id, it.data) }
+                return Result.success(courses)
+            }
+
+            var filtered = allCourses
+
+            if (!subject.isNullOrBlank() && !subject.equals("ALL", ignoreCase = true)) {
+                val s = subject.trim().uppercase()
+                filtered = filtered.filter { course ->
+                    val codeUpper = course.code.uppercase()
+                    val deptUpper = course.department.uppercase()
+                    if (s == "CCC") {
+                        codeUpper.startsWith("CCC") || deptUpper.contains("COMMON CORE")
+                    } else {
+                        codeUpper.startsWith(s) || deptUpper == s
+                    }
+                }
+            }
 
             if (!search.isNullOrBlank()) {
-                val q = search.trim().uppercase()
-                queries.add(Query.startsWith("course_code", q))
-            } else if (!subject.isNullOrBlank()) {
-                queries.add(Query.startsWith("course_code", subject.trim().uppercase()))
+                val q = search.trim()
+                filtered = filtered.filter { course ->
+                    course.code.contains(q, ignoreCase = true) ||
+                    course.titleEn.contains(q, ignoreCase = true) ||
+                    course.titleZh.contains(q, ignoreCase = true) ||
+                    course.department.contains(q, ignoreCase = true) ||
+                    course.description.contains(q, ignoreCase = true)
+                }
             }
 
-            val response = databases.listDocuments(
-                databaseId = dbId,
-                collectionId = coursesCol,
-                queries = queries
-            )
-
-            val courses = response.documents.map { doc ->
-                mapDocumentToCourse(doc.id, doc.data)
-            }
-
-            Log.d(TAG, "Loaded ${courses.size} courses (subject: $subject, search: $search)")
-            Result.success(courses)
+            Log.d(TAG, "Loaded ${filtered.size} courses (subject: $subject, search: $search)")
+            Result.success(filtered)
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching courses: ${e.message}", e)
             Result.failure(e)
@@ -61,6 +136,11 @@ class AppwriteCourseRepository(
 
 
     override suspend fun getCourseByCode(courseCode: String): Result<Course> {
+        val trimmed = courseCode.trim().uppercase()
+        allCoursesCache?.find { it.code.trim().uppercase() == trimmed }?.let {
+            return Result.success(it)
+        }
+
         val databases = clientProvider.databases
             ?: return Result.failure(IllegalStateException("Databases not initialized"))
 
@@ -68,7 +148,7 @@ class AppwriteCourseRepository(
             val response = databases.listDocuments(
                 databaseId = dbId,
                 collectionId = coursesCol,
-                queries = listOf(Query.equal("course_code", courseCode.trim().uppercase()))
+                queries = listOf(Query.equal("course_code", trimmed))
             )
 
             val doc = response.documents.firstOrNull()

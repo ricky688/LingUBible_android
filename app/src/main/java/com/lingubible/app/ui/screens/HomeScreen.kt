@@ -52,6 +52,7 @@ import com.lingubible.app.ui.common.mouseScrollbar
 import com.lingubible.app.ui.components.*
 import com.lingubible.app.ui.viewmodels.AuthViewModel
 import com.lingubible.app.ui.viewmodels.CoursesViewModel
+import com.lingubible.app.ui.viewmodels.HomeViewModel
 import com.lingubible.app.ui.viewmodels.InstructorsViewModel
 import com.lingubible.app.ui.viewmodels.ReviewsViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -71,12 +72,14 @@ fun HomeScreen(
     onNavigateToWriteReview: (String) -> Unit,
     onNavigateToPlanner: () -> Unit = {},
     onNavigateToReviews: () -> Unit = {},
+    homeViewModel: HomeViewModel = koinViewModel(),
     coursesViewModel: CoursesViewModel = koinViewModel(),
     reviewsViewModel: ReviewsViewModel = koinViewModel(),
     instructorsViewModel: InstructorsViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel()
 ) {
     val isDark = isAppDarkTheme()
+    val homeState by homeViewModel.uiState.collectAsState()
     val coursesState by coursesViewModel.uiState.collectAsState()
     val reviewsState by reviewsViewModel.uiState.collectAsState()
     val instructorsState by instructorsViewModel.uiState.collectAsState()
@@ -247,9 +250,20 @@ fun HomeScreen(
                 // 2. Stats Section (4 Cards Grid)
                 // ==========================================
                 item {
-                    val reviewsCount = reviewsState.reviews.size
-                    val coursesCount = coursesState.courses.size
-                    val instructorsCount = instructorsState.instructors.size
+                    val stats = homeState.stats
+                    val isStatsLoading = homeState.isLoading && stats.verifiedStudentsCount == 0
+
+                    val studentsDisplay = if (isStatsLoading) "..." else if (stats.verifiedStudentsCount > 0) "${stats.verifiedStudentsCount}" else if (authState.currentUser != null) "1" else "--"
+                    val studentsChange = if (stats.verifiedStudentsLast30Days > 0) "+${stats.verifiedStudentsLast30Days}" else "--"
+
+                    val reviewsDisplay = if (isStatsLoading) "..." else if (stats.reviewsCount > 0) "${stats.reviewsCount}" else if (reviewsState.reviews.isNotEmpty()) "${reviewsState.reviews.size}" else "--"
+                    val reviewsChange = if (stats.reviewsLast30Days > 0) "+${stats.reviewsLast30Days}" else "--"
+
+                    val coursesDisplay = if (isStatsLoading) "..." else if (stats.coursesCount > 0) "${stats.coursesCount}" else if (coursesState.courses.isNotEmpty()) "${coursesState.courses.size}" else "--"
+                    val coursesChange = if (stats.coursesLast30Days > 0) "+${stats.coursesLast30Days}" else "--"
+
+                    val instructorsDisplay = if (isStatsLoading) "..." else if (stats.instructorsCount > 0) "${stats.instructorsCount}" else if (instructorsState.instructors.isNotEmpty()) "${instructorsState.instructors.size}" else "--"
+                    val instructorsChange = if (stats.instructorsLast30Days > 0) "+${stats.instructorsLast30Days}" else "--"
 
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(
@@ -259,15 +273,15 @@ fun HomeScreen(
                             StatsCard(
                                 icon = Icons.Filled.VerifiedUser,
                                 title = "認證學生",
-                                value = if (authState.currentUser != null) "1" else "--",
-                                change = "--",
+                                value = studentsDisplay,
+                                change = studentsChange,
                                 modifier = Modifier.weight(1f)
                             )
                             StatsCard(
                                 icon = Icons.Filled.Star,
                                 title = "課程評價",
-                                value = if (reviewsState.isLoading && reviewsState.reviews.isEmpty()) "..." else "$reviewsCount",
-                                change = "--",
+                                value = reviewsDisplay,
+                                change = reviewsChange,
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -278,8 +292,8 @@ fun HomeScreen(
                             StatsCard(
                                 icon = Icons.Filled.Book,
                                 title = "涵蓋課程",
-                                value = if (coursesState.isLoading && coursesState.courses.isEmpty()) "..." else "$coursesCount",
-                                change = "--",
+                                value = coursesDisplay,
+                                change = coursesChange,
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(16.dp))
@@ -288,8 +302,8 @@ fun HomeScreen(
                             StatsCard(
                                 icon = Icons.Filled.Person,
                                 title = "評價講師",
-                                value = if (instructorsState.isLoading && instructorsState.instructors.isEmpty()) "..." else "$instructorsCount",
-                                change = "--",
+                                value = instructorsDisplay,
+                                change = instructorsChange,
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(16.dp))

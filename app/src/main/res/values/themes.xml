@@ -11,7 +11,7 @@
 
         <!-- Android 12+ (API 31+) Splash Screen attributes for Light mode -->
         <item name="android:windowSplashScreenBackground">#F8FAFC</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_lingubible_logo</item>
         <item name="android:windowSplashScreenIconBackgroundColor">#F8FAFC</item>
     </style>
 </resources>

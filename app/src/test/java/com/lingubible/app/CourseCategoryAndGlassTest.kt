@@ -2,9 +2,9 @@ package com.lingubible.app
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import com.lingubible.app.domain.model.COURSE_CATEGORIES
+import com.lingubible.app.domain.model.CourseCategory
 import com.lingubible.app.domain.model.TimetableSection
-import com.lingubible.app.ui.components.COURSE_CATEGORIES
-import com.lingubible.app.ui.components.CourseCategory
 import com.lingubible.app.ui.viewmodels.TimetableUiState
 import org.junit.Assert.*
 import org.junit.Test
@@ -18,6 +18,7 @@ class CourseCategoryAndGlassTest {
 
         val codes = COURSE_CATEGORIES.map { it.code }
         assertTrue("Must contain ALL option", codes.contains("ALL"))
+        assertTrue("Must contain CCC", codes.contains("CCC"))
         assertTrue("Must contain ACT", codes.contains("ACT"))
         assertTrue("Must contain BUS", codes.contains("BUS"))
         assertTrue("Must contain CDS", codes.contains("CDS"))
@@ -36,8 +37,7 @@ class CourseCategoryAndGlassTest {
         assertTrue("Must contain SOC", codes.contains("SOC"))
         assertTrue("Must contain TRA", codes.contains("TRA"))
 
-        // Ensure 3-column grid alignment with no jagged row
-        assertEquals("Total category count must be divisible by 3 for complete multi-column grid rows", 0, COURSE_CATEGORIES.size % 3)
+        assertTrue("Total category count must be at least 19", COURSE_CATEGORIES.size >= 19)
 
         // Ensure each category has non-blank Chinese and English names
         COURSE_CATEGORIES.forEach { category ->

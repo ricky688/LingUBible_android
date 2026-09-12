@@ -25,11 +25,13 @@ val appModule = module {
     single<InstructorRepository> { AppwriteInstructorRepository(clientProvider = get()) }
     single<ReviewRepository> { AppwriteReviewRepository(clientProvider = get()) }
     single<MaterialRepository> { AppwriteMaterialRepository(clientProvider = get()) }
+    single<StatsRepository> { AppwriteStatsRepository(clientProvider = get()) }
     single { TimetableRepository(androidContext()) }
     single { AcademicCalendarRepository(androidContext()) }
     single { com.lingubible.app.core.settings.AppSettingsManager(androidContext()) }
 
     viewModel { MainViewModel(get()) }
+    viewModel { HomeViewModel(get()) }
     viewModel { AuthViewModel(get()) }
     viewModel { CoursesViewModel(get()) }
     viewModel { CourseDetailViewModel(get(), get(), get()) }

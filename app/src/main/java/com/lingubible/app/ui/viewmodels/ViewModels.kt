@@ -458,3 +458,46 @@ class WriteReviewViewModel(
         }
     }
 }
+
+// ==========================================
+// Home / Stats ViewModel
+// ==========================================
+data class HomeUiState(
+    val isLoading: Boolean = false,
+    val stats: PlatformStats = PlatformStats(),
+    val errorMessage: String? = null
+)
+
+class HomeViewModel(
+    private val statsRepository: StatsRepository
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(HomeUiState(isLoading = true))
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    init {
+        loadStats()
+    }
+
+    fun loadStats() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val result = statsRepository.getPlatformStats()
+            if (result.isSuccess) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        stats = result.getOrDefault(PlatformStats()),
+                        errorMessage = null
+                    )
+                }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = result.exceptionOrNull()?.message
+                    )
+                }
+            }
+        }
+    }
+}
