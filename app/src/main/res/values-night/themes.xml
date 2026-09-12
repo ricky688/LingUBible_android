@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme (Dark mode) -->
+    <style name="Theme.LingUBible" parent="android:Theme.Material.NoActionBar">
+        <!-- App opening window background in dark mode (Lingnan Dark #0B0F19) -->
+        <item name="android:windowBackground">#0B0F19</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+        <!-- Android 12+ (API 31+) Splash Screen attributes for Dark mode -->
+        <item name="android:windowSplashScreenBackground">#0B0F19</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#0B0F19</item>
+    </style>
+</resources>

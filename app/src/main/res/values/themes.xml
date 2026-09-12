@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme (Light mode) -->
+    <style name="Theme.LingUBible" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- App opening window background in light mode -->
+        <item name="android:windowBackground">#F8FAFC</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+        <!-- Android 12+ (API 31+) Splash Screen attributes for Light mode -->
+        <item name="android:windowSplashScreenBackground">#F8FAFC</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#F8FAFC</item>
+    </style>
+</resources>

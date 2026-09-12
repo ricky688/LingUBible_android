@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="160"
+    android:viewportHeight="160">
+
+    <!-- Red squircle rounded container badge -->
+    <path
+        android:fillColor="#E31F26"
+        android:pathData="M80,12 C124,12 148,36 148,80 C148,124 124,148 80,148 C36,148 12,124 12,80 C12,36 36,12 80,12 Z" />
+
+    <!-- Pure white LingUBible book emblem centered inside badge -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,48 h52 c4.4,0 8,3.6 8,8 v48 c0,4.4 -3.6,8 -8,8 H54 c-4.4,0 -8,-3.6 -8,-8 V56 c0,-4.4 3.6,-8 8,-8 z m3,11 v42 h46 V59 H57 z m5,8 h36 v5 H62 v-5 z m0,11 h36 v5 H62 v-5 z m0,11 h26 v5 H62 v-5 z"/>
+
+</vector>
