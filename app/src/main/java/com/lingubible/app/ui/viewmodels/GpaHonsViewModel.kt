@@ -136,6 +136,7 @@ class GpaHonsViewModel(
     }
 
     private fun mutateDocument(newDoc: GpaDocument) {
+        if (newDoc == _uiState.value.document) return
         undoStack.add(_uiState.value.document)
         if (undoStack.size > 50) undoStack.removeAt(0)
         redoStack.clear()
@@ -258,11 +259,21 @@ class GpaHonsViewModel(
     }
 
     fun setTargetCgpa(value: String) {
-        recompute(_uiState.value.document, value, _uiState.value.remainingCreditsInput)
+        val parts = value.filter { it in '0'..'9' || it == '.' }.split('.')
+        val cleaned = parts.first() + if (parts.size > 1) "." + parts.drop(1).joinToString("") else ""
+        val bounded = if ((cleaned.toDoubleOrNull() ?: 0.0) > 4.0) "4" else cleaned
+        recompute(_uiState.value.document, bounded, _uiState.value.remainingCreditsInput)
     }
 
     fun setRemainingCredits(value: String) {
-        recompute(_uiState.value.document, _uiState.value.targetCgpaInput, value)
+        recompute(_uiState.value.document, _uiState.value.targetCgpaInput, value.filter { it in '0'..'9' })
+    }
+
+    fun setAcademicYear(year: Int, academic: String) {
+        if (academic !in (2022..2029).map { "$it-${it + 1}" }) return
+        val doc = _uiState.value.document
+        if (doc.yearAcademic[year] == academic) return
+        mutateDocument(doc.copy(yearAcademic = doc.yearAcademic + (year to academic)))
     }
 
     fun updateCourse(termId: String, courseId: String, code: String? = null, title: String? = null, credits: String? = null, grade: String? = null) {
@@ -329,9 +340,8 @@ class GpaHonsViewModel(
 
     fun addYear() {
         val currentDoc = _uiState.value.document
-        val maxYear = currentDoc.terms.maxOfOrNull { it.year } ?: 0
-        if (maxYear >= 8) return
-        val nextYear = maxYear + 1
+        val usedYears = currentDoc.terms.map { it.year }.toSet()
+        val nextYear = (1..8).firstOrNull { it !in usedYears } ?: return
         val newTerm = GpaTerm(year = nextYear, part = TermPart.TERM_1, courses = listOf(GpaCourseEntry()))
         mutateDocument(currentDoc.copy(terms = currentDoc.terms + newTerm))
     }

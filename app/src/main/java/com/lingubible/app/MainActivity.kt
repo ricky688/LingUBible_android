@@ -37,9 +37,12 @@ import com.lingubible.app.core.navigation.TopBarState
 import com.lingubible.app.core.navigation.Screen
 import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.settings.ThemeMode
+import com.lingubible.app.ui.components.DiscoverTopBarGlass
 import com.lingubible.app.core.theme.LingUBibleTheme
 import org.koin.android.ext.android.inject
 import java.util.Locale
+
+val LocalComponentActivity = staticCompositionLocalOf<ComponentActivity?> { null }
 
 class MainActivity : ComponentActivity() {
     private val settingsManager: AppSettingsManager by inject()
@@ -82,6 +85,7 @@ class MainActivity : ComponentActivity() {
             }
 
             CompositionLocalProvider(
+                LocalComponentActivity provides this@MainActivity,
                 LocalContext provides localizedContext,
                 LocalConfiguration provides localizedContext.resources.configuration
             ) {
@@ -254,8 +258,7 @@ fun LingUBibleMainScreen() {
             val topBarPadding = innerPadding.calculateTopPadding()
             val statusBarPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
             val effectiveTopPadding = maxOf(topBarPadding, statusBarPadding)
-            LingUBibleNavHost(
-                navController = navController,
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(
@@ -263,7 +266,17 @@ fun LingUBibleMainScreen() {
                         bottom = if (shouldShowBottomBar) 0.dp else innerPadding.calculateBottomPadding()
                     )
                     .consumeWindowInsets(WindowInsets.statusBars)
-            )
+            ) {
+                LingUBibleNavHost(
+                    navController = navController,
+                    modifier = Modifier.fillMaxSize()
+                )
+                // Draw over the list, immediately below the measured top bar.
+                // This decorative layer neither reserves space nor intercepts touches.
+                if (currentDestination?.hasRoute<Screen.Home>() == true && isTopBarVisible) {
+                    DiscoverTopBarGlass()
+                }
+            }
         }
     }
 }

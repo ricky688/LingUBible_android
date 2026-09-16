@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import androidx.compose.runtime.saveable.rememberSaveable
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.Spring
@@ -52,7 +54,7 @@ fun AcademicToolsScreen(
     val appLanguage by settingsManager.appLanguage.collectAsState()
     val isZh = appLanguage == AppLanguage.ZH_TW
 
-    var selectedTab by remember(initialTab) { mutableIntStateOf(initialTab.coerceIn(0, 2)) }
+    var selectedTab by rememberSaveable(initialTab) { mutableIntStateOf(initialTab.coerceIn(0, 2)) }
     var previousTab by remember { mutableIntStateOf(selectedTab) }
 
     LaunchedEffect(selectedTab) {

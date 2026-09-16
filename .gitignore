@@ -62,3 +62,5 @@ Thumbs.db
 # Embedded / external reference repos & temporary tool outputs
 pixelthing/
 graphify-out/
+artemis/
+

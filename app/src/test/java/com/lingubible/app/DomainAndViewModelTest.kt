@@ -2,6 +2,7 @@ package com.lingubible.app
 
 import com.lingubible.app.domain.model.*
 import com.lingubible.app.domain.repository.*
+import androidx.activity.ComponentActivity
 import com.lingubible.app.domain.util.*
 import com.lingubible.app.ui.viewmodels.*
 import kotlinx.coroutines.Dispatchers
@@ -157,6 +158,9 @@ class DomainAndViewModelTest {
             val user = User(id = "user123", name = name, email = email)
             return Result.success(user)
         }
+
+        override suspend fun loginWithGoogle(activity: ComponentActivity): Result<User> =
+            Result.failure(UnsupportedOperationException("Not used by this fake"))
 
         override suspend fun logout(): Result<Unit> {
             _currentUser.value = null

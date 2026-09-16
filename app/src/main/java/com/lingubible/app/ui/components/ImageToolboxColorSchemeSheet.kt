@@ -77,6 +77,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.settings.AppColorScheme
@@ -428,7 +429,8 @@ fun CustomColorPickerDialog(
                             } catch (_: Exception) {}
                         }
                     },
-                    label = { Text("Hex 色碼 (例如 #E53935)") },
+                    label = { Text("Hex 色碼 · Hex Code", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    placeholder = { Text("例如 #E53935", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true

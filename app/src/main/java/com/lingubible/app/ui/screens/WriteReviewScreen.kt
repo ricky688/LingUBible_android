@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.theme.*
@@ -106,7 +107,8 @@ fun WriteReviewScreen(
                             courseCode = it
                             viewModel.updateCourseInfo(it, courseTitle, instructorName)
                         },
-                        label = { Text("課程代碼 Course Code (例: CLC9001)") },
+                        label = { Text("課程代碼 · Course Code", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        placeholder = { Text("例: CLC9001", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
@@ -118,7 +120,7 @@ fun WriteReviewScreen(
                             courseTitle = it
                             viewModel.updateCourseInfo(courseCode, it, instructorName)
                         },
-                        label = { Text("課程名稱 Course Title") },
+                        label = { Text("課程名稱 · Course Title", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
@@ -130,7 +132,7 @@ fun WriteReviewScreen(
                             instructorName = it
                             viewModel.updateCourseInfo(courseCode, courseTitle, it)
                         },
-                        label = { Text("講師姓名 Instructor / Lecturer") },
+                        label = { Text("講師姓名 · Instructor", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
@@ -159,7 +161,8 @@ fun WriteReviewScreen(
                         OutlinedTextField(
                             value = academicYear,
                             onValueChange = { academicYear = it },
-                            label = { Text("學年 Year") },
+                            label = { Text("學年 · Year", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            placeholder = { Text("例: 2023-2024", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true
@@ -167,7 +170,8 @@ fun WriteReviewScreen(
                         OutlinedTextField(
                             value = term,
                             onValueChange = { term = it },
-                            label = { Text("學期 Term") },
+                            label = { Text("學期 · Term", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            placeholder = { Text("例: Term 1", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true
@@ -177,7 +181,8 @@ fun WriteReviewScreen(
                     OutlinedTextField(
                         value = grade,
                         onValueChange = { grade = it },
-                        label = { Text("最終成績 Final Grade (A, A-, B+, B, 等)") },
+                        label = { Text("最終成績 · Final Grade", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        placeholder = { Text("例: A, A-, B+, B", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
@@ -229,7 +234,8 @@ fun WriteReviewScreen(
                     OutlinedTextField(
                         value = comment,
                         onValueChange = { comment = it },
-                        label = { Text("分享你的真實修課心得 (至少 20 字)...") },
+                        label = { Text("心得評論 · Review Comment", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        placeholder = { Text("分享你的真實修課心得 (至少 20 字)...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(120.dp),

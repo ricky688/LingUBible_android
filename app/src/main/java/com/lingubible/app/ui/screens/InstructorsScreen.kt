@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.ui.common.mouseScrollbar
@@ -69,7 +70,7 @@ fun InstructorsScreen(
                     searchInput = it
                     viewModel.search(it)
                 },
-                placeholder = { Text("搜尋講師姓名...") },
+                placeholder = { Text("搜尋講師姓名...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 leadingIcon = {
                     Icon(
                         Icons.Filled.Search,

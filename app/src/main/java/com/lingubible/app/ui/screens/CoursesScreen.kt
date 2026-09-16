@@ -80,7 +80,7 @@ fun CoursesScreen(
                 searchInput = it
                 viewModel.search(it)
             },
-            placeholder = { Text("搜尋課程代碼、名稱或學系...") },
+            placeholder = { Text("搜尋課程代碼、名稱或學系...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
             leadingIcon = {
                 Icon(
                     Icons.Filled.Search,

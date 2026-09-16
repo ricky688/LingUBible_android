@@ -1,11 +1,13 @@
 package com.lingubible.app.data.repository
 
+import androidx.activity.ComponentActivity
 import com.lingubible.app.data.remote.AppwriteClientProvider
 import com.lingubible.app.domain.model.Session
 import com.lingubible.app.domain.model.User
 import com.lingubible.app.domain.repository.AuthRepository
 import com.lingubible.app.domain.util.EmailValidator
 import io.appwrite.ID
+import io.appwrite.enums.OAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -79,6 +81,35 @@ class AppwriteAuthRepository(
                 status = appwriteUser.status,
                 registrationDate = appwriteUser.registration
             )
+            Result.success(user)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun loginWithGoogle(activity: ComponentActivity): Result<User> {
+        val account = clientProvider.account
+            ?: return Result.failure(IllegalStateException("Appwrite Account service not initialized"))
+
+        return try {
+            account.createOAuth2Session(activity, OAuthProvider.GOOGLE)
+            val appwriteUser = account.get()
+            if (!isValidEmail(appwriteUser.email)) {
+                account.deleteSession("current")
+                return Result.failure(
+                    IllegalArgumentException("Please use a valid Lingnan University Google account (@ln.hk or @ln.edu.hk)")
+                )
+            }
+
+            val user = User(
+                id = appwriteUser.id,
+                name = appwriteUser.name,
+                email = appwriteUser.email,
+                emailVerification = appwriteUser.emailVerification,
+                status = appwriteUser.status,
+                registrationDate = appwriteUser.registration
+            )
+            _currentUser.value = user
             Result.success(user)
         } catch (e: Exception) {
             Result.failure(e)

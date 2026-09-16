@@ -12,17 +12,32 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.ComponentActivity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lingubible.app.LocalComponentActivity
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.ui.components.FloatingCircles
 import com.lingubible.app.ui.components.M3ButtonGroup
@@ -39,11 +54,17 @@ fun AuthScreen(
     viewModel: AuthViewModel = koinViewModel()
 ) {
     val isDark = isAppDarkTheme()
-    val uiState by viewModel.uiState.collectAsState()
-    var isLoginMode by remember { mutableStateOf(initialMode == "login") }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val view = LocalView.current
+    val activity = LocalComponentActivity.current ?: remember(context, view) {
+        context.findActivity() ?: view.context.findActivity()
+    }
+    var isLoginMode by remember(initialMode) { mutableStateOf(initialMode == "login") }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -89,8 +110,14 @@ fun AuthScreen(
                 ) {
                     M3ButtonGroup(
                         selectedIndex = if (isLoginMode) 0 else 1,
-                        onLeadingClick = { isLoginMode = true },
-                        onTrailingClick = { isLoginMode = false },
+                        onLeadingClick = {
+                            isLoginMode = true
+                            viewModel.clearError()
+                        },
+                        onTrailingClick = {
+                            isLoginMode = false
+                            viewModel.clearError()
+                        },
                         leadingText = "登入 Sign In",
                         trailingText = "註冊 Register",
                         height = 42.dp,
@@ -102,55 +129,116 @@ fun AuthScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                if (!isLoginMode) {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        label = { Text("姓名或暱稱 Name") },
-                        leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                        modifier = Modifier.fillMaxWidth(),
+                OutlinedButton(
+                    onClick = {
+                        activity?.let { viewModel.loginWithGoogle(it, onAuthSuccess) }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    enabled = !uiState.isLoading && activity != null,
+                    shape = RoundedCornerShape(26.dp)
+                ) {
+                    Surface(
+                        modifier = Modifier.size(24.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary
-                        ),
-                        singleLine = true
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text("G", fontWeight = FontWeight.Black)
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = if (uiState.isLoading) "Google 登入中… Signing in…" else "使用 Google 繼續 Continue with Google",
+                        fontWeight = FontWeight.SemiBold
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
                 }
-
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("嶺南大學電郵 (@ln.hk / @ln.edu.hk)") },
-                    leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary
-                    ),
-                    singleLine = true
-                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("密碼 Password") },
-                    leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary
-                    ),
-                    singleLine = true
-                )
+                Column {
+                        AnimatedVisibility(
+                            visible = !isLoginMode,
+                            enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
+                                fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+                            exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
+                                fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                        ) {
+                            Column {
+                            OutlinedTextField(
+                                value = name,
+                                onValueChange = { name = it },
+                                label = { Text("姓名或暱稱 · Name", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = authFieldColors(),
+                                singleLine = true
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            }
+                        }
+
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = { Text("嶺南大學電郵 · Lingnan Email", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            placeholder = { Text("@ln.hk / @ln.edu.hk", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = authFieldColors(),
+                            singleLine = true
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = { Text("密碼 · Password", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                            visualTransformation = PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = authFieldColors(),
+                            singleLine = true
+                        )
+
+                        AnimatedVisibility(
+                            visible = !isLoginMode,
+                            enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
+                                fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+                            exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
+                                fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                        ) {
+                            Column {
+                                Spacer(modifier = Modifier.height(12.dp))
+                            OutlinedTextField(
+                                value = confirmPassword,
+                                onValueChange = { confirmPassword = it },
+                                label = { Text("確認密碼 · Confirm Password", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                isError = confirmPassword.isNotEmpty() && password != confirmPassword,
+                                supportingText = {
+                                    if (confirmPassword.isNotEmpty() && password != confirmPassword) {
+                                        Text("Passwords do not match", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = authFieldColors(),
+                                singleLine = true
+                            )
+                            }
+                        }
+                }
 
                 if (uiState.errorMessage != null) {
                     Spacer(modifier = Modifier.height(12.dp))
@@ -162,14 +250,14 @@ fun AuthScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(26.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
                     onClick = {
                         if (isLoginMode) {
                             viewModel.login(email, password, onAuthSuccess)
                         } else {
-                            viewModel.register(email, password, name, onAuthSuccess)
+                            viewModel.register(email, password, confirmPassword, name, onAuthSuccess)
                         }
                     },
                     modifier = Modifier
@@ -200,3 +288,16 @@ fun AuthScreen(
         }
     }
 }
+
+@Composable
+private fun authFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    focusedLabelColor = MaterialTheme.colorScheme.primary
+)
+
+private tailrec fun Context.findActivity(): ComponentActivity? = when (this) {
+    is ComponentActivity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+

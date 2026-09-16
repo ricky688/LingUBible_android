@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.viewmodels
 
+import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lingubible.app.domain.model.*
@@ -66,7 +67,13 @@ class AuthViewModel(
         }
     }
 
-    fun register(email: String, password: String, name: String, onSuccess: () -> Unit) {
+    fun register(
+        email: String,
+        password: String,
+        confirmPassword: String,
+        name: String,
+        onSuccess: () -> Unit
+    ) {
         if (!EmailValidator.isValidLingnanEmail(email)) {
             _uiState.update { it.copy(errorMessage = "Please enter a valid Lingnan University email (@ln.hk or @ln.edu.hk)") }
             return
@@ -74,6 +81,11 @@ class AuthViewModel(
 
         if (password.length < 8) {
             _uiState.update { it.copy(errorMessage = "Password must be at least 8 characters long") }
+            return
+        }
+
+        if (password != confirmPassword) {
+            _uiState.update { it.copy(errorMessage = "Passwords do not match") }
             return
         }
 
@@ -94,6 +106,29 @@ class AuthViewModel(
                 }
             }
         }
+    }
+
+    fun loginWithGoogle(activity: ComponentActivity, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val result = authRepository.loginWithGoogle(activity)
+            if (result.isSuccess) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = null) }
+                onSuccess()
+            } else {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = result.exceptionOrNull()?.localizedMessage
+                            ?: "Google sign-in could not be completed."
+                    )
+                }
+            }
+        }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 
     fun logout(onSuccess: () -> Unit) {

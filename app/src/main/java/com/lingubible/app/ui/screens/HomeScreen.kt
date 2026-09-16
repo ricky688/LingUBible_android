@@ -1,8 +1,13 @@
 package com.lingubible.app.ui.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -495,151 +500,171 @@ fun HomeScreen(
 
                 // Tab Content: Popular Courses, Instructors, Top Courses, Top Instructors
                 item {
-                    when (selectedTab) {
-                        HomeFeaturedTab.POPULAR_COURSES -> {
-                            val courses = coursesState.courses
-                            if (coursesState.isLoading && courses.isEmpty()) {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth().padding(32.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    M3LoadingIndicator()
-                                }
-                            } else if (courses.isEmpty()) {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth().padding(24.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "暫無課程資料",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            } else {
-                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    courses.take(6).forEach { course ->
-                                        val isFav = favoriteCourses.contains(course.code)
-                                        PopularCourseCard(
-                                            course = course,
-                                            isFavorited = isFav,
-                                            onFavoriteToggle = {
-                                                if (isFav) favoriteCourses.remove(course.code)
-                                                else favoriteCourses.add(course.code)
-                                            },
-                                            onClick = { onNavigateToCourse(course.code) }
+                    AnimatedContent(
+                        targetState = selectedTab,
+                        transitionSpec = {
+                            val direction = if (targetState.ordinal > initialState.ordinal) 1 else -1
+                            ((slideInHorizontally(
+                                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                                initialOffsetX = { fullWidth -> direction * fullWidth / 4 }
+                            ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))) togetherWith
+                                (slideOutHorizontally(
+                                    animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                                    targetOffsetX = { fullWidth -> -direction * fullWidth / 4 }
+                                ) + fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium))))
+                                .using(SizeTransform(clip = false) { _, _ ->
+                                    spring(stiffness = Spring.StiffnessMediumLow)
+                                })
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = "homeFeaturedCategoryTransition"
+                    ) { currentTab ->
+                        when (currentTab) {
+                            HomeFeaturedTab.POPULAR_COURSES -> {
+                                val courses = coursesState.courses
+                                if (coursesState.isLoading && courses.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        M3LoadingIndicator()
+                                    }
+                                } else if (courses.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth().padding(24.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "暫無課程資料",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
+                                    }
+                                } else {
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        courses.take(6).forEach { course ->
+                                            val isFav = favoriteCourses.contains(course.code)
+                                            PopularCourseCard(
+                                                course = course,
+                                                isFavorited = isFav,
+                                                onFavoriteToggle = {
+                                                    if (isFav) favoriteCourses.remove(course.code)
+                                                    else favoriteCourses.add(course.code)
+                                                },
+                                                onClick = { onNavigateToCourse(course.code) }
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
-                        HomeFeaturedTab.POPULAR_INSTRUCTORS -> {
-                            val instructors = instructorsState.instructors
-                            if (instructorsState.isLoading && instructors.isEmpty()) {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth().padding(32.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    M3LoadingIndicator()
-                                }
-                            } else if (instructors.isEmpty()) {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth().padding(24.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "暫無講師資料",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            } else {
-                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    instructors.take(6).forEach { instructor ->
-                                        val isFav = favoriteInstructors.contains(instructor.name)
-                                        PopularInstructorCard(
-                                            instructor = instructor,
-                                            isFavorited = isFav,
-                                            onFavoriteToggle = {
-                                                if (isFav) favoriteInstructors.remove(instructor.name)
-                                                else favoriteInstructors.add(instructor.name)
-                                            },
-                                            onClick = { onNavigateToInstructor(instructor.name) }
+                            HomeFeaturedTab.POPULAR_INSTRUCTORS -> {
+                                val instructors = instructorsState.instructors
+                                if (instructorsState.isLoading && instructors.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        M3LoadingIndicator()
+                                    }
+                                } else if (instructors.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth().padding(24.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "暫無講師資料",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
+                                    }
+                                } else {
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        instructors.take(6).forEach { instructor ->
+                                            val isFav = favoriteInstructors.contains(instructor.name)
+                                            PopularInstructorCard(
+                                                instructor = instructor,
+                                                isFavorited = isFav,
+                                                onFavoriteToggle = {
+                                                    if (isFav) favoriteInstructors.remove(instructor.name)
+                                                    else favoriteInstructors.add(instructor.name)
+                                                },
+                                                onClick = { onNavigateToInstructor(instructor.name) }
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
-                        HomeFeaturedTab.TOP_COURSES -> {
-                            val topCourses = coursesState.courses.sortedByDescending { it.avgRating }
-                            if (coursesState.isLoading && topCourses.isEmpty()) {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth().padding(32.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    M3LoadingIndicator()
-                                }
-                            } else if (topCourses.isEmpty()) {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth().padding(24.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "暫無課程資料",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            } else {
-                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    topCourses.take(6).forEach { course ->
-                                        val isFav = favoriteCourses.contains(course.code)
-                                        PopularCourseCard(
-                                            course = course,
-                                            isFavorited = isFav,
-                                            onFavoriteToggle = {
-                                                if (isFav) favoriteCourses.remove(course.code)
-                                                else favoriteCourses.add(course.code)
-                                            },
-                                            onClick = { onNavigateToCourse(course.code) }
+                            HomeFeaturedTab.TOP_COURSES -> {
+                                val topCourses = coursesState.courses.sortedByDescending { it.avgRating }
+                                if (coursesState.isLoading && topCourses.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        M3LoadingIndicator()
+                                    }
+                                } else if (topCourses.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth().padding(24.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "暫無課程資料",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
+                                    }
+                                } else {
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        topCourses.take(6).forEach { course ->
+                                            val isFav = favoriteCourses.contains(course.code)
+                                            PopularCourseCard(
+                                                course = course,
+                                                isFavorited = isFav,
+                                                onFavoriteToggle = {
+                                                    if (isFav) favoriteCourses.remove(course.code)
+                                                    else favoriteCourses.add(course.code)
+                                                },
+                                                onClick = { onNavigateToCourse(course.code) }
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
-                        HomeFeaturedTab.TOP_INSTRUCTORS -> {
-                            val topInstructors = instructorsState.instructors.sortedByDescending { it.avgRating }
-                            if (instructorsState.isLoading && topInstructors.isEmpty()) {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth().padding(32.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    M3LoadingIndicator()
-                                }
-                            } else if (topInstructors.isEmpty()) {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth().padding(24.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "暫無講師資料",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            } else {
-                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    topInstructors.take(6).forEach { instructor ->
-                                        val isFav = favoriteInstructors.contains(instructor.name)
-                                        PopularInstructorCard(
-                                            instructor = instructor,
-                                            isFavorited = isFav,
-                                            onFavoriteToggle = {
-                                                if (isFav) favoriteInstructors.remove(instructor.name)
-                                                else favoriteInstructors.add(instructor.name)
-                                            },
-                                            onClick = { onNavigateToInstructor(instructor.name) }
+                            HomeFeaturedTab.TOP_INSTRUCTORS -> {
+                                val topInstructors = instructorsState.instructors.sortedByDescending { it.avgRating }
+                                if (instructorsState.isLoading && topInstructors.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        M3LoadingIndicator()
+                                    }
+                                } else if (topInstructors.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth().padding(24.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "暫無講師資料",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
+                                    }
+                                } else {
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        topInstructors.take(6).forEach { instructor ->
+                                            val isFav = favoriteInstructors.contains(instructor.name)
+                                            PopularInstructorCard(
+                                                instructor = instructor,
+                                                isFavorited = isFav,
+                                                onFavoriteToggle = {
+                                                    if (isFav) favoriteInstructors.remove(instructor.name)
+                                                    else favoriteInstructors.add(instructor.name)
+                                                },
+                                                onClick = { onNavigateToInstructor(instructor.name) }
+                                            )
+                                        }
                                     }
                                 }
                             }

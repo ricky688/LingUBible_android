@@ -142,4 +142,56 @@ class GpaHonsViewModelTest {
         assertEquals(3, viewModel.uiState.value.document.terms.size)
         assertEquals(2, viewModel.uiState.value.document.terms[2].year)
     }
+
+    @Test
+    fun targetInputsFollowWebBounds() = runTest {
+        val vm = GpaHonsViewModel(context, courseRepository)
+        advanceUntilIdle()
+        vm.setTargetCgpa("3..50abc")
+        assertEquals("3.50", vm.uiState.value.targetCgpaInput)
+        vm.setTargetCgpa("9")
+        assertEquals("4", vm.uiState.value.targetCgpaInput)
+        vm.setRemainingCredits("12x.3")
+        assertEquals("123", vm.uiState.value.remainingCreditsInput)
+        vm.setRemainingCredits("0")
+        assertEquals(HonoursCalculator.RequiredAvgStatus.NO_REMAINING, vm.uiState.value.targetResult.status)
+    }
+
+    @Test
+    fun academicYearParticipatesInUndoRedoAndPersistence() = runTest {
+        var saved: String? = null
+        every { editor.putString("doc_json", any()) } answers { saved = secondArg(); editor }
+        val vm = GpaHonsViewModel(context, courseRepository)
+        advanceUntilIdle()
+        vm.setAcademicYear(1, "2026-2027")
+        advanceUntilIdle()
+        assertEquals("2026-2027", vm.uiState.value.document.yearAcademic[1])
+        vm.undo()
+        assertNull(vm.uiState.value.document.yearAcademic[1])
+        vm.redo()
+        advanceUntilIdle()
+        every { sharedPreferences.getString("doc_json", null) } answers { saved }
+        val restored = GpaHonsViewModel(context, courseRepository)
+        advanceUntilIdle()
+        assertEquals("2026-2027", restored.uiState.value.document.yearAcademic[1])
+    }
+
+    @Test
+    fun deletedYearSlotCanBeReusedAtEightYearLimit() = runTest {
+        val vm = GpaHonsViewModel(context, courseRepository)
+        repeat(7) { vm.addYear() }
+        vm.removeYear(3)
+        vm.addYear()
+        assertEquals((1..8).toSet(), vm.uiState.value.document.terms.map { it.year }.toSet())
+        vm.addYear()
+        assertEquals(8, vm.uiState.value.document.terms.map { it.year }.distinct().size)
+    }
+
+    @Test
+    fun unchangedDocumentDoesNotConsumeUndo() = runTest {
+        val vm = GpaHonsViewModel(context, courseRepository)
+        val term = vm.uiState.value.document.terms.first()
+        vm.updateCourse(term.id, term.courses.first().id, code = "")
+        assertFalse(vm.uiState.value.canUndo)
+    }
 }

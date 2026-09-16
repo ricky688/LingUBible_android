@@ -340,7 +340,7 @@ fun CourseSectionSelector(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = onSearchQueryChange,
-                    placeholder = { Text("搜尋課程代碼、名稱、講師或 CRN...") },
+                    placeholder = { Text("搜尋課程代碼、名稱、講師或 CRN...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Search,
