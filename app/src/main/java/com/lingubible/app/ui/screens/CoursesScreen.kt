@@ -44,6 +44,7 @@ import com.lingubible.app.domain.model.CourseCategory
 import com.lingubible.app.ui.common.mouseScrollbar
 import com.lingubible.app.ui.components.M3ButtonGroupItem
 import com.lingubible.app.ui.components.M3LoadingState
+import com.lingubible.app.ui.components.M3PullToRefreshBox
 import com.lingubible.app.ui.components.PopularCourseCard
 import com.lingubible.app.ui.components.ScrollableM3ButtonGroup
 import com.lingubible.app.ui.viewmodels.CoursesViewModel
@@ -377,47 +378,56 @@ fun CoursesScreen(
         Spacer(modifier = Modifier.height(6.dp))
 
         // Courses List
-        if (uiState.isLoading) {
+        if (uiState.isLoading && uiState.courses.isEmpty()) {
             M3LoadingState(
                 modifier = Modifier.fillMaxSize(),
                 message = "正在載入課程..."
             )
-        } else if (uiState.courses.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "找不到相關課程",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
         } else {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .mouseScrollbar(listState),
-                contentPadding = PaddingValues(bottom = 100.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            M3PullToRefreshBox(
+                isRefreshing = uiState.isLoading,
+                onRefresh = { viewModel.loadCourses() },
+                modifier = Modifier.fillMaxSize()
             ) {
-                items(uiState.courses, key = { it.code }) { course ->
-                    val isFav = favoriteCourses.contains(course.code)
-                    PopularCourseCard(
-                        course = course,
-                        isFavorited = isFav,
-                        onFavoriteToggle = {
-                            if (isFav) favoriteCourses.remove(course.code)
-                            else favoriteCourses.add(course.code)
-                        },
-                        onClick = { onNavigateToCourse(course.code) }
-                    )
+                if (uiState.courses.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "找不到相關課程",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .mouseScrollbar(listState),
+                        contentPadding = PaddingValues(bottom = 100.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(uiState.courses, key = { it.code }) { course ->
+                            val isFav = favoriteCourses.contains(course.code)
+                            PopularCourseCard(
+                                course = course,
+                                isFavorited = isFav,
+                                onFavoriteToggle = {
+                                    if (isFav) favoriteCourses.remove(course.code)
+                                    else favoriteCourses.add(course.code)
+                                },
+                                onClick = { onNavigateToCourse(course.code) }
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
+
 
 /**
  * Material 3 Expressive Category Chip in the Expandable Selection Grid.

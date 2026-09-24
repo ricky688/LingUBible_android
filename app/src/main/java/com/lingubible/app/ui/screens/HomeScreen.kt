@@ -102,20 +102,42 @@ fun HomeScreen(
 
     val listState = rememberLazyListState()
 
+    var manualRefreshing by remember { mutableStateOf(false) }
+    val isAnyLoading = homeState.isLoading || coursesState.isLoading || instructorsState.isLoading || reviewsState.isLoading
+    val isRefreshing = manualRefreshing && isAnyLoading
+
+    LaunchedEffect(isAnyLoading) {
+        if (!isAnyLoading) {
+            manualRefreshing = false
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Organic blurred floating circles in background
         FloatingCircles(
             modifier = Modifier.fillMaxSize()
         )
 
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .mouseScrollbar(listState),
-            contentPadding = PaddingValues(top = 8.dp, bottom = 160.dp)
+        M3PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                manualRefreshing = true
+                homeViewModel.loadStats()
+                coursesViewModel.loadCourses()
+                instructorsViewModel.loadInstructors()
+                reviewsViewModel.loadReviews()
+            },
+            modifier = Modifier.fillMaxSize()
         ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+                    .mouseScrollbar(listState),
+                contentPadding = PaddingValues(top = 8.dp, bottom = 160.dp)
+            ) {
+
                 // ==========================================
                 // 1. Hero Section
                 // ==========================================
@@ -815,6 +837,8 @@ fun HomeScreen(
                 item {
                     Spacer(modifier = Modifier.height(48.dp))
                 }
+            }
         }
     }
 }
+

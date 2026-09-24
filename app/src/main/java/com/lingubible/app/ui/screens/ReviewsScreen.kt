@@ -27,6 +27,7 @@ import com.lingubible.app.ui.components.ExpressiveReviewFab
 import com.lingubible.app.ui.components.FloatingCircles
 import com.lingubible.app.ui.components.M3LoadingIndicator
 import com.lingubible.app.ui.components.M3LoadingState
+import com.lingubible.app.ui.components.M3PullToRefreshBox
 import com.lingubible.app.ui.components.ReviewCard
 import com.lingubible.app.ui.viewmodels.ReviewsViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -70,45 +71,54 @@ fun ReviewsScreen(
                 modifier = Modifier.fillMaxSize(),
                 message = "正在載入評價資料..."
             )
-        } else if (uiState.reviews.isEmpty()) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "目前尚無評價記錄",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                ExpressiveInlineReviewButton(
-                    onClick = { onNavigateToWriteReview("") },
-                    text = "搶先評價 Be First to Review"
-                )
-            }
         } else {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .mouseScrollbar(listState),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 100.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+            M3PullToRefreshBox(
+                isRefreshing = uiState.isLoading,
+                onRefresh = { viewModel.loadReviews() },
+                modifier = Modifier.fillMaxSize()
             ) {
-                items(uiState.reviews) { review ->
-                    ReviewCard(
-                        review = review,
-                        onVote = { voteType ->
-                            viewModel.voteReview(review.id, voteType)
-                        },
+                if (uiState.reviews.isEmpty()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "目前尚無評價記錄",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        ExpressiveInlineReviewButton(
+                            onClick = { onNavigateToWriteReview("") },
+                            text = "搶先評價 Be First to Review"
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        state = listState,
                         modifier = Modifier
-                            .pointerHoverIcon(PointerIcon.Hand)
-                            .clickable { onNavigateToCourse(review.courseCode) }
-                    )
+                            .fillMaxSize()
+                            .mouseScrollbar(listState),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 100.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        items(uiState.reviews) { review ->
+                            ReviewCard(
+                                review = review,
+                                onVote = { voteType ->
+                                    viewModel.voteReview(review.id, voteType)
+                                },
+                                modifier = Modifier
+                                    .pointerHoverIcon(PointerIcon.Hand)
+                                    .clickable { onNavigateToCourse(review.courseCode) }
+                            )
+                        }
+                    }
                 }
             }
         }
+
 
         // Expressive Review FAB with scroll-aware spring movement
         val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()

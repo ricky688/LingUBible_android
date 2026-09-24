@@ -25,6 +25,7 @@ import com.lingubible.app.ui.common.mouseScrollbar
 import com.lingubible.app.ui.components.M3ButtonGroupItem
 import com.lingubible.app.ui.components.M3LoadingIndicator
 import com.lingubible.app.ui.components.M3LoadingState
+import com.lingubible.app.ui.components.M3PullToRefreshBox
 import com.lingubible.app.ui.components.PopularInstructorCard
 import com.lingubible.app.ui.components.ScrollableM3ButtonGroup
 import com.lingubible.app.ui.viewmodels.InstructorsViewModel
@@ -133,44 +134,53 @@ fun InstructorsScreen(
             Spacer(modifier = Modifier.height(14.dp))
 
             // List
-            if (uiState.isLoading) {
+            if (uiState.isLoading && uiState.instructors.isEmpty()) {
                 M3LoadingState(
                     modifier = Modifier.fillMaxSize(),
                     message = "正在載入講師名錄..."
                 )
-            } else if (uiState.instructors.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "找不到相關講師",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .mouseScrollbar(listState),
-                    contentPadding = PaddingValues(bottom = 100.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                M3PullToRefreshBox(
+                    isRefreshing = uiState.isLoading,
+                    onRefresh = { viewModel.loadInstructors() },
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    items(uiState.instructors) { instructor ->
-                        val isFav = favoriteInstructors.contains(instructor.name)
-                        PopularInstructorCard(
-                            instructor = instructor,
-                            isFavorited = isFav,
-                            onFavoriteToggle = {
-                                if (isFav) favoriteInstructors.remove(instructor.name)
-                                else favoriteInstructors.add(instructor.name)
-                            },
-                            onClick = { onNavigateToInstructor(instructor.name) }
-                        )
+                    if (uiState.instructors.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "找不到相關講師",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .mouseScrollbar(listState),
+                            contentPadding = PaddingValues(bottom = 100.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(uiState.instructors) { instructor ->
+                                val isFav = favoriteInstructors.contains(instructor.name)
+                                PopularInstructorCard(
+                                    instructor = instructor,
+                                    isFavorited = isFav,
+                                    onFavoriteToggle = {
+                                        if (isFav) favoriteInstructors.remove(instructor.name)
+                                        else favoriteInstructors.add(instructor.name)
+                                    },
+                                    onClick = { onNavigateToInstructor(instructor.name) }
+                                )
+                            }
+                        }
                     }
+                }
             }
         }
-    }
 }
+

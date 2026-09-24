@@ -27,6 +27,12 @@ import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.theme.LingnanRed
 import com.lingubible.app.core.theme.md_theme_dark_primary
 import com.lingubible.app.core.theme.md_theme_dark_surfaceVariant
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
 /**
  * Official Material 3 Expressive Loading Indicator styled with Lingnan Red brand color.
@@ -94,3 +100,68 @@ fun M3LoadingState(
         }
     }
 }
+
+/**
+ * Official Material 3 Expressive Pull-to-Refresh Container.
+ *
+ * Wraps scrollable content with pull-to-refresh functionality powered by
+ * Material 3's PullToRefreshBox and the Expressive shape-morphing LoadingIndicator.
+ *
+ * @param isRefreshing Whether a refresh operation is currently in progress.
+ * @param onRefresh Callback invoked when the user pulls past the refresh threshold.
+ * @param modifier Modifier applied to the outer PullToRefreshBox.
+ * @param state PullToRefreshState controlling the pull gesture and progress.
+ * @param indicatorColor Color for the expressive loading indicator (defaults to primary/Lingnan Red).
+ * @param containerColor Background color for the indicator capsule/container.
+ * @param content The scrollable content (e.g. LazyColumn).
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun M3PullToRefreshBox(
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier,
+    state: PullToRefreshState = rememberPullToRefreshState(),
+    indicatorColor: Color = MaterialTheme.colorScheme.primary,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    content: @Composable BoxScope.() -> Unit
+) {
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = modifier,
+        state = state,
+        indicator = {
+            M3PullToRefreshIndicator(
+                state = state,
+                isRefreshing = isRefreshing,
+                modifier = Modifier.align(Alignment.TopCenter),
+                indicatorColor = indicatorColor,
+                containerColor = containerColor
+            )
+        },
+        content = content
+    )
+}
+
+/**
+ * Material 3 Expressive Pull-to-Refresh Indicator using the expressive loading indicator.
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun BoxScope.M3PullToRefreshIndicator(
+    state: PullToRefreshState,
+    isRefreshing: Boolean,
+    modifier: Modifier = Modifier,
+    indicatorColor: Color = MaterialTheme.colorScheme.primary,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+) {
+    PullToRefreshDefaults.LoadingIndicator(
+        state = state,
+        isRefreshing = isRefreshing,
+        modifier = modifier,
+        containerColor = containerColor,
+        color = indicatorColor
+    )
+}
+
