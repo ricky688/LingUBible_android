@@ -378,26 +378,14 @@ object PastPapersParserContract {
         val instructor: String? = null
     )
 
-    private val PATTERN_A = "^([A-Z]{3,4}\\d{4})_(\\d{4})(\\d)(?:_(.+))?\\.pdf$".toRegex(RegexOption.IGNORE_CASE)
-    private val PATTERN_B = "^([A-Z]{3,4}\\d{4})_(\\d{4}-\\d{4})_Term(\\d)(?:_(.+))?\\.pdf$".toRegex(RegexOption.IGNORE_CASE)
-
     fun parseFilename(filename: String): ParsedExamPaper? {
-        val matchA = PATTERN_A.matchEntire(filename)
-        if (matchA != null) {
-            val (code, yyRaw, termDigit, instructor) = matchA.destructured
-            val year = "20${yyRaw.substring(0, 2)}-20${yyRaw.substring(2, 4)}"
-            val term = "Term $termDigit"
-            return ParsedExamPaper(code.uppercase(), year, term, instructor.ifBlank { null })
-        }
-
-        val matchB = PATTERN_B.matchEntire(filename)
-        if (matchB != null) {
-            val (code, year, termDigit, instructor) = matchB.destructured
-            val term = "Term $termDigit"
-            return ParsedExamPaper(code.uppercase(), year, term, instructor.ifBlank { null })
-        }
-
-        return null
+        val parsed = com.lingubible.app.domain.util.PastPapersParser.parseFilename(filename) ?: return null
+        return ParsedExamPaper(
+            courseCode = parsed.courseCode,
+            academicYear = parsed.academicYear,
+            term = parsed.term,
+            instructor = parsed.instructor
+        )
     }
 
     fun deduplicate(papers: List<ParsedExamPaper>): List<ParsedExamPaper> {

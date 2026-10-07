@@ -34,7 +34,7 @@ val appModule = module {
     viewModel { HomeViewModel(get()) }
     viewModel { AuthViewModel(get()) }
     viewModel { CoursesViewModel(get()) }
-    viewModel { CourseDetailViewModel(get(), get(), get()) }
+    viewModel { CourseDetailViewModel(get(), get(), get(), get(), get()) }
     viewModel { InstructorsViewModel(get()) }
     viewModel { ReviewsViewModel(get()) }
     viewModel { WriteReviewViewModel(get()) }

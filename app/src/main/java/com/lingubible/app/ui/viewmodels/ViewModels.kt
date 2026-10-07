@@ -7,6 +7,8 @@ import com.lingubible.app.domain.model.*
 import com.lingubible.app.domain.repository.*
 import com.lingubible.app.domain.util.EmailValidator
 import com.lingubible.app.domain.util.WordCountValidator
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -202,37 +204,110 @@ data class CourseDetailUiState(
     val reviews: List<Review> = emptyList(),
     val gradeDistribution: Map<String, Int> = emptyMap(),
     val pastPapers: List<PastPaper> = emptyList(),
-    val errorMessage: String? = null
+    val syllabus: CourseSyllabus? = null,
+    val isSyllabusLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val currentUser: com.lingubible.app.domain.model.User? = null
 )
 
 class CourseDetailViewModel(
     private val courseRepository: CourseRepository,
     private val reviewRepository: ReviewRepository,
-    private val materialRepository: MaterialRepository
+    private val materialRepository: MaterialRepository,
+    private val authRepository: AuthRepository? = null,
+    val clientProvider: com.lingubible.app.data.remote.AppwriteClientProvider? = null
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CourseDetailUiState())
     val uiState: StateFlow<CourseDetailUiState> = _uiState.asStateFlow()
 
+    init {
+        authRepository?.let { auth ->
+            viewModelScope.launch {
+                auth.currentUser.collect { user ->
+                    _uiState.update { it.copy(currentUser = user) }
+                }
+            }
+        }
+    }
+
     fun loadCourseDetail(courseCode: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, isSyllabusLoading = true, errorMessage = null) }
 
-            val courseRes = courseRepository.getCourseByCode(courseCode)
-            val recordsRes = courseRepository.getTeachingRecords(courseCode)
-            val reviewsRes = reviewRepository.getReviewsForCourse(courseCode)
-            val gradesRes = courseRepository.getGradeDistribution(courseCode)
-            val papersRes = materialRepository.getPastPapers(courseCode)
+            try {
+                coroutineScope {
+                    val courseDeferred = async { courseRepository.getCourseByCode(courseCode) }
+                    val recordsDeferred = async { courseRepository.getTeachingRecords(courseCode) }
+                    val reviewsDeferred = async { reviewRepository.getReviewsForCourse(courseCode) }
+                    val gradesDeferred = async { courseRepository.getGradeDistribution(courseCode) }
+                    val papersDeferred = async { materialRepository.getPastPapers(courseCode) }
+                    val syllabusDeferred = async { materialRepository.getSyllabus(courseCode) }
 
+                    val courseRes = courseDeferred.await()
+                    val recordsRes = recordsDeferred.await()
+                    val reviewsRes = reviewsDeferred.await()
+                    val gradesRes = gradesDeferred.await()
+                    val papersRes = papersDeferred.await()
+                    val syllabusRes = syllabusDeferred.await()
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isSyllabusLoading = false,
+                            course = courseRes.getOrNull(),
+                            teachingRecords = recordsRes.getOrDefault(emptyList()),
+                            reviews = reviewsRes.getOrDefault(emptyList()),
+                            gradeDistribution = gradesRes.getOrDefault(emptyMap()),
+                            pastPapers = papersRes.getOrDefault(emptyList()),
+                            syllabus = syllabusRes.getOrNull(),
+                            errorMessage = courseRes.exceptionOrNull()?.localizedMessage
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isSyllabusLoading = false,
+                        errorMessage = e.localizedMessage ?: "Failed to load course details"
+                    )
+                }
+            }
+        }
+    }
+
+    fun loadSyllabus(courseCode: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSyllabusLoading = true) }
+            val syllabusRes = materialRepository.getSyllabus(courseCode)
             _uiState.update {
                 it.copy(
-                    isLoading = false,
-                    course = courseRes.getOrNull(),
-                    teachingRecords = recordsRes.getOrDefault(emptyList()),
-                    reviews = reviewsRes.getOrDefault(emptyList()),
-                    gradeDistribution = gradesRes.getOrDefault(emptyMap()),
-                    pastPapers = papersRes.getOrDefault(emptyList()),
-                    errorMessage = courseRes.exceptionOrNull()?.localizedMessage
+                    isSyllabusLoading = false,
+                    syllabus = syllabusRes.getOrNull()
                 )
+            }
+        }
+    }
+
+    fun resolveAndOpenSyllabus(courseCode: String, onResolved: (CourseSyllabus) -> Unit) {
+        val currentSyllabus = _uiState.value.syllabus
+        if (currentSyllabus != null) {
+            onResolved(currentSyllabus)
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSyllabusLoading = true) }
+            val res = materialRepository.getSyllabus(courseCode)
+            val syllabus = res.getOrNull()
+            _uiState.update {
+                it.copy(
+                    isSyllabusLoading = false,
+                    syllabus = syllabus
+                )
+            }
+            if (syllabus != null) {
+                onResolved(syllabus)
             }
         }
     }

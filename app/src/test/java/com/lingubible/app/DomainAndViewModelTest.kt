@@ -121,7 +121,7 @@ class DomainAndViewModelTest {
     }
 
     // ====================================================
-    // Past Paper Filename Parser Tests
+    // Past Paper Filename Parser & FileUtils Tests
     // ====================================================
     @Test
     fun `past paper parses filename correctly`() {
@@ -138,6 +138,191 @@ class DomainAndViewModelTest {
         assertEquals("2022-2023", parsedB.academicYear)
         assertEquals("Term 2", parsedB.term)
         assertNull(parsedB.instructor)
+    }
+
+    @Test
+    fun `past paper parses summer terms, instructor suffixes, and expanded formats`() {
+        val summerS = PastPapersParser.parseFilename("CDS2004_2425S.pdf")
+        assertNotNull(summerS)
+        assertEquals("2024-2025", summerS!!.academicYear)
+        assertEquals("Summer Term", summerS.term)
+
+        val summer0 = PastPapersParser.parseFilename("CDS2004_24250.pdf")
+        assertNotNull(summer0)
+        assertEquals("Summer Term", summer0!!.term)
+
+        val summer3 = PastPapersParser.parseFilename("CDS2004_24253.pdf")
+        assertNotNull(summer3)
+        assertEquals("Summer Term", summer3!!.term)
+
+        val instructorShort = PastPapersParser.parseFilename("CDS2004_24251_Simmons.pdf")
+        assertNotNull(instructorShort)
+        assertEquals("Simmons", instructorShort!!.instructor)
+        assertEquals("Term 1", instructorShort.term)
+
+        val instructorExpanded = PastPapersParser.parseFilename("BUS1102_2023-2024_Term1_ProfChan.pdf")
+        assertNotNull(instructorExpanded)
+        assertEquals("ProfChan", instructorExpanded!!.instructor)
+        assertEquals("2023-2024", instructorExpanded.academicYear)
+        assertEquals("Term 1", instructorExpanded.term)
+
+        val shortEndYear = PastPapersParser.parseFilename("BUS1102_2023-24_Term1.pdf")
+        assertNotNull(shortEndYear)
+        assertEquals("2023-2024", shortEndYear!!.academicYear)
+
+        val fourLetterCode = PastPapersParser.parseFilename("MGSL4001_24252.pdf")
+        assertNotNull(fourLetterCode)
+        assertEquals("MGSL4001", fourLetterCode!!.courseCode)
+
+        val letterSuffix = PastPapersParser.parseFilename("HST3366e_24251.pdf")
+        assertNotNull(letterSuffix)
+        assertEquals("HST3366E", letterSuffix!!.courseCode)
+
+        val semFormat = PastPapersParser.parseFilename("BUS1102_2023-2024_Sem1.pdf")
+        assertNotNull(semFormat)
+        assertEquals("Term 1", semFormat!!.term)
+
+        val semesterFormat = PastPapersParser.parseFilename("BUS1102_2023-2024_Semester2.pdf")
+        assertNotNull(semesterFormat)
+        assertEquals("Term 2", semesterFormat!!.term)
+
+        val hyphenInstructor = PastPapersParser.parseFilename("CDS2004_24251-Simmons.pdf")
+        assertNotNull(hyphenInstructor)
+        assertEquals("Simmons", hyphenInstructor!!.instructor)
+
+        val twoDigitYearRange = PastPapersParser.parseFilename("BUS1102_23-24_Term1.pdf")
+        assertNotNull(twoDigitYearRange)
+        assertEquals("2023-2024", twoDigitYearRange!!.academicYear)
+
+        val trailingWhitespace = PastPapersParser.parseFilename("CDS2004_24252 .pdf")
+        assertNotNull(trailingWhitespace)
+        assertEquals("Term 2", trailingWhitespace!!.term)
+
+        // Compact year with separated term
+        val compactYearTerm = PastPapersParser.parseFilename("CDS2004_2425_Term1.pdf")
+        assertNotNull(compactYearTerm)
+        assertEquals("2024-2025", compactYearTerm!!.academicYear)
+        assertEquals("Term 1", compactYearTerm.term)
+
+        val compactYearSem = PastPapersParser.parseFilename("CDS2004_2425_Sem2.pdf")
+        assertNotNull(compactYearSem)
+        assertEquals("Term 2", compactYearSem!!.term)
+
+        val compactYearT = PastPapersParser.parseFilename("CDS2004_2425_T1.pdf")
+        assertNotNull(compactYearT)
+        assertEquals("Term 1", compactYearT!!.term)
+
+        val compactYearSummer = PastPapersParser.parseFilename("CDS2004_2425_Summer.pdf")
+        assertNotNull(compactYearSummer)
+        assertEquals("Summer Term", compactYearSummer!!.term)
+
+        val compactYearDigit = PastPapersParser.parseFilename("CDS2004_2425_1.pdf")
+        assertNotNull(compactYearDigit)
+        assertEquals("Term 1", compactYearDigit!!.term)
+
+        // Hyphen and spaced instructor separators
+        val spacedHyphenInstructor = PastPapersParser.parseFilename("CDS2004_24251 - Simmons.pdf")
+        assertNotNull(spacedHyphenInstructor)
+        assertEquals("Simmons", spacedHyphenInstructor!!.instructor)
+
+        val expandedSpacedInstructor = PastPapersParser.parseFilename("BUS1102_2023-2024_Term1 - Chan.pdf")
+        assertNotNull(expandedSpacedInstructor)
+        assertEquals("Chan", expandedSpacedInstructor!!.instructor)
+
+        // Parenthesized instructor names
+        val parenInstructor = PastPapersParser.parseFilename("CDS2004_24251(Simmons).pdf")
+        assertNotNull(parenInstructor)
+        assertEquals("Simmons", parenInstructor!!.instructor)
+
+        val expandedParenInstructor = PastPapersParser.parseFilename("BUS1102_2023-2024_Term1 (Chan).pdf")
+        assertNotNull(expandedParenInstructor)
+        assertEquals("Chan", expandedParenInstructor!!.instructor)
+
+        // 8-digit years and underscore year separators
+        val eightDigitYear = PastPapersParser.parseFilename("BUS1102_20242025_Term1.pdf")
+        assertNotNull(eightDigitYear)
+        assertEquals("2024-2025", eightDigitYear!!.academicYear)
+
+        val underscoreYear = PastPapersParser.parseFilename("BUS1102_2023_2024_Term1.pdf")
+        assertNotNull(underscoreYear)
+        assertEquals("2023-2024", underscoreYear!!.academicYear)
+
+        val hyphenT = PastPapersParser.parseFilename("BUS1102_2023-2024_T-1.pdf")
+        assertNotNull(hyphenT)
+        assertEquals("Term 1", hyphenT!!.term)
+
+        // Space-separated course code and year
+        val spaceHyphenCode = PastPapersParser.parseFilename("CDS2004 - 24251.pdf")
+        assertNotNull(spaceHyphenCode)
+        assertEquals("CDS2004", spaceHyphenCode!!.courseCode)
+        assertEquals("2024-2025", spaceHyphenCode.academicYear)
+        assertEquals("Term 1", spaceHyphenCode.term)
+
+        val spaceCode = PastPapersParser.parseFilename("CDS2004 24251.pdf")
+        assertNotNull(spaceCode)
+        assertEquals("CDS2004", spaceCode!!.courseCode)
+        assertEquals("2024-2025", spaceCode.academicYear)
+        assertEquals("Term 1", spaceCode.term)
+
+        // Exam type keywords are not mistaken for instructor names
+        val finalExamPaper = PastPapersParser.parseFilename("CDS2004_24252_Final.pdf")
+        assertNotNull(finalExamPaper)
+        assertEquals("Term 2", finalExamPaper!!.term)
+        assertNull(finalExamPaper.instructor)
+
+        val midtermPaper = PastPapersParser.parseFilename("CDS2004_24251_Midterm.pdf")
+        assertNotNull(midtermPaper)
+        assertEquals("Term 1", midtermPaper!!.term)
+        assertNull(midtermPaper.instructor)
+
+        val solutionPaper = PastPapersParser.parseFilename("BUS1102_2023-2024_Term1_Solution.pdf")
+        assertNotNull(solutionPaper)
+        assertNull(solutionPaper!!.instructor)
+
+        val finalWithInstructor = PastPapersParser.parseFilename("CDS2004_24251_Final_Simmons.pdf")
+        assertNotNull(finalWithInstructor)
+        assertEquals("Simmons", finalWithInstructor!!.instructor)
+
+        // Single 4-digit year format (e.g. 2024_Term1 -> 2024-2025, not 2020-2024)
+        val singleYearTerm1 = PastPapersParser.parseFilename("CDS2004_2024_Term1.pdf")
+        assertNotNull(singleYearTerm1)
+        assertEquals("2024-2025", singleYearTerm1!!.academicYear)
+        assertEquals("Term 1", singleYearTerm1.term)
+
+        val singleYearTerm2 = PastPapersParser.parseFilename("BUS1102_2024_Term2.pdf")
+        assertNotNull(singleYearTerm2)
+        assertEquals("2023-2024", singleYearTerm2!!.academicYear)
+        assertEquals("Term 2", singleYearTerm2.term)
+    }
+
+    @Test
+    fun `past paper term sort key orders newest first with unknown last`() {
+        val key2024T2 = PastPapersParser.getTermSortKey("2024-2025", "Term 2")
+        val key2024T1 = PastPapersParser.getTermSortKey("2024-2025", "Term 1")
+        val key2023T2 = PastPapersParser.getTermSortKey("2023-2024", "Term 2")
+        val keyUnknown = PastPapersParser.getTermSortKey("Unknown", "Unknown")
+
+        assertTrue(key2024T2 > key2024T1)
+        assertTrue(key2024T1 > key2023T2)
+        assertTrue(key2023T2 > keyUnknown)
+        assertEquals(0, keyUnknown)
+    }
+
+    @Test
+    fun `past paper parser rejects malformed filenames`() {
+        assertNull(PastPapersParser.parseFilename("CDS200424252.pdf"))
+        assertNull(PastPapersParser.parseFilename("old_syllabus_doc.pdf"))
+        assertNull(PastPapersParser.parseFilename("random.txt"))
+        assertNull(PastPapersParser.parseFilename(""))
+    }
+
+    @Test
+    fun `file utils formats file size accurately`() {
+        assertEquals("0 B", FileUtils.formatFileSize(0L))
+        assertEquals("1 KB", FileUtils.formatFileSize(1024L))
+        assertEquals("200 KB", FileUtils.formatFileSize(204800L))
+        assertEquals("1.5 MB", FileUtils.formatFileSize(1572864L))
+        assertEquals("15.0 MB", FileUtils.formatFileSize(15728640L))
     }
 
     // ====================================================

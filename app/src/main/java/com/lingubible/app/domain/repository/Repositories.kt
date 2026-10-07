@@ -40,4 +40,9 @@ interface MaterialRepository {
     suspend fun getPastPapers(courseCode: String): Result<List<PastPaper>>
     suspend fun getDownloadUrl(fileId: String): String
     suspend fun getViewUrl(fileId: String): String
+    suspend fun getSyllabus(courseCode: String): Result<CourseSyllabus?>
+    suspend fun getSyllabusViewUrl(fileId: String): String
+    suspend fun getSyllabusDownloadUrl(fileId: String): String
+    suspend fun downloadFileBytes(bucketId: String, fileId: String): Result<ByteArray> = Result.failure(UnsupportedOperationException("downloadFileBytes not supported"))
 }
+

@@ -170,3 +170,13 @@ data class PastPaper(
     val downloadUrl: String = "",
     val viewUrl: String = ""
 )
+
+data class CourseSyllabus(
+    val id: String,
+    val courseCode: String,
+    val fileName: String,
+    val viewUrl: String,
+    val downloadUrl: String = "",
+    val fileSize: Long = 0L
+)
+

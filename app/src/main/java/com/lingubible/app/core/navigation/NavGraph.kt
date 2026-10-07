@@ -113,7 +113,8 @@ fun LingUBibleNavHost(
             CourseDetailScreen(
                 courseCode = route.courseCode,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToWriteReview = { navController.navigate(Screen.WriteReview(route.courseCode)) }
+                onNavigateToWriteReview = { navController.navigate(Screen.WriteReview(route.courseCode)) },
+                onNavigateToAuth = { navController.navigate(Screen.Auth("login")) }
             )
         }
 

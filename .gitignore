@@ -50,6 +50,7 @@ captures/
 *.keystore
 release.keystore
 debug.keystore
+!app/debug.keystore
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
@@ -60,7 +61,10 @@ debug.keystore
 Thumbs.db
 
 # Embedded / external reference repos & temporary tool outputs
+pixelthing
 pixelthing/
+graphify-out
 graphify-out/
+artemis
 artemis/
 

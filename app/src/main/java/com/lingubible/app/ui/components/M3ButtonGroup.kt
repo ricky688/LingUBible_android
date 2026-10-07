@@ -64,16 +64,25 @@ fun M3ButtonGroup(
     height: Dp = 38.dp,
     activeCornerRadius: Dp = 20.dp,
     inactiveCornerRadius: Dp = 8.dp,
-    showCheckmarkOnSelected: Boolean = true
+    showCheckmarkOnSelected: Boolean = true,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    equalWeight: Boolean = false
 ) {
     val isDark = isAppDarkTheme()
 
     Row(
         modifier = modifier.height(height),
-        horizontalArrangement = Arrangement.spacedBy(spacing),
+        horizontalArrangement = if (equalWeight) {
+            Arrangement.spacedBy(spacing)
+        } else if (horizontalArrangement == Arrangement.End) {
+            Arrangement.spacedBy(spacing, Alignment.End)
+        } else {
+            Arrangement.spacedBy(spacing)
+        },
         verticalAlignment = Alignment.CenterVertically
     ) {
         items.forEachIndexed { index, item ->
+            val buttonModifier = if (equalWeight) Modifier.weight(1f) else Modifier
             M3ButtonGroupButton(
                 selected = selectedIndex == index,
                 onClick = item.onClick,
@@ -82,7 +91,10 @@ fun M3ButtonGroup(
                 isDark = isDark,
                 activeCornerRadius = activeCornerRadius,
                 inactiveCornerRadius = inactiveCornerRadius,
-                showCheckmarkOnSelected = showCheckmarkOnSelected
+                showCheckmarkOnSelected = showCheckmarkOnSelected,
+                modifier = buttonModifier,
+                contentHorizontalPadding = if (equalWeight) 4.dp else 14.dp,
+                equalWeight = equalWeight
             )
         }
     }
@@ -95,6 +107,7 @@ fun M3ButtonGroup(
  * - Dynamic shape morphing between active Full Pill (20dp) and inactive Squircle (8dp).
  * - Smooth horizontal scrolling without breaking spring animations.
  * - Connected spacing between items.
+ * - Supports alignment (e.g. Arrangement.End for right-aligned layouts).
  * - Tactile motion physics with bouncy springs and haptic feedback.
  */
 @Composable
@@ -107,7 +120,8 @@ fun ScrollableM3ButtonGroup(
     height: Dp = 38.dp,
     activeCornerRadius: Dp = 20.dp,
     inactiveCornerRadius: Dp = 8.dp,
-    showCheckmarkOnSelected: Boolean = true
+    showCheckmarkOnSelected: Boolean = true,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start
 ) {
     val isDark = isAppDarkTheme()
     val scrollState = rememberScrollState()
@@ -127,65 +141,70 @@ fun ScrollableM3ButtonGroup(
     )
 
     val fadeWidth = 24.dp
+    val isAlignEnd = horizontalArrangement == Arrangement.End
 
-    Row(
-        modifier = modifier
-            .height(height)
-            .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
-            .drawWithContent {
-                drawContent()
-                val fadePx = fadeWidth.toPx()
-
-                // Smooth leading edge fade-out transition
-                if (leftFadeAlpha > 0.01f && fadePx > 0f) {
-                    drawRect(
-                        brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 1f - leftFadeAlpha),
-                                Color.Black
-                            ),
-                            startX = 0f,
-                            endX = fadePx
-                        ),
-                        blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
-                        topLeft = androidx.compose.ui.geometry.Offset.Zero,
-                        size = androidx.compose.ui.geometry.Size(fadePx, size.height)
-                    )
-                }
-
-                // Smooth trailing edge fade-out transition
-                if (rightFadeAlpha > 0.01f && fadePx > 0f) {
-                    drawRect(
-                        brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Black,
-                                Color.Black.copy(alpha = 1f - rightFadeAlpha)
-                            ),
-                            startX = size.width - fadePx,
-                            endX = size.width
-                        ),
-                        blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
-                        topLeft = androidx.compose.ui.geometry.Offset(size.width - fadePx, 0f),
-                        size = androidx.compose.ui.geometry.Size(fadePx, size.height)
-                    )
-                }
-            }
-            .horizontalScroll(scrollState)
-            .padding(contentPadding),
-        horizontalArrangement = Arrangement.spacedBy(spacing),
-        verticalAlignment = Alignment.CenterVertically
+    Box(
+        modifier = modifier.height(height),
+        contentAlignment = if (isAlignEnd) Alignment.CenterEnd else Alignment.CenterStart
     ) {
-        items.forEachIndexed { index, item ->
-            M3ButtonGroupButton(
-                selected = selectedIndex == index,
-                onClick = item.onClick,
-                label = item.label,
-                icon = item.icon,
-                isDark = isDark,
-                activeCornerRadius = activeCornerRadius,
-                inactiveCornerRadius = inactiveCornerRadius,
-                showCheckmarkOnSelected = showCheckmarkOnSelected
-            )
+        Row(
+            modifier = Modifier
+                .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+                .drawWithContent {
+                    drawContent()
+                    val fadePx = fadeWidth.toPx()
+
+                    // Smooth leading edge fade-out transition
+                    if (leftFadeAlpha > 0.01f && fadePx > 0f) {
+                        drawRect(
+                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color.Black.copy(alpha = 1f - leftFadeAlpha),
+                                    Color.Black
+                                ),
+                                startX = 0f,
+                                endX = fadePx
+                            ),
+                            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
+                            topLeft = androidx.compose.ui.geometry.Offset.Zero,
+                            size = androidx.compose.ui.geometry.Size(fadePx, size.height)
+                        )
+                    }
+
+                    // Smooth trailing edge fade-out transition
+                    if (rightFadeAlpha > 0.01f && fadePx > 0f) {
+                        drawRect(
+                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color.Black,
+                                    Color.Black.copy(alpha = 1f - rightFadeAlpha)
+                                ),
+                                startX = size.width - fadePx,
+                                endX = size.width
+                            ),
+                            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
+                            topLeft = androidx.compose.ui.geometry.Offset(size.width - fadePx, 0f),
+                            size = androidx.compose.ui.geometry.Size(fadePx, size.height)
+                        )
+                    }
+                }
+                .horizontalScroll(scrollState)
+                .padding(contentPadding),
+            horizontalArrangement = if (isAlignEnd) Arrangement.spacedBy(spacing, Alignment.End) else Arrangement.spacedBy(spacing),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEachIndexed { index, item ->
+                M3ButtonGroupButton(
+                    selected = selectedIndex == index,
+                    onClick = item.onClick,
+                    label = item.label,
+                    icon = item.icon,
+                    isDark = isDark,
+                    activeCornerRadius = activeCornerRadius,
+                    inactiveCornerRadius = inactiveCornerRadius,
+                    showCheckmarkOnSelected = showCheckmarkOnSelected
+                )
+            }
         }
     }
 }
@@ -207,7 +226,8 @@ fun M3ButtonGroup(
     height: Dp = 38.dp,
     activeCornerRadius: Dp = 20.dp,
     inactiveCornerRadius: Dp = 8.dp,
-    showCheckmarkOnSelected: Boolean = true
+    showCheckmarkOnSelected: Boolean = true,
+    equalWeight: Boolean = false
 ) {
     val items = listOf(
         M3ButtonGroupItem(label = leadingText, icon = leadingIcon, onClick = onLeadingClick),
@@ -221,7 +241,8 @@ fun M3ButtonGroup(
         height = height,
         activeCornerRadius = activeCornerRadius,
         inactiveCornerRadius = inactiveCornerRadius,
-        showCheckmarkOnSelected = showCheckmarkOnSelected
+        showCheckmarkOnSelected = showCheckmarkOnSelected,
+        equalWeight = equalWeight
     )
 }
 
@@ -234,7 +255,10 @@ private fun M3ButtonGroupButton(
     isDark: Boolean,
     activeCornerRadius: Dp,
     inactiveCornerRadius: Dp,
-    showCheckmarkOnSelected: Boolean
+    showCheckmarkOnSelected: Boolean,
+    modifier: Modifier = Modifier,
+    contentHorizontalPadding: Dp = 14.dp,
+    equalWeight: Boolean = false
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -289,7 +313,7 @@ private fun M3ButtonGroupButton(
     }
 
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxHeight()
             .graphicsLayer {
                 scaleX = scale
@@ -309,10 +333,14 @@ private fun M3ButtonGroupButton(
         color = containerColor,
         shadowElevation = if (selected) 1.dp else 0.dp
     ) {
+        val rowModifier = if (equalWeight) {
+            Modifier.fillMaxSize()
+        } else {
+            Modifier.fillMaxHeight()
+        }.padding(horizontal = contentHorizontalPadding)
+
         Row(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(horizontal = 14.dp),
+            modifier = rowModifier,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -324,7 +352,7 @@ private fun M3ButtonGroupButton(
                     modifier = Modifier.size(15.dp),
                     tint = contentColor
                 )
-                Spacer(modifier = Modifier.width(5.dp))
+                Spacer(modifier = Modifier.width(if (equalWeight) 3.dp else 5.dp))
             } else if (icon != null) {
                 Icon(
                     imageVector = icon,
@@ -332,12 +360,12 @@ private fun M3ButtonGroupButton(
                     modifier = Modifier.size(15.dp),
                     tint = contentColor
                 )
-                Spacer(modifier = Modifier.width(5.dp))
+                Spacer(modifier = Modifier.width(if (equalWeight) 3.dp else 5.dp))
             }
 
             Text(
                 text = displayLabel,
-                fontSize = 12.5.sp,
+                fontSize = if (equalWeight) 12.sp else 12.5.sp,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
                 color = contentColor,
                 maxLines = 1,
