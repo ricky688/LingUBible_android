@@ -21,6 +21,7 @@ val appModule = module {
     single { AppwriteClientProvider(context = androidContext(), appConfig = get()) }
 
     single<AuthRepository> { AppwriteAuthRepository(clientProvider = get()) }
+    single<AvatarRepository> { AppwriteAvatarRepository(context = androidContext(), clientProvider = get()) }
     single<CourseRepository> { AppwriteCourseRepository(clientProvider = get()) }
     single<InstructorRepository> { AppwriteInstructorRepository(clientProvider = get()) }
     single<ReviewRepository> { AppwriteReviewRepository(clientProvider = get()) }
@@ -32,7 +33,7 @@ val appModule = module {
 
     viewModel { MainViewModel(get()) }
     viewModel { HomeViewModel(get()) }
-    viewModel { AuthViewModel(get()) }
+    viewModel { AuthViewModel(get(), get()) }
     viewModel { CoursesViewModel(get()) }
     viewModel { CourseDetailViewModel(get(), get(), get(), get(), get()) }
     viewModel { InstructorsViewModel(get()) }

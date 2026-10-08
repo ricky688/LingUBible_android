@@ -59,34 +59,12 @@ fun ReviewCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f)
                 ) {
-                    // Avatar circle
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (review.isAnonymous)
-                                    MaterialTheme.colorScheme.surfaceVariant
-                                else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (review.isAnonymous) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "User",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        } else {
-                            Text(
-                                text = (review.courseCode.take(1).ifBlank { "L" }).uppercase(),
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontSize = 16.sp
-                            )
-                        }
-                    }
+                    // Avatar circle matching web version parity
+                    SmartAvatar(
+                        userId = if (review.isAnonymous) review.id else review.userId.ifBlank { review.id },
+                        size = 38.dp,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                    )
 
                     Spacer(modifier = Modifier.width(10.dp))
 

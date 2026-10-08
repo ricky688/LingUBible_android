@@ -18,15 +18,24 @@ import kotlinx.coroutines.launch
 // ==========================================
 // Auth ViewModel
 // ==========================================
+// Auth ViewModel
+// ==========================================
 data class AuthUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val successMessage: String? = null,
-    val currentUser: User? = null
+    val currentUser: User? = null,
+    val currentAvatar: CustomAvatar? = null,
+    val isAvatarLoading: Boolean = false,
+    val isGoogleLinked: Boolean = false,
+    val isGoogleLoading: Boolean = false,
+    val isUpdatingUsername: Boolean = false,
+    val isUpdatingPassword: Boolean = false
 )
 
 class AuthViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val avatarRepository: AvatarRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -35,6 +44,18 @@ class AuthViewModel(
         viewModelScope.launch {
             authRepository.currentUser.collect { user ->
                 _uiState.update { it.copy(currentUser = user) }
+                if (user != null) {
+                    loadAvatar(user.id)
+                    checkGoogleLinkStatus()
+                } else {
+                    loadAvatar("guest")
+                    _uiState.update { it.copy(isGoogleLinked = false) }
+                }
+            }
+        }
+        viewModelScope.launch {
+            avatarRepository.currentAvatar.collect { avatar ->
+                _uiState.update { it.copy(currentAvatar = avatar) }
             }
         }
         checkCurrentSession()
@@ -43,6 +64,96 @@ class AuthViewModel(
     fun checkCurrentSession() {
         viewModelScope.launch {
             authRepository.checkSession()
+        }
+    }
+
+    fun loadAvatar(userId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isAvatarLoading = true) }
+            val result = avatarRepository.getUserAvatar(userId)
+            _uiState.update { it.copy(isAvatarLoading = false, currentAvatar = result.getOrNull()) }
+        }
+    }
+
+    fun saveCustomAvatar(animal: String, backgroundIndex: Int, onComplete: ((Boolean) -> Unit)? = null) {
+        val targetUserId = _uiState.value.currentUser?.id ?: "guest"
+        viewModelScope.launch {
+            _uiState.update { it.copy(isAvatarLoading = true) }
+            val result = avatarRepository.saveUserAvatar(targetUserId, animal, backgroundIndex)
+            _uiState.update { it.copy(isAvatarLoading = false) }
+            onComplete?.invoke(result.isSuccess)
+        }
+    }
+
+    fun deleteCustomAvatar(onComplete: ((Boolean) -> Unit)? = null) {
+        val targetUserId = _uiState.value.currentUser?.id ?: "guest"
+        viewModelScope.launch {
+            _uiState.update { it.copy(isAvatarLoading = true) }
+            val result = avatarRepository.deleteUserAvatar(targetUserId)
+            _uiState.update { it.copy(isAvatarLoading = false) }
+            onComplete?.invoke(result.isSuccess)
+        }
+    }
+
+    fun updateUsername(newUsername: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isUpdatingUsername = true) }
+            val result = authRepository.updateName(newUsername)
+            _uiState.update { it.copy(isUpdatingUsername = false) }
+            if (result.isSuccess) {
+                onSuccess()
+            } else {
+                onError(result.exceptionOrNull()?.localizedMessage ?: "Failed to update username")
+            }
+        }
+    }
+
+    fun updatePassword(oldPassword: String, newPassword: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isUpdatingPassword = true) }
+            val result = authRepository.updatePassword(newPassword = newPassword, oldPassword = oldPassword)
+            _uiState.update { it.copy(isUpdatingPassword = false) }
+            if (result.isSuccess) {
+                onSuccess()
+            } else {
+                onError(result.exceptionOrNull()?.localizedMessage ?: "Failed to update password")
+            }
+        }
+    }
+
+    fun checkGoogleLinkStatus() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isGoogleLoading = true) }
+            val result = authRepository.isGoogleLinked()
+            _uiState.update { it.copy(isGoogleLoading = false, isGoogleLinked = result.getOrDefault(false)) }
+        }
+    }
+
+    fun unlinkGoogle(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isGoogleLoading = true) }
+            val result = authRepository.unlinkGoogle()
+            _uiState.update { it.copy(isGoogleLoading = false) }
+            if (result.isSuccess) {
+                _uiState.update { it.copy(isGoogleLinked = false) }
+                onSuccess()
+            } else {
+                onError(result.exceptionOrNull()?.localizedMessage ?: "Failed to unlink Google account")
+            }
+        }
+    }
+
+    fun linkGoogle(activity: ComponentActivity, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isGoogleLoading = true) }
+            val result = authRepository.loginWithGoogle(activity)
+            _uiState.update { it.copy(isGoogleLoading = false) }
+            if (result.isSuccess) {
+                _uiState.update { it.copy(isGoogleLinked = true) }
+                onSuccess()
+            } else {
+                onError(result.exceptionOrNull()?.localizedMessage ?: "Failed to link Google account")
+            }
         }
     }
 

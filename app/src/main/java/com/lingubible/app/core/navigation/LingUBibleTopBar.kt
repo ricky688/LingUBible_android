@@ -41,6 +41,10 @@ import androidx.navigation.toRoute
 import com.lingubible.app.core.settings.AppLanguage
 import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
+import androidx.compose.foundation.BorderStroke
+import com.lingubible.app.domain.repository.AuthRepository
+import com.lingubible.app.domain.repository.AvatarRepository
+import com.lingubible.app.ui.components.SmartAvatar
 import org.koin.compose.koinInject
 
 /**
@@ -82,13 +86,17 @@ fun LingUBibleTopBar(
     isExpanded: Boolean = true,
     academicSubTab: Int = 0,
     modifier: Modifier = Modifier,
-    settingsManager: AppSettingsManager = koinInject()
+    settingsManager: AppSettingsManager = koinInject(),
+    authRepository: AuthRepository = koinInject(),
+    avatarRepository: AvatarRepository = koinInject()
 ) {
     val isDark = isAppDarkTheme()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val destination = navBackStackEntry?.destination
     val appLanguage by settingsManager.appLanguage.collectAsState()
     val isZh = appLanguage == AppLanguage.ZH_TW
+    val currentUser by authRepository.currentUser.collectAsState()
+    val currentAvatar by avatarRepository.currentAvatar.collectAsState()
 
     // Track tab index and transition direction for directional word animations
     var previousTabIndex by remember { mutableIntStateOf(0) }
@@ -165,8 +173,8 @@ fun LingUBibleTopBar(
             }
             destination?.hasRoute<Screen.Profile>() == true ->
                 TopBarTitleInfo(
-                    primaryTitle = if (isZh) "帳戶與設定" else "Account & Settings",
-                    secondarySubtitle = if (isZh) "個人檔案・主題外觀・語言偏好" else "Profile・Appearance・Language",
+                    primaryTitle = if (isZh) "用戶設定" else "User Settings",
+                    secondarySubtitle = if (isZh) "個人資料・頭像自訂・帳戶安全" else "Profile・Custom Avatar・Security",
                     key = "profile"
                 )
             destination?.hasRoute<Screen.Courses>() == true ->
@@ -448,42 +456,60 @@ fun LingUBibleTopBar(
                 actions = {
                     val isHome = destination?.hasRoute<Screen.Home>() == true
                     val isReviewable = destination?.hasRoute<Screen.Reviews>() == true || destination?.hasRoute<Screen.CourseDetail>() == true
-                    AnimatedContent(
-                        targetState = Pair(isHome, isReviewable),
-                        transitionSpec = {
-                            fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(150))
-                        },
-                        label = "topBarActionsTransition"
-                    ) { (home, reviewable) ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (home) {
-                                IconButton(
-                                    onClick = { navController.navigate(Screen.Courses) },
-                                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Search,
-                                        contentDescription = "Search",
-                                        tint = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                            } else if (reviewable) {
-                                IconButton(
-                                    onClick = {
-                                        val courseCode = try {
-                                            navBackStackEntry?.toRoute<Screen.CourseDetail>()?.courseCode
-                                        } catch (_: Exception) { null }
-                                        navController.navigate(Screen.WriteReview(courseCode))
-                                    },
-                                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Create,
-                                        contentDescription = "Write Review",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        AnimatedContent(
+                            targetState = Pair(isHome, isReviewable),
+                            transitionSpec = {
+                                fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(150))
+                            },
+                            label = "topBarActionsTransition"
+                        ) { (home, reviewable) ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (home) {
+                                    IconButton(
+                                        onClick = { navController.navigate(Screen.Courses) },
+                                        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Search,
+                                            contentDescription = "Search",
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                } else if (reviewable) {
+                                    IconButton(
+                                        onClick = {
+                                            val courseCode = try {
+                                                navBackStackEntry?.toRoute<Screen.CourseDetail>()?.courseCode
+                                            } catch (_: Exception) { null }
+                                            navController.navigate(Screen.WriteReview(courseCode))
+                                        },
+                                        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Create,
+                                            contentDescription = "Write Review",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
                                 }
                             }
+                        }
+
+                        // Customized user avatar in top bar (matching web version)
+                        Box(modifier = Modifier.padding(start = 2.dp, end = 10.dp)) {
+                            SmartAvatar(
+                                avatar = currentAvatar,
+                                userId = currentUser?.id,
+                                size = 32.dp,
+                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+                                onClick = {
+                                    navController.navigate(Screen.Profile)
+                                }
+                            )
                         }
                     }
                 }

@@ -95,8 +95,8 @@ enum class BottomNavDestination(
     ),
     ACCOUNT(
         screen = Screen.Profile,
-        titleZh = "帳戶",
-        titleEn = "Account",
+        titleZh = "用戶設定",
+        titleEn = "User Settings",
         unselectedIcon = Icons.Outlined.AccountCircle,
         selectedIcon = Icons.Filled.AccountCircle
     );
@@ -180,8 +180,8 @@ enum class DrawerNavDestination(
     ),
     PROFILE(
         screen = Screen.Profile,
-        titleZh = "個人檔案",
-        titleEn = "Profile",
+        titleZh = "用戶設定",
+        titleEn = "User Settings",
         unselectedIcon = Icons.Outlined.AccountCircle,
         selectedIcon = Icons.Filled.AccountCircle,
         category = DrawerCategory.ACCOUNT

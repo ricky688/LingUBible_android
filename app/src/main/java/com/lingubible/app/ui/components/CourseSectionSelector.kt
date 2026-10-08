@@ -529,15 +529,27 @@ fun CourseSectionSelector(
 
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        // Scrollable 3-Column Grid of Category Chips with max-height bounds for landscape and small viewports
+                        // Scrollable 3-Column Grid of Category Chips with dynamic scroll-responsive fade-out blur
                         val configuration = LocalConfiguration.current
                         val maxGridHeight = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 120.dp else 190.dp
                         val gridScrollState = rememberScrollState()
+
+                        val gridSurfaceColor = if (isDark) {
+                            if (isOledBlackActive()) Color.Black else MaterialTheme.colorScheme.surface
+                        } else {
+                            MaterialTheme.colorScheme.surface
+                        }
 
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(max = maxGridHeight)
+                                .fadingBlurEdges(
+                                    scrollState = gridScrollState,
+                                    surfaceColor = gridSurfaceColor,
+                                    baseFadeHeight = 24.dp,
+                                    scrollingFadeHeight = 36.dp
+                                )
                                 .verticalScroll(gridScrollState)
                         ) {
                             val chunkedCategories = remember { COURSE_CATEGORIES.chunked(3) }

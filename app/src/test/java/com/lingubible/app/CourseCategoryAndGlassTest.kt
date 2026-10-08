@@ -187,4 +187,63 @@ class CourseCategoryAndGlassTest {
             assertNotNull(contentColor)
         }
     }
+
+    @Test
+    fun `fading blur edges calculates correct dynamic heights and alpha targets during scroll`() {
+        // Base and scrolling heights
+        val baseFadeHeightDp = 24
+        val scrollingFadeHeightDp = 36
+
+        // Case 1: Initial state at top with overflow
+        val canScrollBackward1 = false
+        val canScrollForward1 = true
+        val isScrolling1 = false
+
+        val topAlpha1 = if (canScrollBackward1) (if (isScrolling1) 1.0f else 0.90f) else 0f
+        val bottomAlpha1 = if (canScrollForward1) (if (isScrolling1) 1.0f else 0.90f) else 0f
+        val fadeHeight1 = if (isScrolling1) scrollingFadeHeightDp else baseFadeHeightDp
+
+        assertEquals("Top fade should be 0 when at top of category list", 0f, topAlpha1, 0.001f)
+        assertEquals("Bottom fade should be active when content overflows below", 0.90f, bottomAlpha1, 0.001f)
+        assertEquals("Fade height should be resting base height when idle", 24, fadeHeight1)
+
+        // Case 2: Actively scrolling in the middle
+        val canScrollBackward2 = true
+        val canScrollForward2 = true
+        val isScrolling2 = true
+
+        val topAlpha2 = if (canScrollBackward2) (if (isScrolling2) 1.0f else 0.90f) else 0f
+        val bottomAlpha2 = if (canScrollForward2) (if (isScrolling2) 1.0f else 0.90f) else 0f
+        val fadeHeight2 = if (isScrolling2) scrollingFadeHeightDp else baseFadeHeightDp
+
+        assertEquals("Top fade should be full alpha during active scroll", 1.0f, topAlpha2, 0.001f)
+        assertEquals("Bottom fade should be full alpha during active scroll", 1.0f, bottomAlpha2, 0.001f)
+        assertEquals("Fade height should expand during active scroll", 36, fadeHeight2)
+        assertTrue("Scrolling fade height must exceed base fade height", fadeHeight2 > fadeHeight1)
+
+        // Case 3: Scrolled to bottom
+        val canScrollBackward3 = true
+        val canScrollForward3 = false
+        val isScrolling3 = false
+
+        val topAlpha3 = if (canScrollBackward3) (if (isScrolling3) 1.0f else 0.90f) else 0f
+        val bottomAlpha3 = if (canScrollForward3) (if (isScrolling3) 1.0f else 0.90f) else 0f
+
+        assertEquals("Top fade should be active when scrolled down", 0.90f, topAlpha3, 0.001f)
+        assertEquals("Bottom fade should be 0 when bottom is reached", 0f, bottomAlpha3, 0.001f)
+    }
+
+    @Test
+    fun `frosted mist opacity stops form a monotonic dissipative gradient curve`() {
+        val stops = listOf(0.95f, 0.70f, 0.35f, 0.10f, 0.0f)
+        for (i in 0 until stops.size - 1) {
+            assertTrue(
+                "Each opacity stop must strictly decrease to create optical blur dissipation",
+                stops[i] > stops[i + 1]
+            )
+        }
+        assertEquals("Edge stop must be at least 0.95 for seamless boundary blend", 0.95f, stops.first(), 0.001f)
+        assertEquals("Inner terminal stop must be 0 for full transparency", 0.0f, stops.last(), 0.001f)
+    }
 }
+

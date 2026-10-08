@@ -239,6 +239,10 @@ class CourseDetailViewModelTest {
             override suspend fun logout(): Result<Unit> = Result.success(Unit)
             override suspend fun checkSession(): Result<User?> = Result.success(fakeUserFlow.value)
             override fun isValidEmail(email: String): Boolean = true
+            override suspend fun updateName(newName: String): Result<User> = Result.failure(NotImplementedError())
+            override suspend fun updatePassword(newPassword: String, oldPassword: String): Result<Unit> = Result.failure(NotImplementedError())
+            override suspend fun isGoogleLinked(): Result<Boolean> = Result.success(false)
+            override suspend fun unlinkGoogle(): Result<Unit> = Result.success(Unit)
         }
 
         val vm = CourseDetailViewModel(courseRepo, reviewRepo, materialRepo, authRepo)

@@ -353,7 +353,45 @@ class DomainAndViewModelTest {
         }
 
         override suspend fun checkSession(): Result<User?> = Result.success(_currentUser.value)
+
+        override suspend fun updateName(name: String): Result<User> {
+            val cur = _currentUser.value ?: return Result.failure(IllegalStateException("No user"))
+            val updated = cur.copy(name = name)
+            _currentUser.value = updated
+            return Result.success(updated)
+        }
+
+        override suspend fun updatePassword(newPassword: String, oldPassword: String): Result<Unit> =
+            Result.success(Unit)
+
+        override suspend fun isGoogleLinked(): Result<Boolean> = Result.success(true)
+
+        override suspend fun unlinkGoogle(): Result<Unit> = Result.success(Unit)
+
         override fun isValidEmail(email: String): Boolean = EmailValidator.isValidLingnanEmail(email)
+    }
+
+    private class FakeAvatarRepository : AvatarRepository {
+        private val _currentAvatar = MutableStateFlow<CustomAvatar?>(null)
+        override val currentAvatar: StateFlow<CustomAvatar?> = _currentAvatar
+
+        override suspend fun getUserAvatar(userId: String): Result<CustomAvatar?> {
+            val av = _currentAvatar.value ?: AvatarPresets.getDefaultAvatar(userId)
+            return Result.success(av)
+        }
+
+        override suspend fun saveUserAvatar(userId: String, animal: String, backgroundIndex: Int): Result<CustomAvatar> {
+            val av = CustomAvatar(animal, backgroundIndex)
+            _currentAvatar.value = av
+            return Result.success(av)
+        }
+
+        override suspend fun deleteUserAvatar(userId: String): Result<Unit> {
+            _currentAvatar.value = null
+            return Result.success(Unit)
+        }
+
+        override fun getCachedAvatar(userId: String): CustomAvatar? = _currentAvatar.value
     }
 
     private class FakeCourseRepository : CourseRepository {
@@ -418,8 +456,9 @@ class DomainAndViewModelTest {
 
     @Test
     fun `auth viewmodel validates email and performs login`() = runTest {
-        val repo = FakeAuthRepository()
-        val vm = AuthViewModel(repo)
+        val authRepo = FakeAuthRepository()
+        val avatarRepo = FakeAvatarRepository()
+        val vm = AuthViewModel(authRepo, avatarRepo)
 
         var successCalled = false
         vm.login("invalid@gmail.com", "pass1234") { successCalled = true }
@@ -431,6 +470,40 @@ class DomainAndViewModelTest {
         assertTrue(successCalled)
         assertNull(vm.uiState.value.errorMessage)
         assertEquals("student@ln.hk", vm.uiState.value.currentUser?.email)
+    }
+
+    @Test
+    fun `avatar presets and custom avatar workflow`() = runTest {
+        assertEquals(60, AvatarPresets.CUTE_AVATARS.size)
+        assertEquals(60, AvatarPresets.BACKGROUND_COLORS.size)
+        assertTrue(AvatarPresets.CUTE_AVATARS.contains("🐢"))
+
+        val defaultAvatar = AvatarPresets.getDefaultAvatar("user123")
+        assertNotNull(defaultAvatar.animal)
+        assertTrue(defaultAvatar.backgroundIndex in 0..59)
+
+        val authRepo = FakeAuthRepository()
+        val avatarRepo = FakeAvatarRepository()
+        val vm = AuthViewModel(authRepo, avatarRepo)
+
+        // Login first
+        vm.login("student@ln.hk", "pass1234") {}
+        testScheduler.advanceUntilIdle()
+
+        // Update custom avatar to turtle + background 57
+        var avatarSaved = false
+        vm.saveCustomAvatar("🐢", 57) { avatarSaved = it }
+        testScheduler.advanceUntilIdle()
+        assertTrue(avatarSaved)
+        assertEquals("🐢", vm.uiState.value.currentAvatar?.animal)
+        assertEquals(57, vm.uiState.value.currentAvatar?.backgroundIndex)
+
+        // Update username
+        var usernameUpdated = false
+        vm.updateUsername("ricky", onSuccess = { usernameUpdated = true }, onError = {})
+        testScheduler.advanceUntilIdle()
+        assertTrue(usernameUpdated)
+        assertEquals("ricky", vm.uiState.value.currentUser?.name)
     }
 
     @Test

@@ -11,6 +11,10 @@ interface AuthRepository {
     suspend fun loginWithGoogle(activity: ComponentActivity): Result<User>
     suspend fun logout(): Result<Unit>
     suspend fun checkSession(): Result<User?>
+    suspend fun updateName(name: String): Result<User>
+    suspend fun updatePassword(newPassword: String, oldPassword: String): Result<Unit>
+    suspend fun isGoogleLinked(): Result<Boolean>
+    suspend fun unlinkGoogle(): Result<Unit>
     fun isValidEmail(email: String): Boolean
 }
 

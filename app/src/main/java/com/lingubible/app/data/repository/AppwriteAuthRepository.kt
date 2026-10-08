@@ -150,4 +150,67 @@ class AppwriteAuthRepository(
             Result.success(null)
         }
     }
+
+    override suspend fun updateName(name: String): Result<User> {
+        val account = clientProvider.account 
+            ?: return Result.failure(IllegalStateException("Appwrite Account service not initialized"))
+
+        return try {
+            val appwriteUser = account.updateName(name.trim())
+            val updatedUser = User(
+                id = appwriteUser.id,
+                name = appwriteUser.name,
+                email = appwriteUser.email,
+                emailVerification = appwriteUser.emailVerification,
+                status = appwriteUser.status,
+                registrationDate = appwriteUser.registration
+            )
+            _currentUser.value = updatedUser
+            Result.success(updatedUser)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updatePassword(newPassword: String, oldPassword: String): Result<Unit> {
+        val account = clientProvider.account 
+            ?: return Result.failure(IllegalStateException("Appwrite Account service not initialized"))
+
+        return try {
+            account.updatePassword(password = newPassword, oldPassword = oldPassword)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun isGoogleLinked(): Result<Boolean> {
+        val account = clientProvider.account 
+            ?: return Result.success(false)
+
+        return try {
+            val identities = account.listIdentities()
+            val linked = identities.identities.any { it.provider.equals("google", ignoreCase = true) }
+            Result.success(linked)
+        } catch (e: Exception) {
+            Result.success(false)
+        }
+    }
+
+    override suspend fun unlinkGoogle(): Result<Unit> {
+        val account = clientProvider.account 
+            ?: return Result.failure(IllegalStateException("Appwrite Account service not initialized"))
+
+        return try {
+            val identities = account.listIdentities()
+            val googleIdentity = identities.identities.firstOrNull { it.provider.equals("google", ignoreCase = true) }
+                ?: return Result.failure(IllegalStateException("No Google account linked"))
+
+            account.deleteIdentity(googleIdentity.id)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
+

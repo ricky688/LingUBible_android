@@ -47,6 +47,7 @@ import com.lingubible.app.ui.components.M3LoadingState
 import com.lingubible.app.ui.components.M3PullToRefreshBox
 import com.lingubible.app.ui.components.PopularCourseCard
 import com.lingubible.app.ui.components.ScrollableM3ButtonGroup
+import com.lingubible.app.ui.components.fadingBlurEdges
 import com.lingubible.app.ui.viewmodels.CoursesViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -283,15 +284,27 @@ fun CoursesScreen(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Scrollable 3-Column Grid of Category Chips
+                // Scrollable 3-Column Grid of Category Chips with dynamic scroll-responsive fade-out blur
                 val configuration = LocalConfiguration.current
                 val maxGridHeight = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 120.dp else 190.dp
                 val gridScrollState = rememberScrollState()
+
+                val gridSurfaceColor = if (isDark) {
+                    if (isOledBlackActive()) Color.Black else MaterialTheme.colorScheme.background
+                } else {
+                    MaterialTheme.colorScheme.background
+                }
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = maxGridHeight)
+                        .fadingBlurEdges(
+                            scrollState = gridScrollState,
+                            surfaceColor = gridSurfaceColor,
+                            baseFadeHeight = 24.dp,
+                            scrollingFadeHeight = 36.dp
+                        )
                         .verticalScroll(gridScrollState)
                 ) {
                     val chunkedCategories = remember { COURSE_CATEGORIES.chunked(3) }
