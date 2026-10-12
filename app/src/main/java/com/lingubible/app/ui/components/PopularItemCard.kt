@@ -1,12 +1,9 @@
 package com.lingubible.app.ui.components
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -20,7 +17,6 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
@@ -29,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.theme.*
+import com.lingubible.app.ui.common.rememberCardPressShape
 import com.lingubible.app.domain.model.Course
 import com.lingubible.app.domain.model.Instructor
 import java.util.Locale
@@ -45,15 +42,7 @@ fun PopularCourseCard(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val scale by animateFloatAsState(
-        targetValue = when {
-            isPressed -> 0.98f
-            isHovered -> 1.015f
-            else -> 1.0f
-        },
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "cardScale"
-    )
+    val shape = rememberCardPressShape(interactionSource)
 
     val cardBg = MaterialTheme.colorScheme.surfaceContainer
     val cardBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
@@ -62,21 +51,16 @@ fun PopularCourseCard(
     val subtextColor = if (isDark) Color(0xFF94A3B8) else Color(0xFF6B7280)
 
     Card(
+        onClick = onClick,
+        interactionSource = interactionSource,
         modifier = modifier
             .fillMaxWidth()
-            .pointerHoverIcon(PointerIcon.Hand)
-            .scale(scale)
-            .border(
-                width = if (isHovered) 1.5.dp else 1.dp,
-                color = if (isHovered) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else cardBorder,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            ),
-        shape = RoundedCornerShape(16.dp),
+            .pointerHoverIcon(PointerIcon.Hand),
+        shape = shape,
+        border = BorderStroke(
+            width = if (isHovered) 1.5.dp else 1.dp,
+            color = if (isHovered) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else cardBorder
+        ),
         colors = CardDefaults.cardColors(
             containerColor = cardBg
         ),
@@ -216,15 +200,7 @@ fun PopularInstructorCard(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val scale by animateFloatAsState(
-        targetValue = when {
-            isPressed -> 0.98f
-            isHovered -> 1.015f
-            else -> 1.0f
-        },
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "instructorCardScale"
-    )
+    val shape = rememberCardPressShape(interactionSource)
 
     val cardBg = MaterialTheme.colorScheme.surfaceContainer
     val cardBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
@@ -232,21 +208,16 @@ fun PopularInstructorCard(
     val subtextColor = if (isDark) Color(0xFF94A3B8) else Color(0xFF6B7280)
 
     Card(
+        onClick = onClick,
+        interactionSource = interactionSource,
         modifier = modifier
             .fillMaxWidth()
-            .pointerHoverIcon(PointerIcon.Hand)
-            .scale(scale)
-            .border(
-                width = if (isHovered) 1.5.dp else 1.dp,
-                color = if (isHovered) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else cardBorder,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            ),
-        shape = RoundedCornerShape(16.dp),
+            .pointerHoverIcon(PointerIcon.Hand),
+        shape = shape,
+        border = BorderStroke(
+            width = if (isHovered) 1.5.dp else 1.dp,
+            color = if (isHovered) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else cardBorder
+        ),
         colors = CardDefaults.cardColors(
             containerColor = cardBg
         ),

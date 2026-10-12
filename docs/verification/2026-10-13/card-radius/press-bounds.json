@@ -1,0 +1,89 @@
+{
+  "planner": {
+    "bounds_rest_pressed_released": [
+      [
+        0,
+        0,
+        216,
+        71
+      ],
+      [
+        0,
+        0,
+        216,
+        71
+      ],
+      [
+        0,
+        0,
+        216,
+        71
+      ]
+    ],
+    "corner_row_6_insets_rest_pressed_released": [
+      12,
+      4,
+      12
+    ],
+    "rest_radius_dp": 28,
+    "pressed_radius_dp": 16
+  },
+  "calendar": {
+    "bounds_rest_pressed_released": [
+      [
+        0,
+        0,
+        217,
+        71
+      ],
+      [
+        0,
+        0,
+        217,
+        71
+      ],
+      [
+        0,
+        0,
+        217,
+        71
+      ]
+    ],
+    "corner_row_6_insets_rest_pressed_released": [
+      12,
+      4,
+      12
+    ],
+    "rest_radius_dp": 28,
+    "pressed_radius_dp": 16
+  },
+  "course": {
+    "bounds_rest_pressed_released": [
+      [
+        0,
+        0,
+        444,
+        281
+      ],
+      [
+        0,
+        0,
+        444,
+        281
+      ],
+      [
+        0,
+        0,
+        444,
+        281
+      ]
+    ],
+    "corner_row_6_insets_rest_pressed_released": [
+      11,
+      3,
+      11
+    ],
+    "rest_radius_dp": 28,
+    "pressed_radius_dp": 16
+  }
+}

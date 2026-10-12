@@ -2,17 +2,27 @@ package com.lingubible.app.ui.viewmodels
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lingubible.app.domain.calculator.HonoursCalculator
 import com.lingubible.app.domain.model.Course
 import com.lingubible.app.domain.repository.CourseRepository
+import com.lingubible.app.core.util.GpaBackup
+import com.lingubible.app.core.util.GpaPlannerSnapshot
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.UUID
+import java.io.ByteArrayOutputStream
+import java.io.FileInputStream
 
 @Serializable
 enum class TermPart(val code: String, val titleZh: String, val titleEn: String) {
@@ -80,19 +90,23 @@ data class GpaHonsUiState(
     val termStats: Map<String, TermComputedStats> = emptyMap(),
     val canUndo: Boolean = false,
     val canRedo: Boolean = false,
-    val courseCatalog: Map<String, Course> = emptyMap()
+    val courseCatalog: Map<String, Course> = emptyMap(),
+    val backupBusy: Boolean = false,
+    val backupMessage: String? = null,
+    val pendingRestore: GpaPlannerSnapshot? = null
 )
 
 class GpaHonsViewModel(
     private val context: Context,
-    private val courseRepository: CourseRepository
+    private val courseRepository: CourseRepository,
+    private val fileDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
-    private val undoStack = mutableListOf<GpaDocument>()
-    private val redoStack = mutableListOf<GpaDocument>()
+    private val undoStack = mutableListOf<GpaPlannerSnapshot>()
+    private val redoStack = mutableListOf<GpaPlannerSnapshot>()
 
     private val _uiState = MutableStateFlow(GpaHonsUiState())
     val uiState: StateFlow<GpaHonsUiState> = _uiState.asStateFlow()
@@ -123,25 +137,35 @@ class GpaHonsViewModel(
             GpaDocument()
         }
 
-        recompute(initialDoc, _uiState.value.targetCgpaInput, _uiState.value.remainingCreditsInput)
+        recompute(initialDoc, prefs.getString(KEY_TARGET, null) ?: "3.50", prefs.getString(KEY_REMAINING, null) ?: "")
     }
 
     private fun persist(doc: GpaDocument) {
         viewModelScope.launch {
             try {
                 val raw = json.encodeToString(doc)
-                prefs.edit().putString(KEY_DOC, raw).apply()
+                prefs.edit().putString(KEY_DOC, raw)
+                    .putString(KEY_TARGET, _uiState.value.targetCgpaInput)
+                    .putString(KEY_REMAINING, _uiState.value.remainingCreditsInput).apply()
             } catch (_: Exception) {}
         }
     }
 
-    private fun mutateDocument(newDoc: GpaDocument) {
-        if (newDoc == _uiState.value.document) return
-        undoStack.add(_uiState.value.document)
+    private fun snapshot() = GpaPlannerSnapshot(
+        _uiState.value.document, _uiState.value.targetCgpaInput, _uiState.value.remainingCreditsInput
+    )
+
+    private fun mutateDocument(
+        newDoc: GpaDocument,
+        target: String = _uiState.value.targetCgpaInput,
+        remaining: String = _uiState.value.remainingCreditsInput
+    ) {
+        if (GpaPlannerSnapshot(newDoc, target, remaining) == snapshot()) return
+        undoStack.add(snapshot())
         if (undoStack.size > 50) undoStack.removeAt(0)
         redoStack.clear()
 
-        recompute(newDoc, _uiState.value.targetCgpaInput, _uiState.value.remainingCreditsInput)
+        recompute(newDoc, target, remaining)
         persist(newDoc)
     }
 
@@ -263,10 +287,12 @@ class GpaHonsViewModel(
         val cleaned = parts.first() + if (parts.size > 1) "." + parts.drop(1).joinToString("") else ""
         val bounded = if ((cleaned.toDoubleOrNull() ?: 0.0) > 4.0) "4" else cleaned
         recompute(_uiState.value.document, bounded, _uiState.value.remainingCreditsInput)
+        persist(_uiState.value.document)
     }
 
     fun setRemainingCredits(value: String) {
         recompute(_uiState.value.document, _uiState.value.targetCgpaInput, value.filter { it in '0'..'9' })
+        persist(_uiState.value.document)
     }
 
     fun setAcademicYear(year: Int, academic: String) {
@@ -361,21 +387,93 @@ class GpaHonsViewModel(
     fun undo() {
         if (undoStack.isEmpty()) return
         val prior = undoStack.removeAt(undoStack.lastIndex)
-        redoStack.add(_uiState.value.document)
-        recompute(prior, _uiState.value.targetCgpaInput, _uiState.value.remainingCreditsInput)
-        persist(prior)
+        redoStack.add(snapshot())
+        recompute(prior.document, prior.targetCgpaInput, prior.remainingCreditsInput)
+        persist(prior.document)
     }
 
     fun redo() {
         if (redoStack.isEmpty()) return
         val next = redoStack.removeAt(redoStack.lastIndex)
-        undoStack.add(_uiState.value.document)
-        recompute(next, _uiState.value.targetCgpaInput, _uiState.value.remainingCreditsInput)
-        persist(next)
+        undoStack.add(snapshot())
+        recompute(next.document, next.targetCgpaInput, next.remainingCreditsInput)
+        persist(next.document)
     }
+
+    fun exportCalculator(uri: Uri, asCsv: Boolean) {
+        if (_uiState.value.backupBusy) return
+        val currentState = _uiState.value
+        val currentSnapshot = snapshot()
+        runFileOperation("匯出失敗，請重新選擇儲存位置。 Export failed; choose another location.") {
+            withContext(fileDispatcher) {
+                val contents = if (asCsv) GpaBackup.csv(currentState) else GpaBackup.encode(currentSnapshot)
+                val stream = context.contentResolver.openOutputStream(uri, "wt") ?: error("Cannot open output")
+                stream.use { it.write(contents.toByteArray(Charsets.UTF_8)) }
+            }
+            _uiState.update { it.copy(backupMessage = if (asCsv) "CSV 已匯出 · CSV exported" else "備份已儲存 · Backup saved") }
+        }
+    }
+
+    fun readCalculatorBackup(uri: Uri) {
+        if (_uiState.value.backupBusy) return
+        runFileOperation("無法讀取此備份。請選擇有效的 LingUBible JSON 備份（最多 1 MB）。 Invalid or unreadable backup (max 1 MB).") {
+            val restored = withContext(fileDispatcher) {
+                val descriptor = try {
+                    context.contentResolver.openFileDescriptor(uri, "r")
+                } catch (_: NullPointerException) {
+                    // Some Android 13 document providers crash in their read-only media
+                    // attribution path. "rw" does not truncate; we still only read bytes.
+                    // This works only when the picker has also granted write access.
+                    context.contentResolver.openFileDescriptor(uri, "rw")
+                } ?: error("Cannot open input")
+                val bytes = descriptor.use { file ->
+                    FileInputStream(file.fileDescriptor).use { input ->
+                        val output = ByteArrayOutputStream()
+                        val buffer = ByteArray(8192)
+                        while (true) {
+                            val count = input.read(buffer)
+                            if (count == -1) break
+                            require(output.size() + count <= GpaBackup.MAX_BYTES)
+                            output.write(buffer, 0, count)
+                        }
+                        output.toByteArray()
+                    }
+                }
+                GpaBackup.decode(bytes.toString(Charsets.UTF_8))
+            }
+            _uiState.update { it.copy(pendingRestore = restored) }
+        }
+    }
+
+    private fun runFileOperation(failure: String, operation: suspend () -> Unit) {
+        _uiState.update { it.copy(backupBusy = true, backupMessage = null) }
+        viewModelScope.launch {
+            try {
+                operation()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.w("GpaBackup", "Calculator file operation failed: ${error.javaClass.simpleName}")
+                _uiState.update { it.copy(backupMessage = failure) }
+            } finally {
+                _uiState.update { it.copy(backupBusy = false) }
+            }
+        }
+    }
+
+    fun confirmCalculatorRestore() {
+        val restored = _uiState.value.pendingRestore ?: return
+        mutateDocument(restored.document, restored.targetCgpaInput, restored.remainingCreditsInput)
+        _uiState.update { it.copy(pendingRestore = null, backupMessage = "備份已還原，可按復原。 Backup restored; Undo is available.") }
+    }
+
+    fun dismissCalculatorRestore() { _uiState.update { it.copy(pendingRestore = null) } }
+    fun clearBackupMessage() { _uiState.update { it.copy(backupMessage = null) } }
 
     companion object {
         private const val PREFS_NAME = "gpa_planner_v2"
         private const val KEY_DOC = "doc_json"
+        private const val KEY_TARGET = "target_cgpa"
+        private const val KEY_REMAINING = "remaining_credits"
     }
 }

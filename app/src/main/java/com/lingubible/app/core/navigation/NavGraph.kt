@@ -139,6 +139,15 @@ fun LingUBibleNavHost(
             )
         }
 
+        composable<Screen.MyReviews> {
+            ReviewsScreen(
+                myReviewsOnly = true,
+                onNavigateToCourse = { code -> navController.navigate(Screen.CourseDetail(code)) },
+                onNavigateToWriteReview = { code -> navController.navigate(Screen.WriteReview(code)) },
+                onNavigateToAuth = { navController.navigate(Screen.Auth("login")) }
+            )
+        }
+
         composable<Screen.WriteReview> { backStackEntry ->
             val route = backStackEntry.toRoute<Screen.WriteReview>()
             WriteReviewScreen(
@@ -159,7 +168,7 @@ fun LingUBibleNavHost(
         composable<Screen.Profile> {
             ProfileScreen(
                 onNavigateToAuth = { navController.navigate(Screen.Auth("login")) },
-                onNavigateToReviews = { navController.navigate(Screen.Reviews) },
+                onNavigateToReviews = { navController.navigate(Screen.MyReviews) },
                 onNavigateToSettings = { navController.navigate(Screen.Settings) }
             )
         }

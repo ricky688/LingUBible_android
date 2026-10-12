@@ -1,0 +1,13 @@
+{
+  "unit_tests": {
+    "tests": 382,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "sha256": {
+    "app-releaseValidation.apk": "fd112c7d030504eeb03727516981e697cb63eaf0529956ffe6988e37da9954c6",
+    "app-release.aab": "d1d837230ba286dde906e78735a36797db1e96b6d9c730b33c0d11f136a07d7a",
+    "app-release.apk": "8892d033a546684a943ec45f18500a0f0cdcf525a9822e6ec6613967b9c60c0a"
+  }
+}

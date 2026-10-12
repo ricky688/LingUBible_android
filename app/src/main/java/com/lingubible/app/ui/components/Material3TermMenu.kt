@@ -86,7 +86,7 @@ fun Material3TermSelector(
             onClick = {
                 expandedState.targetState = !expandedState.targetState
             },
-            shape = RoundedCornerShape(12.dp),
+            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = triggerBg
             ),

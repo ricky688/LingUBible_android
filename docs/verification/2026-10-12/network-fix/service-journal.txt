@@ -1,0 +1,8 @@
+Oct 12 22:33:53 Ricky systemd[1344]: Started LingUBible Waydroid HTTPS relay for host VPN connectivity.
+Oct 12 22:33:53 Ricky python3[1988383]: [Waydroid Proxy] Listening on 192.168.240.1:8888
+Oct 12 22:33:53 Ricky python3[1988383]: [Waydroid Proxy] Android proxy configured
+Oct 12 22:35:46 Ricky systemd[1344]: lingubible-waydroid-proxy.service: Sent signal SIGTERM to main process 1988383 (python3) on client request.
+Oct 12 22:35:56 Ricky systemd[1344]: lingubible-waydroid-proxy.service: Scheduled restart job, restart counter is at 1.
+Oct 12 22:35:56 Ricky systemd[1344]: Started LingUBible Waydroid HTTPS relay for host VPN connectivity.
+Oct 12 22:35:56 Ricky python3[1989842]: [Waydroid Proxy] Listening on 192.168.240.1:8888
+Oct 12 22:35:57 Ricky python3[1989842]: [Waydroid Proxy] Android proxy configured

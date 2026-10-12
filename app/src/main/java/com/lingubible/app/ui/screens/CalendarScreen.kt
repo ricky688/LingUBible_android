@@ -105,7 +105,7 @@ fun CalendarScreen(
                         }
 
                         // Batch Export Button
-                        FilledTonalButton(
+                        FilledTonalButton(shapes = ButtonDefaults.shapes(),
                             onClick = { calendarViewModel.exportAllEventsToIcs(context) },
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             colors = ButtonDefaults.filledTonalButtonColors(

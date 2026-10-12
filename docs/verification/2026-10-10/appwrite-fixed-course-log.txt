@@ -1,0 +1,22 @@
+--------- beginning of main
+10-10 19:23:11.522 41851 41851 D CourseRepo: getCourses called: search=null, subject=null
+10-10 19:23:15.535 41851 41955 D CourseRepo: Cached 1083 courses in memory
+10-10 19:23:15.535 41851 41851 D CourseRepo: Loaded 1083 courses (subject: null, search: null)
+10-10 19:23:49.385 41851 41851 D CourseRepo: getCourses called: search=null, subject=null
+10-10 19:23:49.673 41851 41851 D CourseRepo: Loaded 1083 courses (subject: null, search: null)
+10-10 19:24:03.770 41851 41851 D CourseRepo: getCourses called: search=B, subject=null
+10-10 19:24:03.789 41851 41851 D CourseRepo: Loaded 1017 courses (subject: null, search: B)
+10-10 19:24:03.826 41851 41851 D CourseRepo: getCourses called: search=BU, subject=null
+10-10 19:24:03.957 41851 41851 D CourseRepo: Loaded 335 courses (subject: null, search: BU)
+10-10 19:24:04.071 41851 41851 D CourseRepo: getCourses called: search=BUS, subject=null
+10-10 19:24:04.159 41851 41851 D CourseRepo: Loaded 112 courses (subject: null, search: BUS)
+10-10 19:24:04.187 41851 41851 D CourseRepo: getCourses called: search=BUS1, subject=null
+10-10 19:24:04.209 41851 41851 D CourseRepo: Loaded 5 courses (subject: null, search: BUS1)
+10-10 19:24:04.233 41851 41851 D CourseRepo: getCourses called: search=BUS11, subject=null
+10-10 19:24:04.275 41851 41851 D CourseRepo: Loaded 5 courses (subject: null, search: BUS11)
+10-10 19:24:04.278 41851 41851 D CourseRepo: getCourses called: search=BUS110, subject=null
+10-10 19:24:04.307 41851 41851 D CourseRepo: Loaded 5 courses (subject: null, search: BUS110)
+10-10 19:24:04.317 41851 41851 D CourseRepo: getCourses called: search=BUS1102, subject=null
+10-10 19:24:04.404 41851 41851 D CourseRepo: Loaded 1 courses (subject: null, search: BUS1102)
+10-10 19:27:22.229 41851 41851 D CourseRepo: getCourses called: search=null, subject=null
+10-10 19:27:22.319 41851 41851 D CourseRepo: Loaded 1083 courses (subject: null, search: null)

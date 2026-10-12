@@ -1,0 +1,146 @@
+{
+  "planner": {
+    "bounds_rest_pressed_released": [
+      [
+        0,
+        0,
+        216,
+        70
+      ],
+      [
+        0,
+        0,
+        216,
+        70
+      ],
+      [
+        0,
+        0,
+        216,
+        70
+      ]
+    ],
+    "corner_changed_pixels": 1015,
+    "corner_restore_difference_pixels": 0
+  },
+  "calendar": {
+    "bounds_rest_pressed_released": [
+      [
+        0,
+        0,
+        217,
+        70
+      ],
+      [
+        0,
+        0,
+        217,
+        70
+      ],
+      [
+        0,
+        0,
+        217,
+        70
+      ]
+    ],
+    "corner_changed_pixels": 1015,
+    "corner_restore_difference_pixels": 0
+  },
+  "stats": {
+    "bounds_rest_pressed_released": [
+      [
+        0,
+        0,
+        216,
+        139
+      ],
+      [
+        0,
+        0,
+        216,
+        139
+      ],
+      [
+        0,
+        0,
+        216,
+        139
+      ]
+    ],
+    "corner_changed_pixels": 252,
+    "corner_restore_difference_pixels": 0
+  },
+  "course": {
+    "bounds_rest_pressed_released": [
+      [
+        0,
+        0,
+        444,
+        281
+      ],
+      [
+        0,
+        0,
+        444,
+        281
+      ],
+      [
+        0,
+        0,
+        444,
+        281
+      ]
+    ],
+    "corner_changed_pixels": 975,
+    "corner_restore_difference_pixels": 0
+  },
+  "instructor": {
+    "bounds_rest_pressed_released": [
+      [
+        0,
+        0,
+        444,
+        238
+      ],
+      [
+        0,
+        0,
+        444,
+        238
+      ],
+      [
+        0,
+        0,
+        444,
+        238
+      ]
+    ],
+    "corner_changed_pixels": 960,
+    "corner_restore_difference_pixels": 0
+  },
+  "review": {
+    "bounds_rest_pressed_released": [
+      [
+        0,
+        0,
+        444,
+        314
+      ],
+      [
+        0,
+        0,
+        444,
+        314
+      ],
+      [
+        0,
+        0,
+        444,
+        314
+      ]
+    ],
+    "corner_changed_pixels": 236,
+    "corner_restore_difference_pixels": 0
+  }
+}

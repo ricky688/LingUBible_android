@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.navigation.screenBottomPadding
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -177,7 +178,7 @@ fun PlannerScreen(
                 }
 
                 // ICS Export Button
-                FilledTonalButton(
+                FilledTonalButton(shapes = ButtonDefaults.shapes(),
                     onClick = { timetableViewModel.exportTimetableIcs(context) },
                     enabled = timetableState.selectedSections.isNotEmpty(),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
@@ -248,7 +249,7 @@ fun PlannerScreen(
                 }.using(SizeTransform(clip = true) { _, _ -> spring(stiffness = Spring.StiffnessMediumLow) })
             },
             label = "timetableSubViewTransition",
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().screenBottomPadding(extra = 0.dp)
         ) { subView ->
             when (subView) {
                 TimetableSubView.GRID -> {

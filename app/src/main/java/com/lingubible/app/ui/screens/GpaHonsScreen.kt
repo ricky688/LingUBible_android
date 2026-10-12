@@ -1,5 +1,9 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.navigation.screenContentPadding
+import com.lingubible.app.core.navigation.LocalScreenBottomClearance
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateContentSize
@@ -51,6 +55,8 @@ import com.lingubible.app.ui.viewmodels.GpaHonsViewModel
 import com.lingubible.app.ui.viewmodels.GpaTerm
 import com.lingubible.app.ui.viewmodels.TermPart
 import org.koin.androidx.compose.koinViewModel
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -62,8 +68,26 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
     val calculatorScroll = rememberLazyListState()
     val statisticsScroll = rememberLazyListState()
     val years = remember(state.document) { state.document.terms.map { it.year }.distinct().sorted() }
+    val snackbarHost = remember { SnackbarHostState() }
+    val jsonExport = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        uri?.let { viewModel.exportCalculator(it, asCsv = false) }
+    }
+    val csvExport = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        uri?.let { viewModel.exportCalculator(it, asCsv = true) }
+    }
+    val importBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(viewModel::readCalculatorBackup)
+    }
+    LaunchedEffect(state.backupMessage) {
+        state.backupMessage?.let { message ->
+            snackbarHost.showSnackbar(message)
+            viewModel.clearBackupMessage()
+        }
+    }
+    fun exportName(extension: String) = "LingUBible-GPA-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}.$extension"
 
-    Column(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).imePadding()) {
+    Box(modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).imePadding()) {
         SecondaryTabRow(
             selectedTabIndex = if (statistics) 1 else 0,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -111,7 +135,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                 LazyColumn(
                     state = calculatorScroll,
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 160.dp),
+                    contentPadding = screenContentPadding(start = 16.dp, end = 16.dp, top = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     item("summary") {
@@ -119,6 +143,29 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                         Text("資料只儲存於本機 · Saved on this device", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(12.dp))
                         GpaSummary(state)
+                    }
+                    item("backup") {
+                        Surface(shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+                            Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text("備份與匯出 · Backup & export", style = MaterialTheme.typography.titleSmall)
+                                Text("JSON 可還原完整資料；CSV 可用於試算表。\nRestore with JSON; view CSV in a spreadsheet.",
+                                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = { jsonExport.launch(exportName("json")) }, enabled = !state.backupBusy) {
+                                        Icon(Icons.Outlined.SaveAlt, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("備份 Backup")
+                                    }
+                                    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { csvExport.launch(exportName("csv")) }, enabled = !state.backupBusy) {
+                                        Text("匯出 CSV")
+                                    }
+                                    TextButton(shapes = ButtonDefaults.shapes(), onClick = { importBackup.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }, enabled = !state.backupBusy) {
+                                        Text("還原 Restore")
+                                    }
+                                }
+                                if (state.backupBusy) LinearProgressIndicator(Modifier.fillMaxWidth())
+                            }
+                        }
                     }
                     item("trend") { GpaTrendCard(state) }
                     item("target") { GpaTargetCard(state, viewModel::setTargetCgpa, viewModel::setRemainingCredits) }
@@ -266,12 +313,25 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
             }
         }
     }
+    SnackbarHost(snackbarHost, Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = LocalScreenBottomClearance.current + 16.dp))
+    }
+    state.pendingRestore?.let { restored ->
+        val terms = restored.document.terms.size
+        val courses = restored.document.terms.sumOf { it.courses.size }
+        AlertDialog(
+            onDismissRequest = viewModel::dismissCalculatorRestore,
+            title = { Text("還原計算器備份？\nRestore calculator backup?") },
+            text = { Text("備份包含 $terms 個學期、$courses 個課程。將取代目前的計算器資料及目標設定，可按「復原 Undo」還原。\n$terms terms and $courses courses will replace the current entries and goals. You can Undo this change.") },
+            confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = viewModel::confirmCalculatorRestore) { Text("還原 Restore") } },
+            dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = viewModel::dismissCalculatorRestore) { Text("取消 Cancel") } }
+        )
+    }
     if (showResetDialog) AlertDialog(
         onDismissRequest = { showResetDialog = false },
         title = { Text("重設所有成績？ Reset planner?") },
         text = { Text("學期、課程和成績將回復初始狀態。可按「復原 Undo」還原。") },
-        confirmButton = { TextButton(onClick = { viewModel.resetAll(); showResetDialog = false }) { Text("重設 Reset") } },
-        dismissButton = { TextButton(onClick = { showResetDialog = false }) { Text("取消 Cancel") } }
+        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { viewModel.resetAll(); showResetDialog = false }) { Text("重設 Reset") } },
+        dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { showResetDialog = false }) { Text("取消 Cancel") } }
     )
 }
 

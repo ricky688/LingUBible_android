@@ -4,7 +4,9 @@ import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.SystemBarStyle
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -20,6 +22,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -32,6 +36,7 @@ import com.lingubible.app.core.navigation.LingUBibleBottomBar
 import com.lingubible.app.core.navigation.LingUBibleNavHost
 import com.lingubible.app.core.navigation.LingUBibleTopBar
 import com.lingubible.app.core.navigation.LocalBottomBarState
+import com.lingubible.app.core.navigation.LocalScreenBottomClearance
 import com.lingubible.app.core.navigation.LocalTopBarState
 import com.lingubible.app.core.navigation.TopBarState
 import com.lingubible.app.core.navigation.Screen
@@ -46,13 +51,40 @@ val LocalComponentActivity = staticCompositionLocalOf<ComponentActivity?> { null
 
 class MainActivity : ComponentActivity() {
     private val settingsManager: AppSettingsManager by inject()
+    private var systemBarIcons: Pair<Boolean, Boolean>? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private fun applySystemBarAppearance() {
+        val (lightStatusIcons, lightNavigationIcons) = systemBarIcons ?: return
+        val transparent = android.graphics.Color.TRANSPARENT
+        enableEdgeToEdge(
+            statusBarStyle = if (lightStatusIcons) SystemBarStyle.dark(transparent)
+                else SystemBarStyle.light(transparent, transparent),
+            navigationBarStyle = if (lightNavigationIcons) SystemBarStyle.dark(transparent)
+                else SystemBarStyle.light(transparent, transparent)
+        )
+        // enableEdgeToEdge configures this flag; apply our policy afterward.
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        applySystemBarAppearance()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // Dialogs and external activities can restore platform defaults on return.
+        if (hasFocus) applySystemBarAppearance()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
 
         setContent {
             val themeMode by settingsManager.themeMode.collectAsStateWithLifecycle()
@@ -75,8 +107,9 @@ class MainActivity : ComponentActivity() {
 
             // Provide dynamically localized Context and Configuration for in-app language and theme switching
             val context = LocalContext.current
-            val localizedContext = remember(context, appLanguage, isDark) {
-                val config = Configuration(context.resources.configuration)
+            val configuration = LocalConfiguration.current
+            val localizedContext = remember(context, configuration, appLanguage, isDark) {
+                val config = Configuration(configuration)
                 config.setLocale(appLanguage.locale)
                 config.uiMode = (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
                     (if (isDark) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO)
@@ -86,6 +119,7 @@ class MainActivity : ComponentActivity() {
 
             CompositionLocalProvider(
                 LocalComponentActivity provides this@MainActivity,
+                LocalActivityResultRegistryOwner provides this@MainActivity,
                 LocalContext provides localizedContext,
                 LocalConfiguration provides localizedContext.resources.configuration
             ) {
@@ -100,6 +134,14 @@ class MainActivity : ComponentActivity() {
                     dynamicColor = isDynamicColor,
                     highContrast = isHighContrast
                 ) {
+                    // Use the rendered colors, including inverted/dynamic/OLED themes.
+                    val lightStatusIcons = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                    val lightNavigationIcons = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+                    DisposableEffect(lightStatusIcons, lightNavigationIcons) {
+                        systemBarIcons = lightStatusIcons to lightNavigationIcons
+                        applySystemBarAppearance()
+                        onDispose { }
+                    }
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
@@ -114,6 +156,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun LingUBibleMainScreen() {
+    val density = LocalDensity.current
+    val imeVisible = WindowInsets.ime.getBottom(density) > 0
+    val collapseThreshold = with(density) { 24.dp.toPx() }
+    val revealThreshold = with(density) { 10.dp.toPx() }
+    val overscrollThreshold = with(density) { 4.dp.toPx() }
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -134,7 +181,7 @@ fun LingUBibleMainScreen() {
     var accumulatedDownScroll by remember { mutableFloatStateOf(0f) }
 
     // Scroll-driven hide/reveal connection: hides when scrolling down, reveals when scrolling up
-    val nestedScrollConnection = remember {
+    val nestedScrollConnection = remember(density) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 val dy = available.y
@@ -148,7 +195,7 @@ fun LingUBibleMainScreen() {
 
                         // When scrolling down intentionally, collapse large headline and sub-bar.
                         // The main bar (isTopBarVisible) is NEVER collapsed so it remains pinned at top.
-                        if (accumulatedDownScroll > 24f) {
+                        if (accumulatedDownScroll > collapseThreshold) {
                             if (isTopBarExpanded) {
                                 isTopBarExpanded = false
                             }
@@ -164,7 +211,7 @@ fun LingUBibleMainScreen() {
                         accumulatedDownScroll = 0f
 
                         // Reveal sub-bar and bottom bar immediately on upward scroll
-                        if (dy > 10f) {
+                        if (dy > revealThreshold) {
                             if (!isSubBarVisible) {
                                 isSubBarVisible = true
                             }
@@ -178,8 +225,8 @@ fun LingUBibleMainScreen() {
             }
 
             override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                // When available.y > 4f in onPostScroll, the list has reached the very top of the scrollable area
-                if (available.y > 4f) {
+                // Positive unconsumed scroll indicates the list has reached its top.
+                if (available.y > overscrollThreshold) {
                     accumulatedDownScroll = 0f
                     if (!isTopBarExpanded) {
                         isTopBarExpanded = true
@@ -249,32 +296,39 @@ fun LingUBibleMainScreen() {
                 if (shouldShowBottomBar) {
                     LingUBibleBottomBar(
                         navController = navController,
-                        isVisible = isBottomBarVisible,
+                        isVisible = isBottomBarVisible && !imeVisible,
                         onExpand = { isBottomBarVisible = true }
                     )
                 }
             }
         ) { innerPadding ->
             val topBarPadding = innerPadding.calculateTopPadding()
-            val statusBarPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+            val statusBarPadding = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
             val effectiveTopPadding = maxOf(topBarPadding, statusBarPadding)
+            val systemBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            val bottomClearance = when {
+                imeVisible -> 0.dp // imePadding below owns the entire keyboard inset.
+                shouldShowBottomBar && isBottomBarVisible -> maxOf(innerPadding.calculateBottomPadding(), systemBottom)
+                else -> systemBottom
+            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(
-                        top = effectiveTopPadding,
-                        bottom = if (shouldShowBottomBar) 0.dp else innerPadding.calculateBottomPadding()
-                    )
-                    .consumeWindowInsets(WindowInsets.statusBars)
+                    .padding(top = effectiveTopPadding)
+                    .consumeWindowInsets(PaddingValues(top = effectiveTopPadding))
+                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                    .imePadding()
             ) {
-                LingUBibleNavHost(
-                    navController = navController,
-                    modifier = Modifier.fillMaxSize()
-                )
-                // Draw over the list, immediately below the measured top bar.
-                // This decorative layer neither reserves space nor intercepts touches.
-                if (currentDestination?.hasRoute<Screen.Home>() == true && isTopBarVisible) {
-                    DiscoverTopBarGlass()
+                CompositionLocalProvider(LocalScreenBottomClearance provides bottomClearance) {
+                    LingUBibleNavHost(
+                        navController = navController,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    // Draw over the list, immediately below the measured top bar.
+                    // This decorative layer neither reserves space nor intercepts touches.
+                    if (currentDestination?.hasRoute<Screen.Home>() == true && isTopBarVisible) {
+                        DiscoverTopBarGlass()
+                    }
                 }
             }
         }

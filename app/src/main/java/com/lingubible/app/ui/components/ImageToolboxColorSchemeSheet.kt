@@ -315,7 +315,7 @@ fun PaletteStyleDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) {
                 Text("完成")
             }
         },
@@ -443,13 +443,13 @@ fun CustomColorPickerDialog(
                     onColorSelected(currentColor)
                     onDismiss()
                 },
-                shape = RoundedCornerShape(12.dp)
+                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
             ) {
                 Text("套用")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) {
                 Text("取消")
             }
         },
@@ -932,7 +932,7 @@ fun ImageToolboxColorSchemeSheet(
                 // Close button ("關閉")
                 Button(
                     onClick = onDismiss,
-                    shape = RoundedCornerShape(22.dp),
+                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(22.dp)),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary

@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.navigation.screenContentPadding
 import android.content.res.Configuration
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
@@ -257,7 +258,7 @@ fun CoursesScreen(
                         }
                     }
 
-                    TextButton(
+                    TextButton(shapes = ButtonDefaults.shapes(),
                         onClick = { isGridExpanded = false },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                         modifier = Modifier
@@ -374,7 +375,7 @@ fun CoursesScreen(
             )
 
             if (uiState.selectedSubject != null && !uiState.selectedSubject.equals("ALL", ignoreCase = true)) {
-                TextButton(
+                TextButton(shapes = ButtonDefaults.shapes(),
                     onClick = { viewModel.filterSubject(null) },
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
                     modifier = Modifier.height(26.dp)
@@ -419,7 +420,7 @@ fun CoursesScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .mouseScrollbar(listState),
-                        contentPadding = PaddingValues(bottom = 100.dp),
+                        contentPadding = screenContentPadding(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(uiState.courses, key = { it.code }) { course ->
@@ -456,13 +457,12 @@ private fun CourseCategoryGridChip(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.94f else 1.0f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "chipPressScale"
+    val corner by androidx.compose.animation.core.animateDpAsState(
+        targetValue = if (isPressed) 18.dp else 10.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        label = "categoryPressedShape"
     )
-
-    val chipShape = RoundedCornerShape(10.dp)
+    val chipShape = RoundedCornerShape(corner)
 
     Surface(
         onClick = onClick,
@@ -484,7 +484,6 @@ private fun CourseCategoryGridChip(
         ),
         shadowElevation = if (isSelected) 3.dp else 0.dp,
         modifier = modifier
-            .scale(scale)
             .semantics {
                 selected = isSelected
                 role = Role.RadioButton

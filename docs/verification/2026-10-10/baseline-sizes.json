@@ -1,0 +1,12 @@
+{
+  "app-release.aab": {
+    "bytes": 16535265,
+    "dex_uncompressed_bytes": 55497040,
+    "sha256": "42e382f170fd1b7b727bcbf20202bc3f314976a8484c327d833710fa753263ff"
+  },
+  "app-release.apk": {
+    "bytes": 17899046,
+    "dex_uncompressed_bytes": 55497040,
+    "sha256": "34ad25296f238ab992b90a3d5124669218d1e76a5a4216141024c238f3d0ccd6"
+  }
+}

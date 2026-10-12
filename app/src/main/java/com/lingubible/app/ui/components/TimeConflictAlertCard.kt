@@ -443,7 +443,7 @@ fun TimeConflictAlertCard(
                             if (onSelectConflict != null) {
                                 OutlinedButton(
                                     onClick = { onSelectConflict(conflicts.first()) },
-                                    shape = RoundedCornerShape(12.dp),
+                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                 ) {
@@ -464,7 +464,7 @@ fun TimeConflictAlertCard(
                                         containerColor = LingnanRed.copy(alpha = if (isDark) 0.30f else 0.15f),
                                         contentColor = if (isDark) Color(0xFFFCA5A5) else LingnanRed
                                     ),
-                                    shape = RoundedCornerShape(12.dp),
+                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                 ) {

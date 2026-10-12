@@ -504,32 +504,56 @@ class InstructorsViewModel(
 data class ReviewsUiState(
     val isLoading: Boolean = false,
     val reviews: List<Review> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val signInRequired: Boolean = false
 )
 
 class ReviewsViewModel(
-    private val reviewRepository: ReviewRepository
+    private val reviewRepository: ReviewRepository,
+    private val authRepository: AuthRepository,
+    private val myReviewsOnly: Boolean = false
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ReviewsUiState())
     val uiState: StateFlow<ReviewsUiState> = _uiState.asStateFlow()
+    private var loadJob: kotlinx.coroutines.Job? = null
+    private var loadGeneration = 0
 
     init {
-        loadReviews()
+        if (myReviewsOnly) {
+            viewModelScope.launch {
+                authRepository.currentUser.collect { loadReviews() }
+            }
+        } else {
+            loadReviews()
+        }
     }
 
     fun loadReviews() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = reviewRepository.getLatestReviews(30)
-            if (result.isSuccess) {
-                _uiState.update { it.copy(isLoading = false, reviews = result.getOrDefault(emptyList())) }
+        loadJob?.cancel()
+        val generation = ++loadGeneration
+        val userId = authRepository.currentUser.value?.id
+        if (myReviewsOnly && userId.isNullOrBlank()) {
+            _uiState.value = ReviewsUiState(signInRequired = true)
+            return
+        }
+        // Clear account-specific results before refreshing or switching accounts.
+        _uiState.update {
+            it.copy(isLoading = true, errorMessage = null, signInRequired = false,
+                reviews = if (myReviewsOnly) emptyList() else it.reviews)
+        }
+        loadJob = viewModelScope.launch {
+            val result = if (myReviewsOnly) {
+                reviewRepository.getReviewsForUser(requireNotNull(userId))
             } else {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = result.exceptionOrNull()?.localizedMessage ?: "Failed to load reviews"
-                    )
-                }
+                reviewRepository.getLatestReviews(30)
+            }
+            if (generation != loadGeneration ||
+                (myReviewsOnly && authRepository.currentUser.value?.id != userId)) return@launch
+            _uiState.update {
+                it.copy(isLoading = false, reviews = result.getOrDefault(emptyList()).let { reviews ->
+                        if (myReviewsOnly) reviews.filter { review -> review.userId == userId } else reviews
+                    },
+                    errorMessage = result.exceptionOrNull()?.localizedMessage)
             }
         }
     }

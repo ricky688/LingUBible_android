@@ -109,13 +109,6 @@ private fun M3SplitButtonSegment(
     borderColor: Color
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1.0f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "splitButtonScale"
-    )
 
     val targetContainerColor = when {
         selected -> MaterialTheme.colorScheme.primary
@@ -124,7 +117,7 @@ private fun M3SplitButtonSegment(
     }
     val containerColor by animateColorAsState(
         targetValue = targetContainerColor,
-        animationSpec = tween(180),
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
         label = "splitButtonContainer"
     )
 
@@ -135,25 +128,21 @@ private fun M3SplitButtonSegment(
     }
     val contentColor by animateColorAsState(
         targetValue = targetContentColor,
-        animationSpec = tween(180),
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
         label = "splitButtonContent"
     )
 
-    Surface(
-        modifier = Modifier
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .clip(shape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary),
-                onClick = onClick
-            )
-            .pointerHoverIcon(PointerIcon.Hand),
-        shape = shape,
-        color = containerColor,
+    ToggleButton(
+        checked = selected,
+        onCheckedChange = { onClick() },
+        modifier = Modifier.fillMaxHeight().pointerHoverIcon(PointerIcon.Hand),
+        shapes = ToggleButtonDefaults.shapes(shape = shape, checkedShape = shape),
+        colors = ToggleButtonDefaults.toggleButtonColors(
+            containerColor = containerColor, contentColor = contentColor,
+            checkedContainerColor = containerColor, checkedContentColor = contentColor
+        ),
+        contentPadding = PaddingValues(0.dp),
+        interactionSource = interactionSource,
         border = if (selected) null else BorderStroke(1.dp, borderColor)
     ) {
         Row(

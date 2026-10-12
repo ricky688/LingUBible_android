@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.core.navigation.screenContentPadding
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -150,7 +151,7 @@ fun FirstClassHonoursContent(listState: LazyListState) {
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 160.dp),
+        contentPadding = screenContentPadding(start = 16.dp, end = 16.dp, top = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item("overview") {
@@ -621,7 +622,7 @@ private fun StatisticsFilterBar(
                         }
 
                         if (activeFilterCount > 0) {
-                            TextButton(
+                            TextButton(shapes = ButtonDefaults.shapes(),
                                 onClick = onResetFilters,
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                             ) {
@@ -977,7 +978,7 @@ private fun HonoursEmptyState(
             )
             FilledTonalButton(
                 onClick = onResetFilters,
-                shape = RoundedCornerShape(14.dp)
+                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp))
             ) {
                 Icon(Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))

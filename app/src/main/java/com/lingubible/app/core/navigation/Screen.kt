@@ -60,6 +60,9 @@ sealed interface Screen {
     data object Reviews : Screen
 
     @Serializable
+    data object MyReviews : Screen
+
+    @Serializable
     data class WriteReview(val courseCode: String? = null) : Screen
 
     @Serializable

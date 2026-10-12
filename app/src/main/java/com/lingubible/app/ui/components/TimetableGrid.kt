@@ -121,7 +121,7 @@ fun TimetableGrid(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
-                    shape = RoundedCornerShape(20.dp),
+                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(20.dp)),
                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                 ) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -555,7 +555,7 @@ fun TimetableGrid(
                 }
             },
             confirmButton = {
-                TextButton(
+                TextButton(shapes = ButtonDefaults.shapes(),
                     onClick = { selectedSectionForDialog = null },
                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                 ) {
@@ -563,7 +563,7 @@ fun TimetableGrid(
                 }
             },
             dismissButton = {
-                Button(
+                Button(shapes = ButtonDefaults.shapes(),
                     onClick = {
                         onRemoveSection(section.id)
                         selectedSectionForDialog = null

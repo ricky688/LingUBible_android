@@ -3,7 +3,8 @@ package com.lingubible.app.ui.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -52,7 +53,7 @@ data class M3ButtonGroupItem(
  * - Dynamic corner radius animation on state transition using bouncy spring physics.
  * - Connected 4dp spacing between items.
  * - Borderless smooth surfaces matching Google M3 Expressive Connected Button Group specs.
- * - Tactile motion physics with bouncy springs and haptic feedback.
+ * - Native Material 3 pressed/checked shape transitions and haptic feedback.
  * - Mouse cursor hand indicator (PointerIcon.Hand).
  */
 @Composable
@@ -94,7 +95,9 @@ fun M3ButtonGroup(
                 showCheckmarkOnSelected = showCheckmarkOnSelected,
                 modifier = buttonModifier,
                 contentHorizontalPadding = if (equalWeight) 4.dp else 14.dp,
-                equalWeight = equalWeight
+                equalWeight = equalWeight,
+                index = index,
+                count = items.size
             )
         }
     }
@@ -108,7 +111,7 @@ fun M3ButtonGroup(
  * - Smooth horizontal scrolling without breaking spring animations.
  * - Connected spacing between items.
  * - Supports alignment (e.g. Arrangement.End for right-aligned layouts).
- * - Tactile motion physics with bouncy springs and haptic feedback.
+ * - Native Material 3 pressed/checked shape transitions and haptic feedback.
  */
 @Composable
 fun ScrollableM3ButtonGroup(
@@ -202,7 +205,9 @@ fun ScrollableM3ButtonGroup(
                     isDark = isDark,
                     activeCornerRadius = activeCornerRadius,
                     inactiveCornerRadius = inactiveCornerRadius,
-                    showCheckmarkOnSelected = showCheckmarkOnSelected
+                    showCheckmarkOnSelected = showCheckmarkOnSelected,
+                    index = index,
+                    count = items.size
                 )
             }
         }
@@ -258,27 +263,27 @@ private fun M3ButtonGroupButton(
     showCheckmarkOnSelected: Boolean,
     modifier: Modifier = Modifier,
     contentHorizontalPadding: Dp = 14.dp,
-    equalWeight: Boolean = false
+    equalWeight: Boolean = false,
+    index: Int,
+    count: Int
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
     val hapticFeedback = LocalHapticFeedback.current
 
-    // Tactile press scale reduction using bouncy physics from ExpressiveLab
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) TactileMotionTokens.PRESS_SCALE_STANDARD else 1.0f,
-        animationSpec = TactileMotionTokens.bouncySpring(),
-        label = "connectedButtonScale"
+    val shapes = when {
+        count == 1 -> ToggleButtonDefaults.shapes()
+        index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+        index == count - 1 -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+    }.copy(
+        shape = RoundedCornerShape(
+            topStart = if (index == 0) activeCornerRadius else inactiveCornerRadius,
+            bottomStart = if (index == 0) activeCornerRadius else inactiveCornerRadius,
+            topEnd = if (index == count - 1) activeCornerRadius else inactiveCornerRadius,
+            bottomEnd = if (index == count - 1) activeCornerRadius else inactiveCornerRadius
+        ),
+        checkedShape = RoundedCornerShape(activeCornerRadius)
     )
-
-    // Dynamic shape morphing between active (Full Pill) and inactive (Squircle)
-    // as specified in Material 3 Expressive guidelines
-    val cornerRadius by animateDpAsState(
-        targetValue = if (selected) activeCornerRadius else inactiveCornerRadius,
-        animationSpec = TactileMotionTokens.bouncySpring(),
-        label = "connectedButtonCornerAnim"
-    )
-    val buttonShape = RoundedCornerShape(cornerRadius)
 
     // Colors matching Google Material 3 Expressive Connected Button Group:
     // Active: High-contrast primary fill with onPrimary content
@@ -290,7 +295,7 @@ private fun M3ButtonGroupButton(
     }
     val containerColor by animateColorAsState(
         targetValue = targetContainerColor,
-        animationSpec = tween(200),
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
         label = "connectedButtonContainer"
     )
 
@@ -301,7 +306,7 @@ private fun M3ButtonGroupButton(
     }
     val contentColor by animateColorAsState(
         targetValue = targetContentColor,
-        animationSpec = tween(200),
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
         label = "connectedButtonContent"
     )
 
@@ -312,26 +317,22 @@ private fun M3ButtonGroupButton(
         label
     }
 
-    Surface(
-        modifier = modifier
-            .fillMaxHeight()
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .clip(buttonShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary),
-                onClick = {
-                    hapticFeedback.performHapticFeedback(TactileMotionTokens.hapticTap)
-                    onClick()
-                }
-            )
-            .pointerHoverIcon(PointerIcon.Hand),
-        shape = buttonShape,
-        color = containerColor,
-        shadowElevation = if (selected) 1.dp else 0.dp
+    ToggleButton(
+        checked = selected,
+        onCheckedChange = {
+            hapticFeedback.performHapticFeedback(TactileMotionTokens.hapticTap)
+            onClick()
+        },
+        modifier = modifier.fillMaxHeight().pointerHoverIcon(PointerIcon.Hand),
+        shapes = shapes,
+        colors = ToggleButtonDefaults.toggleButtonColors(
+            containerColor = containerColor,
+            contentColor = contentColor,
+            checkedContainerColor = containerColor,
+            checkedContentColor = contentColor
+        ),
+        contentPadding = PaddingValues(0.dp),
+        interactionSource = interactionSource
     ) {
         val rowModifier = if (equalWeight) {
             Modifier.fillMaxSize()

@@ -35,6 +35,7 @@ interface ReviewRepository {
     suspend fun getReviewsForCourse(courseCode: String): Result<List<Review>>
     suspend fun getReviewsForInstructor(instructorName: String): Result<List<Review>>
     suspend fun getLatestReviews(limit: Int = 20): Result<List<Review>>
+    suspend fun getReviewsForUser(userId: String): Result<List<Review>>
     suspend fun submitReview(submission: ReviewSubmission): Result<Review>
     suspend fun voteReview(reviewId: String, voteType: String): Result<VoteState>
     suspend fun checkEligibility(userId: String, courseCode: String, termCode: String): EligibilityResult

@@ -1,0 +1,6 @@
+10-12 23:02:21.952 D/CourseRepo( 5660): getCourses called: search=null, subject=null
+10-12 23:02:21.953 D/ReviewRepo( 5660): Fetching reviews
+10-12 23:02:23.074 D/ReviewRepo( 5660): Loaded 30 reviews
+10-12 23:02:25.208 D/CourseRepo( 5660): Cached 1083 courses in memory
+10-12 23:02:25.209 D/CourseRepo( 5660): Loaded 1083 courses (subject: null, search: null)
+10-12 23:02:27.915 D/StatsRepo( 5660): PlatformStats loaded successfully: PlatformStats(verifiedStudentsCount=586, verifiedStudentsLast30Days=26, reviewsCount=1323, reviewsLast30Days=42, coursesCount=1083, coursesLast30Days=8, instructorsCount=791, instructorsLast30Days=5)

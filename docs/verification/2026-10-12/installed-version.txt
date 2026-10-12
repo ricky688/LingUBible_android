@@ -1,0 +1,5 @@
+versionCode=4 minSdk=26 targetSdk=36
+versionName=1.0.3
+lastUpdateTime=2026-10-12 22:00:49
+pkgFlags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ]
+firstInstallTime=2026-10-08 17:23:39

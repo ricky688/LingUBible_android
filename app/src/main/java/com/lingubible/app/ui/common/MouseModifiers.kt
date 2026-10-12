@@ -110,7 +110,7 @@ fun Modifier.mouseScrollbar(
         if (visibleCount < totalItemsCount) {
             val viewHeight = size.height
             val minThumbHeight = 36.dp.toPx()
-            val thumbHeight = (viewHeight * visibleCount / totalItemsCount).coerceIn(minThumbHeight, viewHeight)
+            val thumbHeight = scrollbarThumbHeight(viewHeight, visibleCount.toFloat() / totalItemsCount, minThumbHeight)
             val scrollableRange = viewHeight - thumbHeight
             val scrollProgress = (firstVisible.toFloat() / (totalItemsCount - visibleCount)).coerceIn(0f, 1f)
             val thumbOffsetY = scrollProgress * scrollableRange
@@ -139,7 +139,7 @@ fun Modifier.mouseScrollbar(
         val viewHeight = size.height
         val minThumbHeight = 36.dp.toPx()
         val totalHeight = viewHeight + maxValue
-        val thumbHeight = (viewHeight * (viewHeight / totalHeight)).coerceIn(minThumbHeight, viewHeight)
+        val thumbHeight = scrollbarThumbHeight(viewHeight, viewHeight / totalHeight, minThumbHeight)
         val scrollableRange = viewHeight - thumbHeight
         val scrollProgress = (state.value.toFloat() / maxValue).coerceIn(0f, 1f)
         val thumbOffsetY = scrollProgress * scrollableRange
@@ -153,3 +153,8 @@ fun Modifier.mouseScrollbar(
     }
 }
 
+/** Resize can briefly draw a viewport smaller than the preferred thumb, including zero. */
+internal fun scrollbarThumbHeight(viewHeight: Float, visibleFraction: Float, minThumbHeight: Float): Float {
+    if (viewHeight <= 0f) return 0f
+    return (viewHeight * visibleFraction).coerceIn(minThumbHeight.coerceAtMost(viewHeight), viewHeight)
+}

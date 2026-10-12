@@ -1,6 +1,5 @@
 package com.lingubible.app.core.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.AnimationSpec
@@ -17,13 +16,10 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 import com.lingubible.app.core.settings.AppColorScheme
 import com.lingubible.app.core.settings.PaletteStyle
 
@@ -521,20 +517,6 @@ fun LingUBibleTheme(
 
     // Material 3 Expressive fluid spring animated color scheme transition
     val animatedColorScheme = animateColorScheme(rawColorScheme)
-
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as? Activity)?.window
-            if (window != null) {
-                WindowCompat.setDecorFitsSystemWindows(window, false)
-                WindowCompat.getInsetsController(window, view).apply {
-                    isAppearanceLightStatusBars = !darkTheme
-                    isAppearanceLightNavigationBars = !darkTheme
-                }
-            }
-        }
-    }
 
     androidx.compose.runtime.CompositionLocalProvider(
         LocalDarkTheme provides darkTheme,

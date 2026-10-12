@@ -1,0 +1,2 @@
+    mLastStatusBarAppearanceRegions=
+      AppearanceRegion{ bounds=[0,0][480,1000]}

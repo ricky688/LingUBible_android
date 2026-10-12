@@ -43,11 +43,31 @@ class AppwriteReviewRepository(
         ))
     }
 
+    override suspend fun getReviewsForUser(userId: String): Result<List<Review>> {
+        require(userId.isNotBlank()) { "A signed-in user is required" }
+        val reviews = mutableListOf<Review>()
+        var cursor: String? = null
+        do {
+            val queries = buildList {
+                add(Query.equal("user_id", userId))
+                add(Query.orderDesc("\$createdAt"))
+                add(Query.limit(100))
+                cursor?.let { add(Query.cursorAfter(it)) }
+            }
+            val result = getReviews(queries)
+            if (result.isFailure) return result
+            val page = result.getOrThrow()
+            reviews += page
+            cursor = page.lastOrNull()?.id
+        } while (page.size == 100)
+        return Result.success(reviews)
+    }
+
     private suspend fun getReviews(queries: List<String>): Result<List<Review>> {
         val databases = clientProvider.databases
             ?: return Result.success(emptyList())
 
-        Log.d(TAG, "getReviews called: queries=$queries")
+        Log.d(TAG, "Fetching reviews")
 
         return try {
             val response = databases.listDocuments(
@@ -62,6 +82,8 @@ class AppwriteReviewRepository(
 
             Log.d(TAG, "Loaded ${reviews.size} reviews")
             Result.success(reviews)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching reviews: ${e.message}", e)
             Result.failure(e)

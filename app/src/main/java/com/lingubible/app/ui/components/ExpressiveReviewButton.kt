@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.theme.LingnanRed
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 /**
  * Material 3 Expressive Squircle Shape with continuous superellipse curvature.
@@ -84,7 +85,7 @@ class SquircleShape(
  * Features:
  * - Dynamic scroll-aware collapsing/expanding (shrinks to compact icon FAB when scrolling down, expands when scrolling up/idle)
  * - Material 3 Expressive squircle geometry (SquircleShape 24.dp)
- * - Spring press-scale interaction physics
+ * - Spring corner-shape press interaction
  * - Subtle ambient red glow shadow
  * - High-contrast crisp iconography and bold typography
  */
@@ -103,16 +104,12 @@ fun ExpressiveReviewFab(
     val isPressed by interactionSource.collectIsPressedAsState()
     val isHovered by interactionSource.collectIsHoveredAsState()
 
-    // Press and hover scale with spring physics
-    val fabScale by animateFloatAsState(
-        targetValue = when {
-            isPressed -> 0.93f
-            isHovered -> 1.035f
-            else -> 1.0f
-        },
+    val pressCorner by animateDpAsState(
+        targetValue = if (isPressed) 16.dp else 24.dp,
         animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "fabScale"
+        label = "reviewFabPressedShape"
     )
+    val animatedShape = if (isPressed || pressCorner < 24.dp) RoundedCornerShape(pressCorner) else shape
 
     // Fast, snappy Google M3 collapse (StiffnessHigh)
     // and smooth spring expand (StiffnessMedium)
@@ -142,17 +139,13 @@ fun ExpressiveReviewFab(
         modifier = modifier
             .offset(x = translationX, y = translationY)
             .pointerHoverIcon(PointerIcon.Hand)
-            .graphicsLayer {
-                scaleX = fabScale
-                scaleY = fabScale
-            }
             .shadow(
                 elevation = if (isHovered) 12.dp else 8.dp,
-                shape = shape,
+                shape = animatedShape,
                 ambientColor = shadowColor,
                 spotColor = shadowColor
             ),
-        shape = shape,
+        shape = animatedShape,
         color = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary,
         interactionSource = interactionSource
@@ -229,24 +222,10 @@ fun ExpressiveInlineReviewButton(
     val isPressed by interactionSource.collectIsPressedAsState()
     val isHovered by interactionSource.collectIsHoveredAsState()
 
-    val scale by animateFloatAsState(
-        targetValue = when {
-            isPressed -> 0.95f
-            isHovered -> 1.03f
-            else -> 1.0f
-        },
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "inlineButtonScale"
-    )
-
     Button(
         onClick = onClick,
         modifier = modifier
             .pointerHoverIcon(PointerIcon.Hand)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
             .shadow(
                 elevation = when {
                     isPressed -> 8.dp
@@ -257,7 +236,7 @@ fun ExpressiveInlineReviewButton(
                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isHovered) 0.45f else 0.3f),
                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isHovered) 0.45f else 0.3f)
             ),
-        shape = RoundedCornerShape(22.dp),
+        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(22.dp)),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
@@ -291,36 +270,24 @@ fun ExpressiveInlineReviewButton(
  */
 @Composable
 fun rememberIsScrollingUp(lazyListState: LazyListState): State<Boolean> {
-    return remember(lazyListState) {
+    val expanded = remember(lazyListState) { mutableStateOf(!lazyListState.canScrollBackward) }
+    LaunchedEffect(lazyListState) {
         var previousIndex = lazyListState.firstVisibleItemIndex
         var previousScrollOffset = lazyListState.firstVisibleItemScrollOffset
-        derivedStateOf {
-            val currentIndex = lazyListState.firstVisibleItemIndex
-            val currentOffset = lazyListState.firstVisibleItemScrollOffset
-
-            val isScrollingDown = if (currentIndex != previousIndex) {
-                currentIndex > previousIndex
-            } else {
-                currentOffset > previousScrollOffset
+        snapshotFlow {
+            lazyListState.firstVisibleItemIndex to lazyListState.firstVisibleItemScrollOffset
+        }.distinctUntilChanged().collect { (currentIndex, currentOffset) ->
+            expanded.value = when {
+                currentIndex == 0 && currentOffset == 0 -> true
+                currentIndex > previousIndex -> false
+                currentIndex < previousIndex -> true
+                currentOffset > previousScrollOffset -> false
+                currentOffset < previousScrollOffset -> true
+                else -> expanded.value
             }
-            val isScrollingUp = if (currentIndex != previousIndex) {
-                currentIndex < previousIndex
-            } else {
-                currentOffset < previousScrollOffset
-            }
-
             previousIndex = currentIndex
             previousScrollOffset = currentOffset
-
-            if (currentIndex == 0 && currentOffset <= 4) {
-                true
-            } else if (isScrollingDown) {
-                false
-            } else if (isScrollingUp) {
-                true
-            } else {
-                true
-            }
         }
     }
+    return expanded
 }

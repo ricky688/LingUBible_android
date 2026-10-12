@@ -208,6 +208,9 @@ fun PdfViewerModal(
                 WindowCompat.setDecorFitsSystemWindows(window, false)
                 window.statusBarColor = android.graphics.Color.TRANSPARENT
                 window.navigationBarColor = android.graphics.Color.TRANSPARENT
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    window.isNavigationBarContrastEnforced = false
+                }
                 window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
 
                 val controller = WindowCompat.getInsetsController(window, view)
@@ -217,12 +220,12 @@ fun PdfViewerModal(
         }
 
         val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-        val navBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(if (isDark) Color(0xFF121212) else Color(0xFFF4F6F9))
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
         ) {
             // Main Content Area
             when {
@@ -303,7 +306,7 @@ fun PdfViewerModal(
                         ) {
                             OutlinedButton(
                                 onClick = onDismiss,
-                                shape = RoundedCornerShape(12.dp)
+                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
                             ) {
                                 Text("關閉 Close")
                             }
@@ -328,7 +331,7 @@ fun PdfViewerModal(
                                         }
                                     }
                                 },
-                                shape = RoundedCornerShape(12.dp)
+                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
                             ) {
                                 Text("重試 Retry")
                             }
@@ -360,6 +363,8 @@ fun PdfViewerModal(
                             state = lazyListState,
                             modifier = Modifier
                                 .fillMaxSize()
+                                // Keep white PDF pages out from under light navigation icons.
+                                .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
                                 .graphicsLayer {
                                     scaleX = zoomScale
                                     scaleY = zoomScale
@@ -368,7 +373,7 @@ fun PdfViewerModal(
                                 },
                             contentPadding = PaddingValues(
                                 top = statusBarHeight + 64.dp, // space for top frosted header extending through status bar
-                                bottom = navBarHeight + 32.dp,
+                                bottom = 32.dp,
                                 start = 12.dp,
                                 end = 12.dp
                             ),

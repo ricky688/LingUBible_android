@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.navigation.screenContentPadding
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
@@ -9,7 +10,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -54,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.ui.common.mouseScrollbar
+import com.lingubible.app.ui.common.rememberCardPressShape
 import com.lingubible.app.ui.components.*
 import com.lingubible.app.ui.viewmodels.AuthViewModel
 import com.lingubible.app.ui.viewmodels.CoursesViewModel
@@ -135,7 +137,7 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
                     .mouseScrollbar(listState),
-                contentPadding = PaddingValues(top = 8.dp, bottom = 160.dp)
+                contentPadding = screenContentPadding(top = 8.dp)
             ) {
 
                 // ==========================================
@@ -208,32 +210,28 @@ fun HomeScreen(
                         // CTA Button with Expressive Spring Elevation and Haptics
                         val ctaInteractionSource = remember { MutableInteractionSource() }
                         val isCtaPressed by ctaInteractionSource.collectIsPressedAsState()
-                        val ctaScale by animateFloatAsState(
-                            targetValue = if (isCtaPressed) 0.94f else 1.0f,
+                        val ctaCorner by androidx.compose.animation.core.animateDpAsState(
+                            targetValue = if (isCtaPressed) 16.dp else 30.dp,
                             animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                            label = "ctaScale"
+                            label = "ctaPressedShape"
                         )
 
                         Surface(
                             modifier = Modifier
-                                .graphicsLayer {
-                                    scaleX = ctaScale
-                                    scaleY = ctaScale
-                                }
                                 .shadow(
                                     elevation = if (isCtaPressed) 4.dp else 12.dp,
-                                    shape = RoundedCornerShape(30.dp),
+                                    shape = RoundedCornerShape(ctaCorner),
                                     ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
                                     spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
                                 )
-                                .clip(RoundedCornerShape(30.dp))
+                                .clip(RoundedCornerShape(ctaCorner))
                                 .clickable(
                                     interactionSource = ctaInteractionSource,
                                     indication = null
                                 ) {
                                     onNavigateToCourse("")
                                 },
-                            shape = RoundedCornerShape(30.dp),
+                            shape = RoundedCornerShape(ctaCorner),
                             color = MaterialTheme.colorScheme.primary
                         ) {
                             Box(
@@ -322,20 +320,16 @@ fun HomeScreen(
                                 title = "涵蓋課程",
                                 value = coursesDisplay,
                                 change = coursesChange,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .clickable { onNavigateToCourse("") }
+                                modifier = Modifier.weight(1f),
+                                onClick = { onNavigateToCourse("") }
                             )
                             StatsCard(
                                 icon = Icons.Filled.Person,
                                 title = "評價講師",
                                 value = instructorsDisplay,
                                 change = instructorsChange,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .clickable { onNavigateToInstructor("") }
+                                modifier = Modifier.weight(1f),
+                                onClick = { onNavigateToInstructor("") }
                             )
                         }
                     }
@@ -374,18 +368,18 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             // Timetable Planner Card
+                            val plannerInteraction = remember { MutableInteractionSource() }
                             Surface(
+                                onClick = onNavigateToPlanner,
+                                interactionSource = plannerInteraction,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .border(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f),
-                                        RoundedCornerShape(16.dp)
-                                    )
-                                    .pointerHoverIcon(PointerIcon.Hand)
-                                    .clickable { onNavigateToPlanner() },
-                                shape = RoundedCornerShape(16.dp),
+                                    .pointerHoverIcon(PointerIcon.Hand),
+                                shape = rememberCardPressShape(plannerInteraction),
+                                border = BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
+                                ),
                                 color = MaterialTheme.colorScheme.surfaceContainer
                             ) {
                                 Row(
@@ -426,18 +420,18 @@ fun HomeScreen(
                             }
 
                             // School Calendar Card
+                            val calendarInteraction = remember { MutableInteractionSource() }
                             Surface(
+                                onClick = onNavigateToCalendar,
+                                interactionSource = calendarInteraction,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .border(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f),
-                                        RoundedCornerShape(16.dp)
-                                    )
-                                    .pointerHoverIcon(PointerIcon.Hand)
-                                    .clickable { onNavigateToCalendar() },
-                                shape = RoundedCornerShape(16.dp),
+                                    .pointerHoverIcon(PointerIcon.Hand),
+                                shape = rememberCardPressShape(calendarInteraction),
+                                border = BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
+                                ),
                                 color = MaterialTheme.colorScheme.surfaceContainer
                             ) {
                                 Row(
@@ -718,7 +712,7 @@ fun HomeScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        TextButton(
+                        TextButton(shapes = ButtonDefaults.shapes(),
                             onClick = { onNavigateToReviews() },
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
@@ -802,7 +796,7 @@ fun HomeScreen(
                                 Spacer(modifier = Modifier.height(18.dp))
                                 Button(
                                     onClick = { onNavigateToWriteReview("") },
-                                    shape = RoundedCornerShape(14.dp),
+                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
                                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -826,10 +820,8 @@ fun HomeScreen(
                             onVote = { voteType ->
                                 reviewsViewModel.voteReview(review.id, voteType)
                             },
-                            modifier = Modifier
-                                .padding(bottom = 12.dp)
-                                .pointerHoverIcon(PointerIcon.Hand)
-                                .clickable { onNavigateToCourse(review.courseCode) }
+                            modifier = Modifier.padding(bottom = 12.dp),
+                            onClick = { onNavigateToCourse(review.courseCode) }
                         )
                     }
                 }

@@ -187,7 +187,7 @@ fun AvatarCustomizerModal(
                     OutlinedButton(
                         onClick = { randomize() },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
+                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -201,7 +201,7 @@ fun AvatarCustomizerModal(
                             onDismiss()
                         },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
+                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         )

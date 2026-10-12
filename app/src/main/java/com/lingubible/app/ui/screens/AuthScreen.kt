@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.navigation.screenBottomPadding
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -75,7 +76,8 @@ fun AuthScreen(
                 .fillMaxSize()
                 .padding(horizontal = 24.dp)
                 .imePadding()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .screenBottomPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -137,7 +139,7 @@ fun AuthScreen(
                         .fillMaxWidth()
                         .height(52.dp),
                     enabled = !uiState.isLoading && activity != null,
-                    shape = RoundedCornerShape(26.dp)
+                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(26.dp))
                 ) {
                     Surface(
                         modifier = Modifier.size(24.dp),
@@ -263,7 +265,7 @@ fun AuthScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
-                    shape = RoundedCornerShape(26.dp),
+                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(26.dp)),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary

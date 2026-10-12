@@ -35,7 +35,7 @@ import com.lingubible.app.domain.model.CourseSyllabus
  * - Loading state: shows circular progress indicator and disables interaction while resolving
  * - Enabled state: displays syllabus title, filename, and opens the document view URL
  * - Fallback state: displays clear disabled state when no syllabus is available for the course
- * - Tactile motion: pure spring stiffness press-scale feedback without damping ratio overrides
+ * - Tactile motion: pure spring stiffness shape feedback without damping ratio overrides
  * - Bilingual typography: Traditional Chinese primary with English secondary
  */
 @Composable
@@ -48,12 +48,6 @@ fun CourseSyllabusButton(
     val isEnabled = !isLoading && syllabus != null
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed && isEnabled) 0.97f else 1.0f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "syllabusButtonScale"
-    )
 
     val cornerRadius by androidx.compose.animation.core.animateDpAsState(
         targetValue = if (isPressed && isEnabled) 20.dp else 12.dp,
@@ -86,7 +80,6 @@ fun CourseSyllabusButton(
         interactionSource = interactionSource,
         modifier = modifier
             .fillMaxWidth()
-            .scale(scale)
             .pointerHoverIcon(if (isEnabled) PointerIcon.Hand else PointerIcon.Default)
     ) {
         Row(

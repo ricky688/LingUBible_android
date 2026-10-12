@@ -1,0 +1,10 @@
+  Window #7 Window{2d89eae u0 com.lingubible.app/com.lingubible.app.MainActivity}:
+    mOwnerUid=10165 showForAllUsers=false package=com.lingubible.app appop=NONE
+    mBaseLayer=21000 mSubLayer=0    mToken=ActivityRecord{fc8e6bd u0 com.lingubible.app/.MainActivity} t5276}
+    mActivityRecord=ActivityRecord{fc8e6bd u0 com.lingubible.app/.MainActivity} t5276}
+    WindowStateAnimator{930ca2e com.lingubible.app/com.lingubible.app.MainActivity}:
+      mSurface=TID:5276#com.lingubible.app/com.lingubible.app.MainActivity
+  imeLayeringTarget in display# 0 Window{2d89eae u0 com.lingubible.app/com.lingubible.app.MainActivity}
+  imeInputTarget in display# 0 Window{2d89eae u0 com.lingubible.app/com.lingubible.app.MainActivity}
+  imeControlTarget in display# 0 Window{2d89eae u0 com.lingubible.app/com.lingubible.app.MainActivity}
+  mLastDisplayFreezeDuration=+59ms due to Window{2d89eae u0 com.lingubible.app/com.lingubible.app.MainActivity}

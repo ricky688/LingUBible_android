@@ -1,0 +1,26 @@
+10-12 22:34:16.050 D/AppwriteClient( 4985): Initialized: client=true, databases=true, endpoint=https://appwrite.lingubible.com/v1, projectId=6a1097400037a55f6472
+10-12 22:34:16.088 D/CourseRepo( 4985): getCourses called: search=null, subject=null
+10-12 22:34:16.089 D/ReviewRepo( 4985): getReviews called: queries=[{"attribute":"$createdAt","method":"orderDesc"}, {"method":"limit","values":[30]}]
+10-12 22:34:17.371 D/ReviewRepo( 4985): Loaded 30 reviews
+10-12 22:34:17.831 D/InstructorRepo( 4985): Loaded 50 instructors (department: null, search: null)
+10-12 22:34:18.450 D/CourseRepo( 4985): getCourses called: search=null, subject=null
+10-12 22:34:19.773 D/CourseRepo( 4985): Cached 1083 courses in memory
+10-12 22:34:19.773 D/CourseRepo( 4985): Loaded 1083 courses (subject: null, search: null)
+10-12 22:34:19.773 D/CourseRepo( 4985): Loaded 1083 courses (subject: null, search: null)
+10-12 22:34:20.489 D/StatsRepo( 4985): PlatformStats loaded successfully: PlatformStats(verifiedStudentsCount=586, verifiedStudentsLast30Days=26, reviewsCount=1323, reviewsLast30Days=42, coursesCount=1083, coursesLast30Days=8, instructorsCount=791, instructorsLast30Days=5)
+10-12 22:34:45.548 D/CourseRepo( 4985): getCourses called: search=B, subject=null
+10-12 22:34:45.553 D/CourseRepo( 4985): Loaded 1017 courses (subject: null, search: B)
+10-12 22:34:45.554 D/CourseRepo( 4985): getCourses called: search=BU, subject=null
+10-12 22:34:45.561 D/CourseRepo( 4985): Loaded 335 courses (subject: null, search: BU)
+10-12 22:34:45.569 D/CourseRepo( 4985): getCourses called: search=BUS, subject=null
+10-12 22:34:45.579 D/CourseRepo( 4985): Loaded 112 courses (subject: null, search: BUS)
+10-12 22:34:45.586 D/CourseRepo( 4985): getCourses called: search=BUS1, subject=null
+10-12 22:34:45.597 D/CourseRepo( 4985): Loaded 5 courses (subject: null, search: BUS1)
+10-12 22:34:45.607 D/CourseRepo( 4985): getCourses called: search=BUS11, subject=null
+10-12 22:34:45.616 D/CourseRepo( 4985): Loaded 5 courses (subject: null, search: BUS11)
+10-12 22:34:45.622 D/CourseRepo( 4985): getCourses called: search=BUS110, subject=null
+10-12 22:34:45.632 D/CourseRepo( 4985): Loaded 5 courses (subject: null, search: BUS110)
+10-12 22:34:45.638 D/CourseRepo( 4985): getCourses called: search=BUS1102, subject=null
+10-12 22:34:45.648 D/CourseRepo( 4985): Loaded 1 courses (subject: null, search: BUS1102)
+10-12 22:35:40.624 D/ReviewRepo( 4985): getReviews called: queries=[{"attribute":"course_code","method":"equal","values":["BUS1102"]}, {"attribute":"$createdAt","method":"orderDesc"}]
+10-12 22:35:41.149 D/ReviewRepo( 4985): Loaded 7 reviews

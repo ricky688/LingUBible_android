@@ -1,0 +1,15 @@
+{
+  "build_exit_code": 0,
+  "tasks": [
+    "testDebugUnitTest",
+    "assembleReleaseValidation",
+    "assembleRelease",
+    "bundleRelease"
+  ],
+  "unit_tests": {
+    "tests": 382,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

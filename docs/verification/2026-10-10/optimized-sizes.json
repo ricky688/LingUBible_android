@@ -1,0 +1,20 @@
+[
+  {
+    "artifact": "app-release.apk",
+    "bytes": 4056207,
+    "uncompressed_dex_bytes": 4418392,
+    "sha256": "9cb39672247920f0b76c654b6abfbccea49aa3d0cfa940eb064592453dfce130"
+  },
+  {
+    "artifact": "app-release.aab",
+    "bytes": 6993865,
+    "uncompressed_dex_bytes": 4418392,
+    "sha256": "afd2becf58d18fcaa0c1b1ac6a81a6b2b5bfed7e04da7cd0a18f23035dbfb9b1"
+  },
+  {
+    "artifact": "app-releaseValidation.apk",
+    "bytes": 4056073,
+    "uncompressed_dex_bytes": 4418392,
+    "sha256": "25d372d4708c0318fbe6366afaefcc49e2e7549f507a434c57ca0ab4c97b54a4"
+  }
+]

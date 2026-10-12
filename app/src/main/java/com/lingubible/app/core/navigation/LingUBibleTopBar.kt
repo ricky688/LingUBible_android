@@ -189,6 +189,12 @@ fun LingUBibleTopBar(
                     secondarySubtitle = if (isZh) "各學系教授與課程授課導師" else "Professors & Teaching Faculty",
                     key = "instructors"
                 )
+            destination?.hasRoute<Screen.MyReviews>() == true ->
+                TopBarTitleInfo(
+                    primaryTitle = if (isZh) "我的評價" else "My Reviews",
+                    secondarySubtitle = if (isZh) "你撰寫的課程評價" else "Course reviews written by you",
+                    key = "my_reviews"
+                )
             destination?.hasRoute<Screen.Reviews>() == true ->
                 TopBarTitleInfo(
                     primaryTitle = if (isZh) "最新課程評價" else "Latest Reviews",
@@ -326,7 +332,7 @@ fun LingUBibleTopBar(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
         ) {
             // 1. Compact Top Bar Row
             TopAppBar(
@@ -455,7 +461,8 @@ fun LingUBibleTopBar(
                 },
                 actions = {
                     val isHome = destination?.hasRoute<Screen.Home>() == true
-                    val isReviewable = destination?.hasRoute<Screen.Reviews>() == true || destination?.hasRoute<Screen.CourseDetail>() == true
+                    // Course details exposes writing only through the reviews tab's FAB.
+                    val isReviewable = destination?.hasRoute<Screen.Reviews>() == true
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(2.dp)

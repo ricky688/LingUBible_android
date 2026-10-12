@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.navigation.screenBottomPadding
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -79,7 +80,8 @@ fun WriteReviewScreen(
                 .padding(horizontal = 20.dp)
                 .imePadding()
                 .mouseScrollbar(scrollState)
-                .verticalScroll(scrollState),
+                .verticalScroll(scrollState)
+                .screenBottomPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(modifier = Modifier.height(4.dp))
@@ -279,16 +281,6 @@ fun WriteReviewScreen(
                 val submitInteractionSource = remember { MutableInteractionSource() }
                 val isSubmitPressed by submitInteractionSource.collectIsPressedAsState()
                 val isSubmitHovered by submitInteractionSource.collectIsHoveredAsState()
-                val submitScale by animateFloatAsState(
-                    targetValue = when {
-                        isSubmitPressed -> 0.96f
-                        isSubmitHovered -> 1.025f
-                        else -> 1.0f
-                    },
-                    animationSpec = spring(stiffness = Spring.StiffnessMedium),
-                    label = "submitScale"
-                )
-
                 // Submit Button - Material 3 Expressive
                 Button(
                     onClick = {
@@ -302,10 +294,6 @@ fun WriteReviewScreen(
                         .fillMaxWidth()
                         .height(54.dp)
                         .pointerHoverIcon(PointerIcon.Hand)
-                        .graphicsLayer {
-                            scaleX = submitScale
-                            scaleY = submitScale
-                        }
                         .shadow(
                             elevation = when {
                                 isSubmitPressed -> 10.dp
@@ -316,7 +304,7 @@ fun WriteReviewScreen(
                             ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isSubmitHovered) 0.5f else 0.35f),
                             spotColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isSubmitHovered) 0.5f else 0.35f)
                         ),
-                    shape = RoundedCornerShape(27.dp),
+                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(27.dp)),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary

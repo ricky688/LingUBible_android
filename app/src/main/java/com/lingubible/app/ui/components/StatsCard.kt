@@ -2,7 +2,8 @@ package com.lingubible.app.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,6 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.theme.*
+import com.lingubible.app.ui.common.mousePointer
+import com.lingubible.app.ui.common.rememberCardPressShape
 
 @Composable
 fun StatsCard(
@@ -27,17 +31,25 @@ fun StatsCard(
     title: String,
     value: String,
     change: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
 ) {
     val isDark = isAppDarkTheme()
     val bgColor = MaterialTheme.colorScheme.surfaceContainer
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
+    val interactionSource = remember { MutableInteractionSource() }
+    val shape = rememberCardPressShape(interactionSource)
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .border(1.dp, borderColor, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
+            .then(if (onClick != null) Modifier.mousePointer().clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ) else Modifier),
+        shape = shape,
+        border = BorderStroke(1.dp, borderColor),
         colors = CardDefaults.cardColors(
             containerColor = bgColor
         ),

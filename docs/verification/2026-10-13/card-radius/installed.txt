@@ -1,0 +1,4 @@
+    versionCode=4 minSdk=26 targetSdk=36
+    versionName=1.0.3
+    lastUpdateTime=2026-10-13 00:33:02
+      firstInstallTime=2026-10-08 17:23:39

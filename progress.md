@@ -1,6 +1,96 @@
+## 2026-10-13 — Larger resting card radius, smaller pressed radius
+
+- Swapped the shared `rememberCardPressShape` values to **28 dp at rest → 16 dp pressed**, applying to the same Daily/main page card categories from the preceding change.
+- Optimized validation/release APKs and AAB build successfully; validation installed on Waydroid after certificate comparison, without data clearing. ARTEMIS/ADB screenshots and pixel checks confirm both academic shortcuts and a course card become less rounded when pressed, preserve bounds and restore the larger corners after cancellation.
+- Release guard and diff checks pass. Full unit suite not rerun for this numeric-only change (preceding implementation: 382 passing tests). Physical/configuration coverage not repeated.
+- Evidence: `docs/verification/2026-10-13/card-radius/report.md`. **Latest artifacts:** `build/card-radius-2026-10-13/`, superseding the earlier daily-card-shapes archive. No upload/publication.
+
+## 2026-10-13 — Daily/main page card shape press feedback
+
+- Extended Compose spring corner morphing to academic Planner/Calendar shortcuts, linked statistics, course/instructor cards and clickable latest review cards. One shared `rememberCardPressShape` uses 16 → 28 dp corners; removed course/instructor press scaling. Border/clip/shadow follow the same shape; card/text bounds stay fixed.
+- Updated StatsCard/ReviewCard navigation callbacks and their Home/Reviews callers. Passive containers stay passive. Theme/data/settings preserved.
+- Built optimized validation/signed release APKs and AAB; all 382 existing unit tests pass. Both Appwrite optimized smoke checks and release guard pass. Certificate-compatible replacement installed on Waydroid without clearing data.
+- ARTEMIS/ADB verified six held/cancelled card examples and all corresponding navigation destinations. Screenshots/pixel checks/build results: `docs/verification/2026-10-13/daily-card-shapes/report.md`. Current artifacts: `build/daily-card-shapes-2026-10-13/`.
+- Physical hardware, other orientations/font scales and disabled animations not rechecked in this follow-up. No publication or account mutations.
+
 # LingUBible Android — agent handoff
 
-Updated: 2026-09-16 (Asia/Hong_Kong)
+Updated: 2026-10-12 (Asia/Hong_Kong)
+
+### 2026-10-12 native button press shapes and My reviews
+
+- Replaced shared connected/scrollable group shrinking with native Material 3 ToggleButton pressed/checked shapes, including leading/middle/trailing defaults. Opted 57 regular button call sites into native ButtonDefaults.shapes; split buttons and custom action surfaces also morph instead of press-scaling. Kept selected colors, resting shapes, callbacks and purposeful selection/FAB expansion motion. Removed damping overrides from shared spring helpers; no dependency upgrade.
+- Fixed Profile's My reviews routing to a dedicated `Screen.MyReviews` and account-specific state. Repository filters `user_id` on every cursor page (100 records/page), preserves older reviews and newest-first ordering. Guests see sign-in; logout/account switches discard old results. Error/retry never falls back to latest public reviews. Public feed remains separate and verified.
+- ARTEMIS exploration reproduced the original guest-to-public-feed bug before tests. Updated Waydroid checks verify pressed/resting shape changes with unchanged bounds, My reviews sign-in/auth/Back flow, and public latest feed. Waydroid remains signed out; real-account viewing is pending. Six ViewModel and two query/pagination regressions added: **382 total tests pass**. Both optimized Appwrite checks and release guard pass; git diff check passes.
+- Rebuilt optimized validation APK, signed release APK/AAB. Final validation installed with `adb install -r` at **23:13:29**, first install unchanged, no data clearing. Existing metadata diagnostics remain non-fatal. Red/dark/OLED and device settings retained.
+- **Newest artifacts:** `build/buttons-my-reviews-2026-10-12/` and normal outputs. This archive includes these new changes; earlier `build/play-review-2026-10-12/artifacts/` is historical. Report/screenshots/results: `docs/verification/2026-10-12/buttons-my-reviews/report.md`. Version remains unreleased 1.0.3/code 4; nothing uploaded/published.
+
+### 2026-10-12 Waydroid API timeouts resolved
+
+- Confirmed Android's existing `192.168.240.1:8888` proxy had no listener. The host uses a VPN (MTU 1420; Waydroid 1500); direct Android requests timed out too. Restoring the existing parent-repo HTTPS relay immediately restored live data in the unchanged optimized code-4 APK. This was a local development-network problem, not a new R8/query regression.
+- Improved parent `tools/scripts/waydroid_proxy.py` (bridge-only binding, configurable serial/bind/port, remote socket cleanup, bounded headers, visible failures and proper bind-error exit). Original backed up under `build/waydroid-network-fix-2026-10-12/`.
+- Added parent `tools/systemd/lingubible-waydroid-proxy.service`, installed/enabled the user service at `~/.config/systemd/user/`. Starts at login; retries after 10 seconds if the bridge is absent or helper stops. Deliberate TERM test recovered automatically (`NRestarts=1`) and subsequent relayed HTTPS returned HTTP 200. Service is left running; Android proxy settings are retained because they now work.
+- ARTEMIS live observations confirm fresh **1083 courses**, refreshed home stats (**586 students**, 1323 reviews, 1083 courses, 791 instructors), BUS1102 search/GPA/reviews/detail and syllabus rendering. Fresh logs show successful retrieval, without course timeouts or invalid queries. No APK rebuild, reinstall, data clearing, host VPN or firewall change.
+- Evidence/screenshots: `docs/verification/2026-10-12/network-fix/`; parent setup notes: `docs/waydroid-network.md`. This resolves the earlier connectivity limitation in today's Play report. Android 15/16 enforcement, physical devices, full eligible-account OAuth and Play Console reassessment remain pending.
+
+### 2026-10-12 Play notices — new uploadable code-4 release
+
+- Retained the October 10 R8/Appwrite reflection and shared edge-to-edge fixes. Bumped release to **1.0.3 / version code 4**, replacing the old code-3 version for the next upload. Toolchain, min/target SDK 26/36, app ID and signing certificate are unchanged. No upload or publication.
+- Added `tools/verify-play-release.py`: validates effective optimization flags, actual obfuscated app descriptors, matching APK/AAB DEX, exact embedded R8 mapping and new version code. PASS with **627 renamed app types in DEX**; negative checks reject disabled obfuscation, mismatched mapping and stale version. These are local evidence, not Play coverage percentages.
+- Offline release APK/AAB/optimized validation builds pass; **374 tests pass**. Actual optimized Appwrite query wire checks pass for both final variants. APK **4,056,202 bytes**, AAB **6,993,880 bytes**, uncompressed DEX **4,418,392 bytes**. Existing Kotlin metadata diagnostics remain non-fatal.
+- Installed validation code 4 with `adb install -r` on Waydroid at **22:00:49**, preserving first-install date and original calculator data. ARTEMIS observations verify light/OLED system icons, registration keyboard avoidance/Back behavior and final calculator actions in portrait/landscape. Crash buffer empty. Original rotation/density/font/theme and all original proxy settings restored.
+- Today's online checks were blocked by existing Waydroid proxy connection refusals and direct-network timeouts, including Android system services. Host backend health responds. No new invalid-query regression; optimized query smoke checks pass. Do not report course/PDF/backend flows as freshly passed today; October 10 evidence remains historical.
+- **Use current code-4 artifacts:** `build/play-review-2026-10-12/artifacts/app-release-1.0.3.aab` and `.apk`; validation APK, separate R8 outputs, hashes/test XML/evidence are alongside. Detailed results/screenshots/release steps: `docs/verification/2026-10-12/play-review.md`.
+- Pending: upload and Play Console reassessment; Android 15/16 gesture/three-button enforcement (Android 16 AVD exists; device-selection reply pending), live backend recheck after connectivity repair, physical devices and full account OAuth. No app data cleared.
+
+### 2026-10-10 continued Play notice validation — final artifacts
+
+- Completed ARTEMIS live observations plus ADB checks for light/dark/OLED/dynamic/inverted themes, appearance sheet/settings footer, registration confirmation field, keyboard scrolling/Back dismissal, Google account-chooser launch/cancel and native syllabus PDF rendering. Restored original red/dark/OLED preferences, dynamic/inversion disabled and original Waydroid configuration. Full real-account OAuth remains pending.
+- PDF rotation exposed a shared scrollbar crash: `coerceIn(40.5f, 0f)` during a zero-height resize. Fixed both scrollbar types and added three regression tests for zero/short/normal viewports. Kept PDF pages clear of navigation icons and protected landscape navigation rails/cutouts.
+- PDF dismissal after rotation also exposed Android restoring light-bar flags over dark content. Centralized MainActivity bar application now reapplies the selected rendered-theme policy on configuration changes and window-focus recovery. Final optimized Waydroid open → rotate → return → dismiss sequence passes with readable icons and no crash.
+- Final offline build of release APK/AAB, optimized debug-certificate validation APK and unit tests succeeds: **374 tests, 0 failures/errors/skips**. Actual optimized Appwrite Gson equality/sort/limit checks pass for both final APKs. `git diff --check` passes. Existing Kotlin metadata diagnostics remain non-fatal; toolchain/signing are unchanged.
+- Final sizes: release APK **4,056,207 bytes** (−77.34%); AAB **6,993,865 bytes** (−57.70%); uncompressed DEX **4,418,392 bytes** (−92.04%). These replace earlier final-artifact size records and are not Play Console coverage percentages.
+- Installed final `releaseValidation` using `adb install -r` at **19:58:16** on Waydroid `192.168.240.112:5555`; original first-install date and ungraded/zero-credit calculator data remain. Final course-review FAB collapse, final-item clearance and absence on the grade tab pass. Final crash log is empty since installation.
+- Current artifacts/mappings/logs/tests/hashes: `build/play-review-2026-10-10/after/`; normal `app/build/outputs/` paths match. Earlier diagnostic builds under `before-resize-fix/` and `initial-optimized-query-regression/` are superseded. Detailed results/screenshots and pending API35/36, physical-device, real OAuth and Play Console checks: `docs/verification/2026-10-10/play-review.md`. Nothing uploaded or published.
+
+### 2026-10-10 Appwrite data-loading regression fixed
+
+- Cause: the first R8 build removed Appwrite Query’s unannotated Gson fields, causing `Invalid query method:` and empty remote-data lists. Preserved only Query’s `method`/`attribute`/`values` and Operator’s `method`/`values`; release optimization stays enabled. Do not reinstall the superseded diagnostic artifacts under `initial-optimized-query-regression/`.
+- Rebuilt optimized release APK/AAB and debug-certificate `releaseValidation`; installed the latter using `adb install -r` at 19:23 on Waydroid without uninstall/data clearing. Verified 1083 courses, BUS1102 search/details/seven reviews/grade chart/teaching records, instructor list/detail, planner selector, calendar, honours statistics and unchanged calculator values. JSON/CSV export and identical-snapshot restore pass. Portrait/landscape final calculator actions are reachable; restored portrait and original appearance.
+- Added runnable optimized-APK regression check: `python3 tools/verify-optimized-appwrite.py --serial 192.168.240.112:5555`. Actual minified Gson equality/sort/limit JSON checks pass for both release variants; **371 unit tests pass**. No app crash or invalid-query log after the fix. Screenshots/results: `docs/verification/2026-10-10/play-review.md`.
+- Current corrected artifacts and mappings: `build/play-review-2026-10-10/after/`, plus normal `app/build/outputs/` paths. Hardware/API35-36/Play Console checks and remaining theme/PDF/OAuth matrix are explicitly pending in the report.
+
+### 2026-10-10 Google Play optimization and edge-to-edge notices
+
+- Enabled release R8/resource shrinking and added non-debuggable `releaseValidation` initialized from release with the existing debug certificate. Kept toolchain/min SDK 26/target SDK 36, version and release signing intact. Narrowed package-wide keeps while preserving Appwrite’s reflected `Client.http` and Query/Operator wire fields; checked mapping and callback activity retention.
+- Centralized transparent system-bar styles in MainActivity using rendered theme luminance and applying navigation contrast after `enableEdgeToEdge`. Removed the theme’s duplicate window mutation. Localized configuration now follows system configuration changes; root scroll thresholds are dp-based.
+- Added `core/navigation/ScreenInsets.kt`: root owns and consumes measured top/cutout/IME insets; screens own measured visible bottom-navigation or system navigation clearance. Replaced fixed list/form spacers and GPA snackbar clearance, measured review FAB heights, fixed planner selector duplicate bottom spacing, and protected PDF horizontal cutouts. Preserved `adjustResize` and full-window backgrounds.
+- Final offline build passed: `:app:assembleRelease :app:bundleRelease :app:assembleReleaseValidation :app:testDebugUnitTest`; **371 tests, 0 failures/errors/skips**. Release lint still emits existing dependency Kotlin metadata diagnostics; builds succeed, no toolchain upgrade/lint suppression introduced.
+- Signed release APK **17,899,046 → 4,056,198 bytes (−77.34%)**; release AAB **16,535,265 → 6,993,364 bytes (−57.71%)**; uncompressed DEX **55,497,040 → 4,418,220 bytes (−92.04%)**. These are size comparisons, not Play Console coverage percentages.
+- Archived baseline/final APK/AAB, validation APK, SHA-256/size JSON, R8 mapping/configuration/seeds/usage/resources, test XML and logs under `build/play-review-2026-10-10/` (ignored build outputs). Detailed report: `docs/verification/2026-10-10/play-review.md`.
+- Confirmed installed/debug-validation certificates match and installed using `adb install -r` on Waydroid `192.168.240.112:5555`, keeping original first-install date and data. Startup/home data and Appwrite callback intent resolution verified. The initial ARTEMIS run caught the query regression described above; post-fix ARTEMIS/ADB checks verify loaded course/instructor data, charts, planner, calendar, honours statistics and GPA export/restore. Detailed evidence is in the linked report.
+- Android 15/16 gesture/three-button enforcement checks remain pending: installed emulator image is API 34; Waydroid runs API 33. Real Samsung/Pixel checks, successful account OAuth completion and Play Console recalculation remain separate checks. Nothing uploaded or published.
+
+### 2026-10-09 manual GPA calculator backup and export
+
+- Added a theme-aware, wrapping Material 3 backup card beneath the calculator summary: 備份 Backup (JSON), 匯出 CSV, and 還原 Restore. Uses Android's document picker; no storage permission or backend changes.
+- JSON format `lingubible-gpa`, version 1, preserves course IDs/codes/titles, grades, credit strings, academic years/terms, incomplete entries, target GPA and remaining-credit inputs. Calculated GPA is recomputed on restore. CSV includes bilingual headings, course data, grade points, term GPA and CGPA; UTF-8 BOM/quoted cells support spreadsheet readers, with formula-like text neutralized.
+- Imports are read off the UI thread, limited to 1 MiB, and validated for required fields, supported version/grades, finite credits, unique IDs and term/year bounds before showing a replacement confirmation. Cancel leaves entries untouched; confirm integrates with Undo/Redo, including goals. Goal inputs now persist alongside the existing document preferences.
+- Explicitly provided `LocalActivityResultRegistryOwner` from MainActivity because its localized context otherwise prevented file-picker launchers from resolving the activity.
+- Waydroid's Android 13 provider reproduced an upstream media package-attribution null-pointer failure on read-only file opening. Import normally opens mode `r`; for that specific exception it retries a non-truncating `rw` descriptor, then only reads bytes. This requires the picker's existing write grant; read-only providers still report an error if affected. No broad permissions or direct-path access were introduced. Verified the imported source SHA-256 stayed unchanged. [Relevant Android provider fix](https://android.googlesource.com/platform/packages/providers/MediaProvider/+/refs/heads/aml_ase_341810000/src/com/android/providers/media/LocalCallingIdentity.java).
+- Validation: `ANDROID_HOME=/opt/android-sdk ./gradlew :app:assembleDebug :app:testDebugUnitTest --offline --console=plain -q` passed: **371 tests, 0 failures/errors**. New `GpaBackupTest` and `GpaBackupViewModelTest` cover JSON round trips, drafts/goals, malformed/incomplete/future files, duplicate IDs, invalid values/oversized data, CSV escaping, preview/cancel/confirm, Undo/Redo, preference reload, descriptor fallback and failed writes.
+- ARTEMIS hierarchy/screenshots plus ADB actions on Waydroid (`192.168.240.112:5555`) verified save pickers, JSON/CSV files, manual `TEST1001` + A + 3-credit input, CSV term GPA/CGPA 4.0, restore confirmation, cancellation preserving GPA 4.0, confirmed restore, Undo restoring the manual course, and Redo returning to the original calculator state. Final build installed without uninstall/data clearing; original entries were restored and checked after relaunch. Temporary test exports were removed; the original-state backup remains in Documents.
+- Screenshots: `docs/verification/2026-10-09/gpa-backup-controls.jpg` and `gpa-restore-confirmation.jpg`. Usage and format notes: `docs/gpa-backup.md`. Physical Samsung/Pixel and third-party cloud document providers remain untested.
+
+### 2026-10-09 course review extended FAB
+
+- Replaced the course detail review action with Material 3 `ExtendedFloatingActionButton`, using the selected theme's primary/on-primary colors.
+- Show it only on 課程評價, after the course loads, including courses without reviews. Removed the duplicate empty-state action and course-detail toolbar review action.
+- Fixed `rememberIsScrollingUp` to observe scroll changes without mutating derived state: scrolling down collapses to a labelled pencil icon, scrolling up or reaching the top expands, and stopping retains the current state.
+- Added stable review item keys and bottom list clearance so the final review remains reachable beneath the FAB.
+- Validation: `ANDROID_HOME=/opt/android-sdk ./gradlew :app:assembleDebug :app:testDebugUnitTest --offline --console=plain -q` passed. Verified the installed and built APK certificates match, then installed the debug update on Waydroid (`192.168.240.112:5555`) without uninstalling or clearing app data.
+- ARTEMIS hierarchy/screenshot inspection with ADB interactions verified ACT1110's empty review action and BUS1102's populated list: down-scroll collapse persists while idle, up-scroll expansion, no review action on grade distribution/past papers/teaching records, and returning to reviews restores its action and scroll position. Tapping the FAB opens the review form prefilled with BUS1102; no review was submitted.
+- Screenshots: `docs/verification/2026-10-09/course-fab-expanded.png`, `course-fab-collapsed.png`, and `course-fab-other-tab.png`. Physical Samsung/Pixel checks were not performed in this task.
 
 ### 2026-09-16 Material 3 Expressive Calculator Tab & Fluid Transitional Animations
 
@@ -297,5 +387,3 @@ In Jetpack Compose `OutlinedTextField` and `TextField`, specifying `singleLine =
 - **Signing Keystore**: `app/release.keystore` generated with alias `lingubible`, storepass/keypass `lingubible_release`, DN `CN=LingUBible, OU=Mobile, O=Lingnan University Community, L=Tuen Mun, ST=Hong Kong, C=HK`.
 - **Output Artifact**: `app/build/outputs/apk/release/app-release.apk` (17MB)
 - **Signature Verification**: Validated with `apksigner verify --verbose` (Scheme v2 and v3 signatures intact and verified).
-
-

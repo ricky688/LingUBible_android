@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.navigation.screenBottomPadding
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -103,7 +104,8 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .screenBottomPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -199,7 +201,7 @@ fun ProfileScreen(
 
                                 OutlinedButton(
                                     onClick = { showAvatarModal = true },
-                                    shape = RoundedCornerShape(12.dp),
+                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                                 ) {
@@ -333,7 +335,7 @@ fun ProfileScreen(
                                             editUsernameValue = user.name
                                             isEditingUsername = true
                                         },
-                                        shape = RoundedCornerShape(12.dp),
+                                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                                     ) {
@@ -380,7 +382,7 @@ fun ProfileScreen(
                                         horizontalArrangement = Arrangement.End,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        TextButton(
+                                        TextButton(shapes = ButtonDefaults.shapes(),
                                             onClick = { isEditingUsername = false },
                                             enabled = !uiState.isUpdatingUsername
                                         ) {
@@ -402,7 +404,7 @@ fun ProfileScreen(
                                                     }
                                                 )
                                             },
-                                            shape = RoundedCornerShape(12.dp),
+                                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                             enabled = !uiState.isUpdatingUsername && editUsernameValue.isNotBlank()
                                         ) {
                                             if (uiState.isUpdatingUsername) {
@@ -452,7 +454,7 @@ fun ProfileScreen(
                                             confirmPasswordValue = ""
                                             isEditingPassword = true
                                         },
-                                        shape = RoundedCornerShape(12.dp),
+                                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                                     ) {
@@ -519,7 +521,7 @@ fun ProfileScreen(
                                         }
 
                                         Row {
-                                            TextButton(
+                                            TextButton(shapes = ButtonDefaults.shapes(),
                                                 onClick = { isEditingPassword = false },
                                                 enabled = !uiState.isUpdatingPassword
                                             ) {
@@ -551,7 +553,7 @@ fun ProfileScreen(
                                                         }
                                                     )
                                                 },
-                                                shape = RoundedCornerShape(12.dp),
+                                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                                 enabled = !uiState.isUpdatingPassword && currentPasswordValue.isNotBlank() && newPasswordValue.isNotBlank()
                                             ) {
                                                 if (uiState.isUpdatingPassword) {
@@ -686,7 +688,7 @@ fun ProfileScreen(
                                     )
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
+                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                 enabled = !uiState.isGoogleLoading
                             ) {
                                 if (uiState.isGoogleLoading) {
@@ -714,7 +716,7 @@ fun ProfileScreen(
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
+                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                 enabled = !uiState.isGoogleLoading
                             ) {
                                 if (uiState.isGoogleLoading) {
@@ -762,7 +764,7 @@ fun ProfileScreen(
 
                         OutlinedButton(
                             onClick = { showAvatarModal = true },
-                            shape = RoundedCornerShape(12.dp)
+                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
                         ) {
                             Icon(Icons.Default.Palette, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
@@ -784,7 +786,7 @@ fun ProfileScreen(
 
                         Button(
                             onClick = onNavigateToAuth,
-                            shape = RoundedCornerShape(16.dp),
+                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(Icons.Default.Login, contentDescription = null)
@@ -960,7 +962,7 @@ fun ProfileScreen(
                 OutlinedButton(
                     onClick = { viewModel.logout {} },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     ),
@@ -1162,7 +1164,7 @@ fun ProfileScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(100.dp))
+
         }
     }
 

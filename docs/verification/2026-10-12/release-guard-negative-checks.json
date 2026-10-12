@@ -1,0 +1,5 @@
+{
+  "disabled_obfuscation_rejected": "Effective R8 configuration disables release optimization",
+  "stale_mapping_rejected": "Bundle mapping does not match the current release mapping",
+  "old_version_rejected": "Version code must be at least 5; the old Play release used code 3"
+}

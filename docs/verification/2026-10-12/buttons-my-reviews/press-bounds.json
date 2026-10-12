@@ -1,0 +1,36 @@
+{
+  "button": {
+    "color_bounds_within_crop": {
+      "rest": [
+        27,
+        17,
+        154,
+        62
+      ],
+      "pressed": [
+        27,
+        17,
+        154,
+        62
+      ]
+    },
+    "visual_bounds_unchanged": true
+  },
+  "connected": {
+    "color_bounds_within_crop": {
+      "rest": [
+        3,
+        2,
+        88,
+        40
+      ],
+      "pressed": [
+        3,
+        2,
+        88,
+        40
+      ]
+    },
+    "visual_bounds_unchanged": true
+  }
+}

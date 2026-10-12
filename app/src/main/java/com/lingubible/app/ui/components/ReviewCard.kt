@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -28,22 +29,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.domain.model.Review
+import com.lingubible.app.ui.common.mousePointer
+import com.lingubible.app.ui.common.rememberCardPressShape
 
 @Composable
 fun ReviewCard(
     review: Review,
     modifier: Modifier = Modifier,
-    onVote: ((voteType: String) -> Unit)? = null
+    onVote: ((voteType: String) -> Unit)? = null,
+    onClick: (() -> Unit)? = null
 ) {
     val isDark = isAppDarkTheme()
     val bgColor = MaterialTheme.colorScheme.surfaceContainer
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
 
     var isExpanded by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val shape = rememberCardPressShape(interactionSource)
 
     Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier.fillMaxWidth()
+            .then(if (onClick != null) Modifier.mousePointer().clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ) else Modifier),
+        shape = shape,
         colors = CardDefaults.cardColors(containerColor = bgColor),
         border = BorderStroke(1.dp, borderColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)

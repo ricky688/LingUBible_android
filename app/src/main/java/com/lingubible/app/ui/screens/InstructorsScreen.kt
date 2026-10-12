@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.navigation.screenContentPadding
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -162,7 +163,7 @@ fun InstructorsScreen(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .mouseScrollbar(listState),
-                            contentPadding = PaddingValues(bottom = 100.dp),
+                            contentPadding = screenContentPadding(),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(uiState.instructors) { instructor ->

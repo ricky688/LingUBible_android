@@ -244,7 +244,7 @@ fun MonthlyCalendarOverview(
                                 onSelectDate(todayString)
                             },
                             contentPadding = PaddingValues(horizontal = 9.dp, vertical = 2.dp),
-                            shape = RoundedCornerShape(8.dp),
+                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(8.dp)),
                             border = BorderStroke(1.dp, if (isDark) Color(0xFF3F3F46) else Color(0xFFCBD5E1)),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = textPrimary
@@ -262,7 +262,7 @@ fun MonthlyCalendarOverview(
                         OutlinedButton(
                             onClick = onJumpTermStart,
                             contentPadding = PaddingValues(horizontal = 9.dp, vertical = 2.dp),
-                            shape = RoundedCornerShape(8.dp),
+                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(8.dp)),
                             border = BorderStroke(1.dp, if (isDark) Color(0xFF3F3F46) else Color(0xFFCBD5E1)),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = textPrimary

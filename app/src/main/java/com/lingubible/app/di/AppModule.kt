@@ -37,7 +37,7 @@ val appModule = module {
     viewModel { CoursesViewModel(get()) }
     viewModel { CourseDetailViewModel(get(), get(), get(), get(), get()) }
     viewModel { InstructorsViewModel(get()) }
-    viewModel { ReviewsViewModel(get()) }
+    viewModel { params -> ReviewsViewModel(get(), get(), params.getOrNull<Boolean>() ?: false) }
     viewModel { WriteReviewViewModel(get()) }
     viewModel { TimetableViewModel(get()) }
     viewModel { AcademicCalendarViewModel(get()) }

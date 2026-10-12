@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.navigation.screenBottomPadding
 import android.os.Build
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
@@ -104,7 +105,8 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .screenBottomPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
@@ -453,7 +455,7 @@ fun SettingsScreen(
                             triggerHaptic()
                             showColorSchemeSheet = true
                         },
-                        shape = RoundedCornerShape(16.dp),
+                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
                         colors = ButtonDefaults.outlinedButtonColors(
                             containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
@@ -511,7 +513,7 @@ fun SettingsScreen(
                             ) {
                                 Button(
                                     onClick = { triggerHaptic() },
-                                    shape = RoundedCornerShape(12.dp),
+                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary
                                     ),
@@ -524,7 +526,7 @@ fun SettingsScreen(
 
                                 OutlinedButton(
                                     onClick = { triggerHaptic() },
-                                    shape = RoundedCornerShape(12.dp),
+                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                                     modifier = Modifier.weight(1f)
                                 ) {
@@ -780,7 +782,7 @@ fun SettingsScreen(
                     settingsManager.setHighContrast(false)
                     settingsManager.setHapticsEnabled(true)
                 },
-                shape = RoundedCornerShape(18.dp),
+                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(18.dp)),
                 border = BorderStroke(1.dp, cardBorderColor),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -798,7 +800,7 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
 
-            Spacer(modifier = Modifier.height(100.dp))
+
         }
 
         // Image Toolbox Modal Bottom Sheet

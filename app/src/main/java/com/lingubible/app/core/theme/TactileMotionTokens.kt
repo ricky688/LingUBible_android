@@ -28,7 +28,6 @@ object TactileMotionTokens {
      * Uses medium bounce and low stiffness for an elastic feel.
      */
     fun <T> bouncySpring() = spring<T>(
-        dampingRatio = Spring.DampingRatioMediumBouncy,
         stiffness = Spring.StiffnessLow
     )
 
@@ -37,7 +36,6 @@ object TactileMotionTokens {
      * Ideal for layout transitions and structural movement.
      */
     fun <T> gentleSpring() = spring<T>(
-        dampingRatio = Spring.DampingRatioNoBouncy,
         stiffness = Spring.StiffnessMedium
     )
 }

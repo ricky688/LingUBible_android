@@ -1,5 +1,10 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.navigation.screenContentPadding
+import com.lingubible.app.core.navigation.LocalScreenBottomClearance
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
@@ -79,6 +84,9 @@ fun CourseDetailScreen(
     val tabs = listOf("課程評價", "成績分佈", "歷屆試題", "任教記錄")
 
     val reviewsListState = rememberLazyListState()
+    val density = LocalDensity.current
+    var fabHeight by remember { mutableStateOf(0.dp) }
+    val bottomClearance = LocalScreenBottomClearance.current
     val isScrollingUp by rememberIsScrollingUp(reviewsListState)
 
     LaunchedEffect(courseCode) {
@@ -86,16 +94,21 @@ fun CourseDetailScreen(
     }
 
     Scaffold(
-        contentWindowInsets = WindowInsets.navigationBars,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
-            if (uiState.reviews.isNotEmpty()) {
-                ExpressiveReviewFab(
+            if (selectedTab == 0 && !uiState.isLoading && uiState.course != null) {
+                ExtendedFloatingActionButton(
                     onClick = onNavigateToWriteReview,
                     expanded = isScrollingUp,
-                    text = "撰寫評價",
+                    icon = {
+                        Icon(Icons.Filled.Create, contentDescription = "撰寫評價 · Write review")
+                    },
+                    text = { Text("撰寫評價", fontWeight = FontWeight.Bold) },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier
-                        .navigationBarsPadding()
-                        .padding(bottom = 16.dp, end = 8.dp)
+                        .padding(bottom = bottomClearance, end = 8.dp)
+                        .onSizeChanged { fabHeight = with(density) { it.height.toDp() } }
                 )
             }
         }
@@ -104,7 +117,8 @@ fun CourseDetailScreen(
             M3LoadingState(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
+                    .padding(padding)
+                    .consumeWindowInsets(padding),
                 message = "正在載入課程詳情..."
             )
         } else {
@@ -113,6 +127,7 @@ fun CourseDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
+                    .consumeWindowInsets(padding)
             ) {
                 // Header Info Card matching Web's transparent-info-card
                 Card(
@@ -312,9 +327,7 @@ fun CourseDetailScreen(
                             // Reviews Tab
                             if (uiState.reviews.isEmpty()) {
                                 EmptyState(
-                                    message = "此課程尚無評價，快來搶先分享吧！",
-                                    onActionClick = onNavigateToWriteReview,
-                                    actionText = "搶先評價 Be First to Review"
+                                    message = "此課程尚無評價，快來搶先分享吧！"
                                 )
                             } else {
                                 LazyColumn(
@@ -322,10 +335,12 @@ fun CourseDetailScreen(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .mouseScrollbar(reviewsListState),
-                                    contentPadding = PaddingValues(16.dp),
+                                    contentPadding = screenContentPadding(
+                                        start = 16.dp, top = 16.dp, end = 16.dp, bottom = fabHeight + 32.dp
+                                    ),
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    items(uiState.reviews) { review ->
+                                    items(uiState.reviews, key = { it.id }) { review ->
                                         ReviewCard(
                                             review = review,
                                             onVote = { voteType ->
@@ -340,7 +355,7 @@ fun CourseDetailScreen(
                             // Grades Tab
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(16.dp)
+                                contentPadding = screenContentPadding(start = 16.dp, top = 16.dp, end = 16.dp)
                             ) {
                                 item {
                                     GradeDistributionChart(distribution = uiState.gradeDistribution)
@@ -359,7 +374,7 @@ fun CourseDetailScreen(
                             } else {
                                 LazyColumn(
                                     modifier = Modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(16.dp),
+                                    contentPadding = screenContentPadding(start = 16.dp, top = 16.dp, end = 16.dp),
                                     verticalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
                                     items(uiState.pastPapers) { paper ->
@@ -398,7 +413,7 @@ fun CourseDetailScreen(
                             } else {
                                 LazyColumn(
                                     modifier = Modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(16.dp),
+                                    contentPadding = screenContentPadding(start = 16.dp, top = 16.dp, end = 16.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     items(uiState.teachingRecords) { record ->
@@ -539,7 +554,7 @@ private fun AuthRequiredPastPapersCard(
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = onNavigateToAuth,
-                shape = RoundedCornerShape(12.dp),
+                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 ),
@@ -588,4 +603,3 @@ private fun EmptyState(
         }
     }
 }
-

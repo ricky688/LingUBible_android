@@ -1,0 +1,3 @@
+/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/app/build/outputs/apk/releaseValidation/app-releaseValidation.apk: 1 file pushed, 0 skipped. 580.8 MB/s (4056077 bytes in 0.007s)
+/tmp/lingubible-query-smoke-hrdjeehn/dex/classes.dex: 1 file pushed, 0 skipped. 97.1 MB/s (3016 bytes in 0.000s)
+PASS: optimized Appwrite equal, orderAsc and limit JSON wire fields

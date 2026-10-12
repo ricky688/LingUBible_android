@@ -47,6 +47,8 @@ class CourseDetailViewModelTest {
         override suspend fun getReviewsForInstructor(instructorName: String): Result<List<Review>> =
             Result.success(emptyList())
 
+        override suspend fun getReviewsForUser(userId: String): Result<List<Review>> = Result.success(emptyList())
+
         override suspend fun getLatestReviews(limit: Int): Result<List<Review>> =
             Result.success(emptyList())
 

@@ -95,7 +95,8 @@ fun CourseSectionSelector(
                     start = 16.dp,
                     end = 16.dp,
                     top = if (headerHeightDp > 0.dp) headerHeightDp + 10.dp else 130.dp,
-                    bottom = 140.dp
+                    // Planner owns the measured bottom navigation/system clearance.
+                    bottom = 16.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxSize()
@@ -195,7 +196,7 @@ fun CourseSectionSelector(
                                             contentColor = MaterialTheme.colorScheme.onPrimary
                                         )
                                     },
-                                    shape = RoundedCornerShape(18.dp),
+                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(18.dp)),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                 ) {
@@ -502,7 +503,7 @@ fun CourseSectionSelector(
                                 }
                             }
 
-                            TextButton(
+                            TextButton(shapes = ButtonDefaults.shapes(),
                                 onClick = { isGridExpanded = false },
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                                 modifier = Modifier

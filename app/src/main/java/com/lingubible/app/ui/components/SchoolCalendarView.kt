@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.core.navigation.screenContentPadding
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -70,7 +71,7 @@ fun SchoolCalendarView(
     val textMuted = if (isDark) md_theme_dark_onSurfaceVariant else Color(0xFF64748B)
 
     LazyColumn(
-        contentPadding = PaddingValues(top = 8.dp, bottom = 140.dp),
+        contentPadding = screenContentPadding(top = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
         modifier = modifier.fillMaxSize()
     ) {
@@ -268,7 +269,7 @@ fun SchoolCalendarView(
                                 color = if (isDark) Color(0xFFCBD5E1) else Color(0xFF475569)
                             )
 
-                            TextButton(
+                            TextButton(shapes = ButtonDefaults.shapes(),
                                 onClick = onShowAllCategories,
                                 enabled = hiddenCategories.isNotEmpty(),
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
@@ -466,7 +467,7 @@ private fun WebCalendarEventItem(
                     ) {
                         OutlinedButton(
                             onClick = { onExportIcs(event) },
-                            shape = RoundedCornerShape(14.dp),
+                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 3.dp),
                             modifier = Modifier
                                 .height(30.dp)
@@ -485,7 +486,7 @@ private fun WebCalendarEventItem(
 
                         Button(
                             onClick = { onAddToCalendar(event) },
-                            shape = RoundedCornerShape(14.dp),
+                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.onPrimary

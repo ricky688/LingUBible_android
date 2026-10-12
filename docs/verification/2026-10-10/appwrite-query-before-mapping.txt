@@ -1,0 +1,15 @@
+R8 usage.txt from the failed initial optimized validation build:
+
+io.appwrite.Query:
+    public final java.lang.String getAttribute()
+    public final java.lang.String getMethod()
+    public final java.util.List getValues()
+
+io.appwrite.Query:
+    public static final io.appwrite.Query$Companion Companion
+    public final java.lang.String attribute
+    public final java.lang.String method
+    public final java.util.List values
+    static void <clinit>()
+    public void <init>(java.lang.String)
+    public void <init>(java.lang.String,java.lang.String)
