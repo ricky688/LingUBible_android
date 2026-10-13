@@ -1,6 +1,8 @@
 package com.lingubible.app.ui.viewmodels
 
 import android.content.Context
+import android.content.ActivityNotFoundException
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lingubible.app.core.util.IcsExporter
@@ -154,5 +156,27 @@ class TimetableViewModel(
         )
         val fileName = "LingUBible_${state.selectedTerm.short}_Timetable.ics"
         IcsExporter.shareIcs(context, icsText, fileName)
+    }
+
+    fun exportMeetingIcs(context: Context, section: TimetableSection, meeting: TimetableMeeting) {
+        runCatching {
+            val term = _uiState.value.selectedTerm
+            val text = IcsExporter.buildTimetableMeetingIcs(section, meeting, term)
+            val code = section.courseCode.replace(Regex("[^A-Za-z0-9_-]"), "_")
+            IcsExporter.shareIcs(context, text, "${code}_${term.short}_${meeting.day}_${meeting.startMinutes}.ics").getOrThrow()
+        }.onFailure {
+            Toast.makeText(context, "無法匯出時段 / Could not export meeting", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    fun addMeetingToCalendar(context: Context, section: TimetableSection, meeting: TimetableMeeting) {
+        try {
+            context.startActivity(IcsExporter.createTimetableMeetingInsertIntent(section, meeting, _uiState.value.selectedTerm))
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(context, "未安裝日曆程式，改為匯出 .ics / No calendar app; exporting .ics", Toast.LENGTH_LONG).show()
+            exportMeetingIcs(context, section, meeting)
+        } catch (_: Exception) {
+            Toast.makeText(context, "無法開啟日曆 / Could not open calendar", Toast.LENGTH_LONG).show()
+        }
     }
 }

@@ -7,8 +7,15 @@ import android.provider.CalendarContract
 import androidx.core.content.FileProvider
 import com.lingubible.app.domain.model.AcademicEvent
 import com.lingubible.app.domain.model.TimetableSection
+import com.lingubible.app.domain.model.TimetableMeeting
+import com.lingubible.app.domain.model.TimetableTerm
 import java.io.File
 import java.text.SimpleDateFormat
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAdjusters
 import java.util.*
 
 object IcsExporter {
@@ -18,9 +25,7 @@ object IcsExporter {
         "FRI" to "FR", "SAT" to "SA", "SUN" to "SU"
     )
 
-    private val DOW_OFFSET = mapOf(
-        "SUN" to 0, "MON" to 1, "TUE" to 2, "WED" to 3, "THU" to 4, "FRI" to 5, "SAT" to 6
-    )
+    private val timetableZone = ZoneId.of("Asia/Hong_Kong")
 
     private fun escapeText(value: String): String {
         return value
@@ -53,21 +58,27 @@ object IcsExporter {
     }
 
     private fun firstOccurrence(startYmd: String, day: String): String {
-        return try {
-            val parts = startYmd.split("-").map { it.toInt() }
-            val cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Hong_Kong"))
-            cal.set(parts[0], parts[1] - 1, parts[2], 0, 0, 0)
-            val currentDow = cal.get(Calendar.DAY_OF_WEEK) - 1 // 0=Sunday
-            val targetDow = DOW_OFFSET[day] ?: 1
-            val offset = (targetDow - currentDow + 7) % 7
-            cal.add(Calendar.DAY_OF_MONTH, offset)
-            val y = cal.get(Calendar.YEAR)
-            val m = cal.get(Calendar.MONTH) + 1
-            val d = cal.get(Calendar.DAY_OF_MONTH)
-            "${y}${pad2(m)}${pad2(d)}"
-        } catch (e: Exception) {
-            startYmd.replace("-", "")
-        }
+        return firstMeetingDate(startYmd, day).format(DateTimeFormatter.BASIC_ISO_DATE)
+    }
+
+    private fun firstMeetingDate(startYmd: String, day: String): LocalDate {
+        require(day in BYDAY) { "Invalid meeting weekday" }
+        val weekday = DayOfWeek.values().first { it.name.startsWith(day) }
+        return LocalDate.parse(startYmd).with(TemporalAdjusters.nextOrSame(weekday))
+    }
+
+    private fun recurrenceEnd(endYmd: String): String =
+        DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'", Locale.US)
+            .withZone(ZoneId.of("UTC"))
+            .format(LocalDate.parse(endYmd).plusDays(1).atStartOfDay(timetableZone).minusSeconds(1))
+
+    internal fun timetableMeetingTimes(meeting: TimetableMeeting, term: TimetableTerm): Pair<Long, Long> {
+        require(meeting.startMinutes in 0..1439 && meeting.endMinutes in meeting.startMinutes..1439)
+        val date = firstMeetingDate(term.startDate, meeting.day)
+        require(!date.isAfter(LocalDate.parse(term.endDate))) { "No meeting within term" }
+        val midnight = date.atStartOfDay(timetableZone)
+        return midnight.plusMinutes(meeting.startMinutes.toLong()).toInstant().toEpochMilli() to
+            midnight.plusMinutes(meeting.endMinutes.toLong() + 1).toInstant().toEpochMilli()
     }
 
     private fun nowStamp(): String {
@@ -107,7 +118,7 @@ object IcsExporter {
         push("END:VTIMEZONE")
 
         val stamp = nowStamp()
-        val until = "${endYmd.replace("-", "")}T235959Z"
+        val until = recurrenceEnd(endYmd)
 
         for (s in sections) {
             for ((idx, m) in s.meetings.withIndex()) {
@@ -137,6 +148,31 @@ object IcsExporter {
 
         push("END:VCALENDAR")
         return lines.joinToString("\r\n")
+    }
+
+    fun buildTimetableMeetingIcs(section: TimetableSection, meeting: TimetableMeeting, term: TimetableTerm): String {
+        timetableMeetingTimes(meeting, term)
+        return buildTimetableIcs(
+            listOf(section.copy(meetings = listOf(meeting))), term.startDate, term.endDate,
+            "LingUBible ${term.name}"
+        )
+    }
+
+    fun createTimetableMeetingInsertIntent(section: TimetableSection, meeting: TimetableMeeting, term: TimetableTerm): Intent {
+        val (begin, end) = timetableMeetingTimes(meeting, term)
+        return Intent(Intent.ACTION_INSERT).apply {
+            data = CalendarContract.Events.CONTENT_URI
+            putExtra(CalendarContract.Events.TITLE, "${section.courseCode} ${section.courseTitle}")
+            putExtra(CalendarContract.Events.EVENT_LOCATION, meeting.venue)
+            putExtra(CalendarContract.Events.DESCRIPTION,
+                "Section ${section.section} · ${meeting.type}\n${section.instructors.joinToString(", ")}\nCRN: ${section.crn}")
+            putExtra(CalendarContract.Events.EVENT_TIMEZONE, timetableZone.id)
+            putExtra(CalendarContract.Events.RRULE, "FREQ=WEEKLY;UNTIL=${recurrenceEnd(term.endDate)};BYDAY=${BYDAY.getValue(meeting.day)}")
+            putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, false)
+            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, begin)
+            putExtra(CalendarContract.EXTRA_EVENT_END_TIME, end)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
     }
 
     /**
@@ -285,8 +321,8 @@ object IcsExporter {
     /**
      * Write .ics content to cache and launch Android share sheet.
      */
-    fun shareIcs(context: Context, icsContent: String, fileName: String = "calendar.ics") {
-        try {
+    fun shareIcs(context: Context, icsContent: String, fileName: String = "calendar.ics"): Result<Unit> {
+        return runCatching {
             val cacheFile = File(context.cacheDir, fileName)
             cacheFile.writeText(icsContent, Charsets.UTF_8)
 
@@ -306,8 +342,6 @@ object IcsExporter {
             val chooser = Intent.createChooser(shareIntent, "匯出日曆 Export Calendar")
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(chooser)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        }.onFailure { it.printStackTrace() }
     }
 }

@@ -1,0 +1,16 @@
+{
+  "unit_tests": {
+    "tests": 394,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "validation_apk_built": true,
+  "signed_release_apk_built": true,
+  "release_bundle_built": true,
+  "final_release_build_exit_code": 0,
+  "initial_combined_build_exit_code": 1,
+  "initial_failure": "Release Kotlin compiler Metaspace exhaustion under temporary 384 MB cap; tests and validation APK completed first. Retry removed temporary cap.",
+  "device_installation": "deferred by user; Waydroid in use by another workflow",
+  "new_ui_and_png_device_verification": "pending"
+}

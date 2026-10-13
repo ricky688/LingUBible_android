@@ -255,9 +255,12 @@ fun PlannerScreen(
                 TimetableSubView.GRID -> {
                     TimetableGrid(
                         selectedSections = timetableState.selectedSections,
+                        term = timetableState.selectedTerm,
                         conflicts = timetableState.conflicts,
                         onRemoveSection = { timetableViewModel.removeSection(it) },
                         onNavigateToAddCourse = { activeSubView = TimetableSubView.SELECTOR },
+                        onAddMeetingToCalendar = { section, meeting -> timetableViewModel.addMeetingToCalendar(context, section, meeting) },
+                        onExportMeetingIcs = { section, meeting -> timetableViewModel.exportMeetingIcs(context, section, meeting) },
                         modifier = Modifier.fillMaxSize()
                     )
                 }

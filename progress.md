@@ -1,3 +1,11 @@
+## 2026-10-13 — Individual timetable meeting and full-grid image exports
+
+- User clarified **選課排程 (course timetable)**. A tapped block's popup now highlights the exact meeting and offers native calendar insertion plus a single-meeting `.ics` export, repeating weekly through the selected term. Existing whole-timetable export remains. Calendar insertion uses an editor/confirmation and falls back to `.ics` when no handler exists.
+- Added full-grid PNG export beside the weekly controls. Separate Compose layers capture all day headers and the full body inside the scrolling view, then Android's document picker saves the image. It follows Direct/Scroll and theme colors; errors/cancellation clean up temporary files. Pending picker path uses saved state.
+- Debug compilation and **394 unit tests pass**, including 12 new calendar/file export tests. Optimized validation APK, signed release APK and AAB built; local release guard passes (645 renamed app types, matching APK/AAB DEX and embedded mapping). An initial release compilation hit a temporary Metaspace cap; retry with the usual memory settings succeeded. No project/toolchain setting changed. Latest artifacts: `build/timetable-export-2026-10-13/`.
+- **Device installation and new-flow verification are deferred at the user's request because Waydroid is in use by another workflow.** Do not install or interact until coordinated. Initial exploration saw an empty timetable; check whether the first Add tap selected fixture 5403 during the foreground switch and restore fixtures after testing.
+- Usage: `docs/timetable-export.md`. Evidence/checklist: `docs/verification/2026-10-13/timetable-export/report.md`. No publication or upload.
+
 ## 2026-10-13 — Larger resting card radius, smaller pressed radius
 
 - Swapped the shared `rememberCardPressShape` values to **28 dp at rest → 16 dp pressed**, applying to the same Daily/main page card categories from the preceding change.

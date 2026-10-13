@@ -1,5 +1,8 @@
 package com.lingubible.app.ui.components
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,10 +16,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
@@ -29,6 +38,13 @@ import com.lingubible.app.core.theme.isAppDarkTheme
 import com.lingubible.app.domain.model.TimeConflict
 import com.lingubible.app.domain.model.TimetableMeeting
 import com.lingubible.app.domain.model.TimetableSection
+import com.lingubible.app.domain.model.TimetableTerm
+import com.lingubible.app.core.util.TimetableImageExport
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 data class DayInfo(
     val code: String,
@@ -61,13 +77,16 @@ private val TOTAL_GRID_HEIGHT = HOUR_HEIGHT * 13 // 13 hours (08:30 to 21:30)
 @Composable
 fun TimetableGrid(
     selectedSections: List<TimetableSection>,
+    term: TimetableTerm,
     conflicts: List<TimeConflict>,
     onRemoveSection: (String) -> Unit,
     onNavigateToAddCourse: () -> Unit,
+    onAddMeetingToCalendar: (TimetableSection, TimetableMeeting) -> Unit,
+    onExportMeetingIcs: (TimetableSection, TimetableMeeting) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isDark = isAppDarkTheme()
-    var selectedSectionForDialog by remember { mutableStateOf<TimetableSection?>(null) }
+    var selectedMeetingForDialog by remember { mutableStateOf<Pair<TimetableSection, TimetableMeeting>?>(null) }
     var isDirectView by remember { mutableStateOf(true) }
 
     val verticalScrollState = rememberScrollState()
@@ -76,6 +95,35 @@ fun TimetableGrid(
     val gridBg = MaterialTheme.colorScheme.surfaceContainerLow
     val gridBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.5f else 0.8f)
     val textMuted = MaterialTheme.colorScheme.onSurfaceVariant
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val headerLayer = rememberGraphicsLayer()
+    val bodyLayer = rememberGraphicsLayer()
+    val imageBackground = MaterialTheme.colorScheme.background.toArgb()
+    var exportingImage by remember { mutableStateOf(false) }
+    var pendingImagePath by rememberSaveable { mutableStateOf<String?>(null) }
+    val saveImage = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
+        val file = pendingImagePath?.let(::File)
+        pendingImagePath = null
+        if (file != null) {
+            exportingImage = true
+            scope.launch {
+                try {
+                    if (uri != null) {
+                        withContext(Dispatchers.IO) { TimetableImageExport.saveToDocument(context, file, uri) }
+                        Toast.makeText(context, "已匯出課表圖片 / Timetable image saved", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    Toast.makeText(context, "無法儲存圖片，請重試 / Could not save image; please retry", Toast.LENGTH_LONG).show()
+                } finally {
+                    file.delete()
+                    exportingImage = false
+                }
+            }
+        }
+    }
 
     if (selectedSections.isEmpty()) {
         Card(
@@ -135,14 +183,14 @@ fun TimetableGrid(
 
     Column(modifier = modifier.fillMaxWidth()) {
         // Control Bar: Sunday - Saturday header indicator and Direct vs Expanded Scroll Mode Toggle
-        Row(
+        FlowRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(modifier = Modifier.align(Alignment.CenterVertically), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.CalendarMonth,
                     contentDescription = null,
@@ -164,6 +212,7 @@ fun TimetableGrid(
                 color = if (isDark) Color(0xFF1E293B) else Color(0xFFF1F5F9),
                 border = BorderStroke(1.dp, gridBorder),
                 modifier = Modifier
+                    .align(Alignment.CenterVertically)
                     .clickable { isDirectView = !isDirectView }
                     .pointerHoverIcon(PointerIcon.Hand)
             ) {
@@ -179,6 +228,33 @@ fun TimetableGrid(
                         fontSize = 11.sp
                     )
                 }
+            }
+            FilledTonalButton(
+                shapes = ButtonDefaults.shapes(),
+                enabled = !exportingImage && pendingImagePath == null,
+                contentPadding = PaddingValues(horizontal = 10.dp),
+                onClick = {
+                    exportingImage = true
+                    scope.launch {
+                        try {
+                            val file = TimetableImageExport.capture(context, headerLayer, bodyLayer, imageBackground)
+                            pendingImagePath = file.absolutePath
+                            saveImage.launch("LingUBible_${term.short}_Timetable.png")
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (_: Exception) {
+                            pendingImagePath?.let { File(it).delete() }
+                            pendingImagePath = null
+                            Toast.makeText(context, "無法擷取課表圖片，請重試 / Could not capture timetable; please retry", Toast.LENGTH_LONG).show()
+                        } finally {
+                            exportingImage = false
+                        }
+                    }
+                }
+            ) {
+                Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("匯出圖片 Image")
             }
         }
 
@@ -206,6 +282,10 @@ fun TimetableGrid(
                     // Day Headers (SUN to SAT)
                     Row(
                         modifier = Modifier
+                            .drawWithContent {
+                                headerLayer.record { this@drawWithContent.drawContent() }
+                                drawLayer(headerLayer)
+                            }
                             .background(MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = 1.dp)
                     ) {
@@ -264,7 +344,11 @@ fun TimetableGrid(
                             .height(TOTAL_GRID_HEIGHT)
                             .verticalScroll(verticalScrollState)
                     ) {
-                        Row {
+                        // Record the full non-lazy body inside the scroll viewport, including off-screen rows.
+                        Row(modifier = Modifier.drawWithContent {
+                            bodyLayer.record { this@drawWithContent.drawContent() }
+                            drawLayer(bodyLayer)
+                        }) {
                             // Time Column (08:30 to 20:30)
                             Column(modifier = Modifier.width(timeColWidth)) {
                                 for (h in START_HOUR until END_HOUR) {
@@ -345,7 +429,7 @@ fun TimetableGrid(
                                                     color = if (isClashing) Color(0xFFEF4444) else blockColor.copy(alpha = 0.8f),
                                                     shape = RoundedCornerShape(6.dp)
                                                 )
-                                                .clickable { selectedSectionForDialog = section }
+                                                .clickable { selectedMeetingForDialog = section to meeting }
                                                 .pointerHoverIcon(PointerIcon.Hand),
                                             color = blockColor.copy(alpha = 0.92f),
                                             shape = RoundedCornerShape(6.dp),
@@ -446,13 +530,13 @@ fun TimetableGrid(
     }
 
     // Section Detail Dialog
-    selectedSectionForDialog?.let { section ->
+    selectedMeetingForDialog?.let { (section, meeting) ->
         val sectionConflicts = conflicts.filter {
             it.sectionA.id == section.id || it.sectionB.id == section.id
         }
 
         AlertDialog(
-            onDismissRequest = { selectedSectionForDialog = null },
+            onDismissRequest = { selectedMeetingForDialog = null },
             icon = {
                 Icon(
                     imageVector = if (sectionConflicts.isNotEmpty()) Icons.Default.Warning else Icons.Default.School,
@@ -487,7 +571,29 @@ fun TimetableGrid(
                 }
             },
             text = {
-                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(16.dp)) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("所選時段 Selected meeting", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                            Text("${meeting.day} ${meeting.start} – ${meeting.end} · ${meeting.type}")
+                            Text(meeting.venue.ifBlank { "地點待定 / Venue TBD" })
+                            Text("每週重複 Weekly · ${term.startDate} – ${term.endDate}", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                    Button(
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { onAddMeetingToCalendar(section, meeting) }
+                    ) {
+                        Icon(Icons.Default.EventAvailable, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("加至日曆 Add to calendar")
+                    }
+                    OutlinedButton(
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { onExportMeetingIcs(section, meeting) }
+                    ) { Text("匯出此時段 Export meeting (.ics)") }
                     // Expressive conflict warning callout if clashing
                     if (sectionConflicts.isNotEmpty()) {
                         Surface(
@@ -556,7 +662,7 @@ fun TimetableGrid(
             },
             confirmButton = {
                 TextButton(shapes = ButtonDefaults.shapes(),
-                    onClick = { selectedSectionForDialog = null },
+                    onClick = { selectedMeetingForDialog = null },
                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                 ) {
                     Text("關閉 Close")
@@ -566,7 +672,7 @@ fun TimetableGrid(
                 Button(shapes = ButtonDefaults.shapes(),
                     onClick = {
                         onRemoveSection(section.id)
-                        selectedSectionForDialog = null
+                        selectedMeetingForDialog = null
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
