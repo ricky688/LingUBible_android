@@ -45,6 +45,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Locale
+import com.lingubible.app.core.navigation.LocalScreenBottomClearance
+import com.lingubible.app.core.navigation.screenBottomPadding
 
 data class DayInfo(
     val code: String,
@@ -77,6 +80,7 @@ private val TOTAL_GRID_HEIGHT = HOUR_HEIGHT * 13 // 13 hours (08:30 to 21:30)
 @Composable
 fun TimetableGrid(
     selectedSections: List<TimetableSection>,
+    creditsByCode: Map<String, Int>,
     term: TimetableTerm,
     conflicts: List<TimeConflict>,
     onRemoveSection: (String) -> Unit,
@@ -95,6 +99,8 @@ fun TimetableGrid(
     val gridBg = MaterialTheme.colorScheme.surfaceContainerLow
     val gridBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.5f else 0.8f)
     val textMuted = MaterialTheme.colorScheme.onSurfaceVariant
+    val bottomClearance = LocalScreenBottomClearance.current
+    val fadeSurface = MaterialTheme.colorScheme.background
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val headerLayer = rememberGraphicsLayer()
@@ -129,6 +135,7 @@ fun TimetableGrid(
         Card(
             modifier = modifier
                 .fillMaxWidth()
+                .screenBottomPadding(extra = 0.dp)
                 .padding(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -342,10 +349,15 @@ fun TimetableGrid(
                     Box(
                         modifier = Modifier
                             .height(TOTAL_GRID_HEIGHT)
+                            .fadingBlurEdges(
+                                scrollState = verticalScrollState,
+                                surfaceColor = fadeSurface,
+                                bottomInset = bottomClearance
+                            )
                             .verticalScroll(verticalScrollState)
                     ) {
                         // Record the full non-lazy body inside the scroll viewport, including off-screen rows.
-                        Row(modifier = Modifier.drawWithContent {
+                        Row(modifier = Modifier.screenBottomPadding(extra = 0.dp).drawWithContent {
                             bodyLayer.record { this@drawWithContent.drawContent() }
                             drawLayer(bodyLayer)
                         }) {
@@ -531,6 +543,7 @@ fun TimetableGrid(
 
     // Section Detail Dialog
     selectedMeetingForDialog?.let { (section, meeting) ->
+        val credits = creditsByCode[section.courseCode.trim().uppercase(Locale.ROOT)]
         val sectionConflicts = conflicts.filter {
             it.sectionA.id == section.id || it.sectionB.id == section.id
         }
@@ -575,6 +588,11 @@ fun TimetableGrid(
                     Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(16.dp)) {
                         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("所選時段 Selected meeting", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = if (credits != null) "$credits 學分 Credits" else "學分暫無資料 / Credits unavailable",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
                             Text("${meeting.day} ${meeting.start} – ${meeting.end} · ${meeting.type}")
                             Text(meeting.venue.ifBlank { "地點待定 / Venue TBD" })
                             Text("每週重複 Weekly · ${term.startDate} – ${term.endDate}", style = MaterialTheme.typography.bodySmall)

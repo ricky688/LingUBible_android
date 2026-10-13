@@ -1,0 +1,13 @@
+{
+  "device": "192.168.240.112:5555",
+  "android": 13,
+  "variant": "releaseValidation",
+  "version": "1.0.3 (4)",
+  "apk_sha256": "a6c6053ccec266ddb58536d28c117b7072474982c6c6fd57533388e85f6577df",
+  "installed_apk_matches": true,
+  "certificate_matches_previous_install": true,
+  "installation": "adb install -r; Success; no uninstall or data clear",
+  "launch": "MainActivity Status: ok; ARTEMIS hierarchy confirms Home loaded with catalog statistics",
+  "crash_check": "no AndroidRuntime error in latest 400 log entries",
+  "full_feature_validation": "not performed during this deployment"
+}

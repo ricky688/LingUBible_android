@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.lingubible.app.core.util.IcsExporter
 import com.lingubible.app.data.repository.TimetableRepository
 import com.lingubible.app.domain.model.*
+import com.lingubible.app.domain.repository.CourseRepository
+import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,13 +22,15 @@ data class TimetableUiState(
     val allSections: List<TimetableSection> = emptyList(),
     val selectedSectionIds: Set<String> = emptySet(),
     val selectedSections: List<TimetableSection> = emptyList(),
+    val creditsByCode: Map<String, Int> = emptyMap(),
     val conflicts: List<TimeConflict> = emptyList(),
     val searchQuery: String = "",
     val selectedDepartment: String = "ALL",
     val isLoading: Boolean = false
 ) {
     val totalCredits: Int
-        get() = selectedSections.size * 3 // Lingnan courses standard 3 credits
+        // shortcut: uncatalogued courses keep the three-credit estimate until credit metadata is available.
+        get() = selectedSections.sumOf { creditsByCode[it.courseCode.trim().uppercase(Locale.ROOT)] ?: 3 }
 
     val filteredSections: List<TimetableSection>
         get() {
@@ -48,7 +52,8 @@ data class TimetableUiState(
 }
 
 class TimetableViewModel(
-    private val repository: TimetableRepository
+    private val repository: TimetableRepository,
+    private val courseRepository: CourseRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TimetableUiState())
@@ -56,6 +61,13 @@ class TimetableViewModel(
 
     init {
         loadTermData(_uiState.value.selectedTerm)
+        viewModelScope.launch {
+            courseRepository.getCourses().onSuccess { courses ->
+                _uiState.update { state ->
+                    state.copy(creditsByCode = courses.associate { it.code.trim().uppercase(Locale.ROOT) to it.credits })
+                }
+            }
+        }
     }
 
     fun selectTerm(term: TimetableTerm) {

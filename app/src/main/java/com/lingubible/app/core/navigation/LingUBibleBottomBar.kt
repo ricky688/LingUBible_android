@@ -6,14 +6,12 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -22,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -163,24 +162,22 @@ fun LingUBibleBottomBar(
                 alpha = itemsAlpha
             }
     ) {
-        // 1. Frosted Glass Gradient Scrim extending ABOVE the navigation bar
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .graphicsLayer {
-                    alpha = itemsAlpha
-                }
-                .background(
-                    Brush.verticalGradient(frostedScrimColors)
-                )
-        )
-
-        // 2. Frosted Glass Navigation Bar with Crisp Boundary Line
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .drawBehind {
+                    // Decorative fade must not add to Scaffold's measured navigation clearance.
+                    val scrimHeight = 48.dp.toPx()
+                    drawRect(
+                        brush = Brush.verticalGradient(
+                            frostedScrimColors,
+                            startY = -scrimHeight,
+                            endY = 0f
+                        ),
+                        topLeft = Offset(0f, -scrimHeight),
+                        size = Size(size.width, scrimHeight)
+                    )
+
                     // Translucent frosted glass base surface
                     drawRect(color = frostedSurfaceColor)
 

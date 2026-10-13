@@ -85,6 +85,7 @@ fun LingUBibleTopBar(
     isVisible: Boolean = true,
     isExpanded: Boolean = true,
     academicSubTab: Int = 0,
+    onLogoClick: () -> Unit,
     modifier: Modifier = Modifier,
     settingsManager: AppSettingsManager = koinInject(),
     authRepository: AuthRepository = koinInject(),
@@ -358,14 +359,21 @@ fun LingUBibleTopBar(
                         }
                     } else {
                         // Expressive squircle brand logo badge on top-level tabs
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_lingubible_logo),
-                            contentDescription = "LingUBible Logo",
+                        IconButton(
+                            onClick = onLogoClick,
                             modifier = Modifier
-                                .padding(start = 16.dp, end = 4.dp)
-                                .size(34.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                        )
+                                .padding(start = 8.dp)
+                                .size(48.dp)
+                                .pointerHoverIcon(PointerIcon.Hand)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_lingubible_logo),
+                                contentDescription = "LingUBible Logo",
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                            )
+                        }
                     }
                 },
                 title = {

@@ -1,3 +1,37 @@
+## 2026-10-13 — Logo rain ease-out pacing
+
+- User requested ease-out speed. Replaced quadratic accelerating fall with Material LinearOutSlowInEasing; stiffness-only spring and existing burst behavior preserved.
+- 404 unit tests pass, including decreasing travel over equal progress intervals. Optimized validation/release APKs and signed AAB built; local release guard PASS.
+- Updated Waydroid via matching-certificate adb install -r, preserving data; installed hash verified. Timed screenshots show quick initial fall, slow tail and cleanup. No app-scoped errors in recent logs.
+- Evidence: docs/verification/2026-10-13/icon-rain-ease-out/. Artifacts: build/icon-rain-ease-out-2026-10-13/. Physical devices and rotated/split-screen runtime checks not repeated.
+
+## 2026-10-13 — Hidden logo-rain Easter egg
+
+- Top-left logo on top-level pages is now a 48 dp IconButton. One tap triggers 36 falling/spinning copies of the existing app logo; repeated taps restart one bounded burst. Detail back buttons remain. Root draw overlay intercepts no touches, creates no accessibility clutter, and runs no permanent animation loop. Stiffness-only spring; system animation-off respected. No new dependencies/settings/backend/signing changes.
+- 403 unit tests pass (three new trajectory/stagger/exit checks). Optimized validation APK, signed release APK and signed AAB built; local release guard results archived. Deployed matching-certificate validation APK with adb install -r, no data clear; installed hash verified.
+- ARTEMIS/ADB verification: single tap, repeated tap, automatic cleanup, navigation through rain and suppression with animations off all pass. Original animator duration scale 1 restored. Existing timetable selection untouched. No app-scoped runtime errors in recent logs.
+- Screenshots/report: docs/verification/2026-10-13/icon-rain/. Usage: docs/icon-rain.md. Artifacts: build/icon-rain-2026-10-13/. Physical devices, TalkBack/keyboard and rotated/split-screen device checks pending.
+
+## 2026-10-13 — Corrected remaining timetable/navigation gap
+
+- User clarified that fade must directly meet bottom navigation. Root cause was the shared bar's 48 dp decorative gradient being included in Scaffold measurement. It now draws above the bar without reserving height, correcting shared clearance and removing the elevated dark strip.
+- 400 unit tests pass; optimized validation/release APKs and signed AAB build; local release guard PASS. Installed matching-certificate validation APK via adb install -r, no uninstall/data clear, installed hash verified.
+- Waydroid screenshots verify joined fade at navigation, scrolling with bars hidden, and final rows above system navigation. Restored top grid; selected course unchanged. Evidence/screenshots: docs/verification/2026-10-13/timetable-navigation-gap/. Artifacts: build/timetable-navigation-gap-2026-10-13/.
+- Other themes/window configurations and physical Samsung/Pixel devices were not rechecked. Calendar/PNG flows remain pending. ARTEMIS autonomous navigation was cancelled after stalling on Home; grounded ADB navigation and ARTEMIS screenshots completed verification. Recorder audio codec errors were outside the app; scoped app error check was empty.
+
+## 2026-10-13 — Deployed timetable update to Waydroid
+
+- User authorized Waydroid deployment. ARTEMIS diagnosis ready, no active/queued device tasks. Installed optimized releaseValidation 1.0.3/code 4 using its certificate match to the existing app (`adb install -r`), without uninstalling or clearing data. Installed APK hash matches archived artifact.
+- MainActivity launched successfully; ARTEMIS hierarchy confirms Home/catalog statistics loaded. No AndroidRuntime errors in recent log window. Detailed timetable popup/fade/PNG interaction checks remain pending. Evidence: `docs/verification/2026-10-13/timetable-credits-fade/waydroid-deployment.json`.
+
+## 2026-10-13 — Timetable popup credits and fading edge
+
+- Added catalog-backed credits to the selected course/meeting popup. Codes normalize whitespace/case; zero credits remain zero and unavailable metadata is labelled. Timetable total now uses catalog credits, retaining the previous three-credit estimate only for uncatalogued courses. CourseRepository is injected into TimetableViewModel through the existing Koin module; no backend/preference changes.
+- Replaced fixed bottom clearance around the grid with scrolling body clearance and the existing spring-animated frosted fade. Added optional bottom inset to the ScrollState fade so it ends above measured navigation. Selector/empty-state clearance remains. PNG capture excludes viewport fade and navigation padding.
+- 400 unit tests pass (six new); optimized validation APK, signed release APK and signed AAB build successfully. Local release guard PASS, matching DEX/mapping, 648 renamed application types. Artifacts: `build/timetable-credits-fade-2026-10-13/`.
+- Waydroid remains reserved by another workflow per user instruction. No device interactions, APK installation or new verified screenshots. Popup credits, fade/last-row reachability, themes/resizing and full PNG output still need device verification. No new UI tests authored for unverified flows.
+- Handoff/results: `docs/verification/2026-10-13/timetable-credits-fade/report.md`. Earlier meeting export/calendar/PNG device checks remain pending in the timetable-export report.
+
 ## 2026-10-13 — Individual timetable meeting and full-grid image exports
 
 - User clarified **選課排程 (course timetable)**. A tapped block's popup now highlights the exact meeting and offers native calendar insertion plus a single-meeting `.ics` export, repeating weekly through the selected term. Existing whole-timetable export remains. Calendar insertion uses an editor/confirmation and falls back to `.ics` when no handler exists.

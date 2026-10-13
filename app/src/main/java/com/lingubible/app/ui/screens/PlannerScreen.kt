@@ -249,12 +249,13 @@ fun PlannerScreen(
                 }.using(SizeTransform(clip = true) { _, _ -> spring(stiffness = Spring.StiffnessMediumLow) })
             },
             label = "timetableSubViewTransition",
-            modifier = Modifier.fillMaxSize().screenBottomPadding(extra = 0.dp)
+            modifier = Modifier.fillMaxSize()
         ) { subView ->
             when (subView) {
                 TimetableSubView.GRID -> {
                     TimetableGrid(
                         selectedSections = timetableState.selectedSections,
+                        creditsByCode = timetableState.creditsByCode,
                         term = timetableState.selectedTerm,
                         conflicts = timetableState.conflicts,
                         onRemoveSection = { timetableViewModel.removeSection(it) },
@@ -274,7 +275,7 @@ fun PlannerScreen(
                         onSearchQueryChange = { timetableViewModel.setSearchQuery(it) },
                         onDepartmentSelect = { timetableViewModel.setSelectedDepartment(it) },
                         onToggleSection = { timetableViewModel.toggleSection(it) },
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize().screenBottomPadding(extra = 0.dp)
                     )
                 }
             }

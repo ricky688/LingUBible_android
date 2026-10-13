@@ -41,7 +41,8 @@ fun Modifier.fadingBlurEdges(
     scrollState: ScrollState,
     surfaceColor: Color? = null,
     baseFadeHeight: Dp = 22.dp,
-    scrollingFadeHeight: Dp = 34.dp
+    scrollingFadeHeight: Dp = 34.dp,
+    bottomInset: Dp = 0.dp
 ): Modifier = composed {
     val isDark = isAppDarkTheme()
     val isOled = isOledBlackActive()
@@ -131,19 +132,21 @@ fun Modifier.fadingBlurEdges(
             }
 
             // 3. Alpha fade out at bottom edge (dissolve content to 0 alpha)
-            if (animatedBottomAlpha > 0.001f && fadePx > 0f) {
+            val (fadeStart, fadeEnd) = bottomFadeRange(size.height, bottomInset.toPx(), fadePx)
+            val bottomFadeHeight = fadeEnd - fadeStart
+            if (animatedBottomAlpha > 0.001f && bottomFadeHeight > 0f) {
                 drawRect(
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Black,
                             Color.Black.copy(alpha = 1f - animatedBottomAlpha)
                         ),
-                        startY = size.height - fadePx,
-                        endY = size.height
+                        startY = fadeStart,
+                        endY = fadeEnd
                     ),
                     blendMode = BlendMode.DstIn,
-                    topLeft = Offset(0f, size.height - fadePx),
-                    size = Size(size.width, fadePx)
+                    topLeft = Offset(0f, fadeStart),
+                    size = Size(size.width, bottomFadeHeight)
                 )
 
                 // Frosted mist multi-stop gradient overlay to emulate optical blur dissipation
@@ -156,18 +159,18 @@ fun Modifier.fadingBlurEdges(
                             resolvedSurfaceColor.copy(alpha = 0.70f * animatedBottomAlpha),
                             resolvedSurfaceColor.copy(alpha = 0.95f * animatedBottomAlpha)
                         ),
-                        startY = size.height - fadePx,
-                        endY = size.height
+                        startY = fadeStart,
+                        endY = fadeEnd
                     ),
-                    topLeft = Offset(0f, size.height - fadePx),
-                    size = Size(size.width, fadePx)
+                    topLeft = Offset(0f, fadeStart),
+                    size = Size(size.width, bottomFadeHeight)
                 )
 
                 // Specular hairline accent at bottom boundary
                 drawLine(
                     color = (if (isDark) Color.White else Color(0xFF94A3B8)).copy(alpha = 0.12f * animatedBottomAlpha),
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
+                    start = Offset(0f, fadeEnd),
+                    end = Offset(size.width, fadeEnd),
                     strokeWidth = 0.5.dp.toPx()
                 )
             }
@@ -302,4 +305,10 @@ fun Modifier.fadingBlurEdges(
                 )
             }
         }
+}
+
+/** Place the fade above an overlaid navigation bar, including in very short viewports. */
+internal fun bottomFadeRange(viewHeight: Float, bottomInset: Float, fadeHeight: Float): Pair<Float, Float> {
+    val end = (viewHeight - bottomInset.coerceAtLeast(0f)).coerceAtLeast(0f)
+    return (end - fadeHeight.coerceAtLeast(0f)).coerceAtLeast(0f) to end
 }

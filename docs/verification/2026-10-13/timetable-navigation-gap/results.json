@@ -1,0 +1,34 @@
+{
+  "unit_tests": {
+    "tests": 400,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "build": "SUCCESSFUL in 5m16s",
+  "optimized_validation_apk": true,
+  "signed_release_apk_and_aab": true,
+  "waydroid": {
+    "serial": "192.168.240.112:5555",
+    "android": 13,
+    "size": "480x1000",
+    "density": 180,
+    "installed_variant": "releaseValidation",
+    "apk_sha256": "9ad4909e426c18ad7a63ad983692a785b62640928c754092b7df014759a635d6",
+    "installed_hash_matches": true,
+    "install": "adb install -r; existing certificate; no uninstall/data clear",
+    "checks": [
+      "startup",
+      "grid fade joins navigation at top viewport",
+      "scrolling hides navigation as before",
+      "final timetable rows reachable above system navigation",
+      "restored top grid view"
+    ],
+    "app_runtime_errors": "none in app-PID-scoped recent log check"
+  },
+  "pending": [
+    "Samsung/Pixel hardware",
+    "other themes and rotated/split-screen windows",
+    "calendar editor and PNG export flows"
+  ]
+}

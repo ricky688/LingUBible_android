@@ -1,0 +1,28 @@
+{
+  "unit_tests": {
+    "tests": 403,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "build": "SUCCESSFUL in 6m50s",
+  "optimized_validation_and_signed_release_apk_aab": true,
+  "device": "Waydroid Android 13, 480x1000/density180",
+  "installed_variant": "releaseValidation",
+  "installed_apk_matches": true,
+  "apk_sha256": "3ed7d9e81f0ef2178d5eabf5fd1b550bbfbcdfe6a7f0bb895289bc0f5b090811",
+  "data_preserved": true,
+  "checks": [
+    "single-tap burst",
+    "repeated-tap restart",
+    "automatic cleanup",
+    "navigation while rain is visible",
+    "no rain with animator duration scale 0",
+    "animation scale restored to 1"
+  ],
+  "pending": [
+    "physical Samsung/Pixel",
+    "TalkBack and keyboard manual activation",
+    "rotated/split-screen device views"
+  ]
+}

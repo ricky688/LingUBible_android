@@ -1,0 +1,14 @@
+{
+  "unit_tests": {
+    "tests": 400,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "validation_apk_built": true,
+  "signed_release_apk_built": true,
+  "release_bundle_built": true,
+  "build_exit_code": 0,
+  "device_installation": "deferred by user; Waydroid in use by another workflow",
+  "credits_and_fade_device_verification": "pending"
+}
