@@ -1,0 +1,38 @@
+[
+  {
+    "action": "calendar",
+    "host_elapsed_s": 1.5,
+    "x": 235,
+    "y": 215
+  },
+  {
+    "action": "planner",
+    "host_elapsed_s": 3.622,
+    "x": 115,
+    "y": 215
+  },
+  {
+    "action": "repress_selected",
+    "host_elapsed_s": 5.086,
+    "x": 115,
+    "y": 215
+  },
+  {
+    "action": "calendar_rapid",
+    "host_elapsed_s": 6.549,
+    "x": 235,
+    "y": 215
+  },
+  {
+    "action": "gpa_rapid",
+    "host_elapsed_s": 6.722,
+    "x": 360,
+    "y": 215
+  },
+  {
+    "action": "planner_rapid",
+    "host_elapsed_s": 6.907,
+    "x": 115,
+    "y": 215
+  }
+]

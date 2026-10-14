@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,7 +48,7 @@ fun StatsCard(
             .then(if (onClick != null) Modifier.mousePointer().clickable(
                 interactionSource = interactionSource,
                 indication = null,
-                onClick = onClick
+                onClick = hapticClick(onClick)
             ) else Modifier),
         shape = shape,
         border = BorderStroke(1.dp, borderColor),

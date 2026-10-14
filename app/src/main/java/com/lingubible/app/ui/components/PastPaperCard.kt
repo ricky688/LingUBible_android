@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
@@ -73,7 +75,7 @@ fun PastPaperCard(
     }
 
     Card(
-        onClick = { openDocument() },
+        onClick = hapticClick { openDocument() },
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
@@ -169,7 +171,7 @@ fun PastPaperCard(
 
             Row {
                 IconButton(
-                    onClick = { openDocument() }
+                    onClick = hapticClick { openDocument() }
                 ) {
                     Icon(
                         imageVector = Icons.Filled.OpenInBrowser,
@@ -179,7 +181,7 @@ fun PastPaperCard(
                 }
 
                 IconButton(
-                    onClick = { downloadDocument() }
+                    onClick = hapticClick { downloadDocument() }
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Download,

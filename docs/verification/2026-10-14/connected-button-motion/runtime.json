@@ -1,0 +1,12 @@
+{
+  "selected_button_tap_haptic_requests": 1,
+  "canceled_press_haptic_requests": 0,
+  "canceled_press_group_changed_pixel_fraction": 0.0,
+  "canceled_press_restored_original_group": true,
+  "current_process_fatal_exceptions": 0,
+  "restored_theme": "Light",
+  "language": "zh-TW",
+  "palette": "Lingnan Red",
+  "animator_duration_scale": "1",
+  "system_animation_scale_modified": false
+}

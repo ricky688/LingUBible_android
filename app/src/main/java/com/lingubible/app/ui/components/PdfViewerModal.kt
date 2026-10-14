@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color as AndroidColor
@@ -305,13 +307,13 @@ fun PdfViewerModal(
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             OutlinedButton(
-                                onClick = onDismiss,
+                                onClick = hapticClick(onDismiss),
                                 shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
                             ) {
                                 Text("關閉 Close")
                             }
                             Button(
-                                onClick = {
+                                onClick = hapticClick {
                                     // Retry
                                     isLoading = true
                                     errorMessage = null
@@ -440,7 +442,7 @@ fun PdfViewerModal(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
                     ) {
-                        IconButton(onClick = onDismiss) {
+                        IconButton(onClick = hapticClick(onDismiss)) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Close",
@@ -495,7 +497,7 @@ fun PdfViewerModal(
                         // Reset zoom button when zoomed in
                         if (zoomScale > 1.05f) {
                             IconButton(
-                                onClick = {
+                                onClick = hapticClick {
                                     zoomScale = 1f
                                     panOffset = Offset.Zero
                                 }
@@ -511,7 +513,7 @@ fun PdfViewerModal(
 
                         // Invert colors (Night Reading mode)
                         IconButton(
-                            onClick = { isInverted = !isInverted }
+                            onClick = hapticClick { isInverted = !isInverted }
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.InvertColors,
@@ -523,7 +525,7 @@ fun PdfViewerModal(
 
                         // Download Button
                         IconButton(
-                            onClick = {
+                            onClick = hapticClick {
                                 if (!isDownloading) {
                                     scope.launch {
                                         isDownloading = true
@@ -559,7 +561,7 @@ fun PdfViewerModal(
 
                         // Share / Open External Button
                         IconButton(
-                            onClick = {
+                            onClick = hapticClick {
                                 cachedFile?.let { file ->
                                     DocumentDownloadHelper.shareDocument(
                                         context = context,

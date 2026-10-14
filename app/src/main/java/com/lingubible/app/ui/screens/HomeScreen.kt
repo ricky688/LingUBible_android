@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenContentPadding
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -56,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.ui.common.mouseScrollbar
 import com.lingubible.app.ui.common.rememberCardPressShape
+import com.lingubible.app.ui.common.LocalCardCornerRadius
 import com.lingubible.app.ui.components.*
 import com.lingubible.app.ui.viewmodels.AuthViewModel
 import com.lingubible.app.ui.viewmodels.CoursesViewModel
@@ -114,6 +117,7 @@ fun HomeScreen(
         }
     }
 
+    CompositionLocalProvider(LocalCardCornerRadius provides 20.dp) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Organic blurred floating circles in background
         FloatingCircles(
@@ -227,10 +231,9 @@ fun HomeScreen(
                                 .clip(RoundedCornerShape(ctaCorner))
                                 .clickable(
                                     interactionSource = ctaInteractionSource,
-                                    indication = null
-                                ) {
+                                    indication = null, onClick = hapticClick {
                                     onNavigateToCourse("")
-                                },
+                                }),
                             shape = RoundedCornerShape(ctaCorner),
                             color = MaterialTheme.colorScheme.primary
                         ) {
@@ -370,7 +373,7 @@ fun HomeScreen(
                             // Timetable Planner Card
                             val plannerInteraction = remember { MutableInteractionSource() }
                             Surface(
-                                onClick = onNavigateToPlanner,
+                                onClick = hapticClick(onNavigateToPlanner),
                                 interactionSource = plannerInteraction,
                                 modifier = Modifier
                                     .weight(1f)
@@ -422,7 +425,7 @@ fun HomeScreen(
                             // School Calendar Card
                             val calendarInteraction = remember { MutableInteractionSource() }
                             Surface(
-                                onClick = onNavigateToCalendar,
+                                onClick = hapticClick(onNavigateToCalendar),
                                 interactionSource = calendarInteraction,
                                 modifier = Modifier
                                     .weight(1f)
@@ -713,7 +716,7 @@ fun HomeScreen(
                             )
                         }
                         TextButton(shapes = ButtonDefaults.shapes(),
-                            onClick = { onNavigateToReviews() },
+                            onClick = hapticClick { onNavigateToReviews() },
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                         ) {
@@ -795,7 +798,7 @@ fun HomeScreen(
                                 )
                                 Spacer(modifier = Modifier.height(18.dp))
                                 Button(
-                                    onClick = { onNavigateToWriteReview("") },
+                                    onClick = hapticClick { onNavigateToWriteReview("") },
                                     shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
@@ -831,6 +834,7 @@ fun HomeScreen(
                 }
             }
         }
+    }
     }
 }
 

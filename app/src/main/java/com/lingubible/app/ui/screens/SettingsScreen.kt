@@ -1,5 +1,8 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticChange
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenBottomPadding
 import android.os.Build
 import androidx.compose.animation.*
@@ -25,10 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,13 +69,6 @@ fun SettingsScreen(
     var showColorSchemeSheet by remember { mutableStateOf(false) }
 
     val isZh = appLanguage == AppLanguage.ZH_TW
-    val haptics = LocalHapticFeedback.current
-
-    fun triggerHaptic() {
-        if (isHapticsEnabled) {
-            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
-    }
 
     val targetBorderColor = if (isHighContrast) {
         if (isDark) Color(0xFF94A3B8) else Color(0xFF475569)
@@ -156,15 +150,15 @@ fun SettingsScreen(
 
                     val themeItems = listOf(
                         M3ButtonGroupItem(if (isZh) "淺色" else "Light", Icons.Filled.LightMode) {
-                            triggerHaptic()
+
                             settingsManager.setThemeMode(ThemeMode.LIGHT)
                         },
                         M3ButtonGroupItem(if (isZh) "深色" else "Dark", Icons.Filled.DarkMode) {
-                            triggerHaptic()
+
                             settingsManager.setThemeMode(ThemeMode.DARK)
                         },
                         M3ButtonGroupItem(if (isZh) "系統" else "System", Icons.Filled.BrightnessAuto) {
-                            triggerHaptic()
+
                             settingsManager.setThemeMode(ThemeMode.SYSTEM)
                         }
                     )
@@ -242,8 +236,8 @@ fun SettingsScreen(
 
                         Switch(
                             checked = isOledBlack,
-                            onCheckedChange = {
-                                triggerHaptic()
+                            onCheckedChange = hapticChange {
+
                                 settingsManager.setOledBlack(it)
                             },
                             colors = SwitchDefaults.colors(
@@ -309,8 +303,8 @@ fun SettingsScreen(
                         }
 
                         IconButton(
-                            onClick = {
-                                triggerHaptic()
+                            onClick = hapticClick {
+
                                 android.util.Log.d("ImageToolbox", "Pencil button clicked, showColorSchemeSheet = true")
                                 showColorSchemeSheet = true
                             },
@@ -366,8 +360,8 @@ fun SettingsScreen(
                             }
                             Switch(
                                 checked = isDynamicColor,
-                                onCheckedChange = {
-                                    triggerHaptic()
+                                onCheckedChange = hapticChange {
+
                                     settingsManager.setDynamicColor(it)
                                 },
                                 colors = SwitchDefaults.colors(
@@ -398,10 +392,10 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.clickable {
-                                triggerHaptic()
+                            modifier = Modifier.clickable (onClick = hapticClick {
+
                                 showColorSchemeSheet = true
-                            }
+                            })
                         )
                     }
 
@@ -426,7 +420,7 @@ fun SettingsScreen(
                                 tertiaryColor = tertiary,
                                 isSelected = isSelected,
                                 onClick = {
-                                    triggerHaptic()
+
                                     settingsManager.setDynamicColor(false)
                                     settingsManager.setColorScheme(scheme)
                                 }
@@ -441,7 +435,7 @@ fun SettingsScreen(
                             isSelected = customColorHex != null,
                             isAddButton = true,
                             onClick = {
-                                triggerHaptic()
+
                                 showColorSchemeSheet = true
                             }
                         )
@@ -451,8 +445,8 @@ fun SettingsScreen(
 
                     // Dedicated Button to open complete Image Toolbox Color Scheme Sheet
                     OutlinedButton(
-                        onClick = {
-                            triggerHaptic()
+                        onClick = hapticClick {
+
                             showColorSchemeSheet = true
                         },
                         shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
@@ -512,7 +506,7 @@ fun SettingsScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Button(
-                                    onClick = { triggerHaptic() },
+                                    onClick = hapticClick {},
                                     shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary
@@ -525,7 +519,7 @@ fun SettingsScreen(
                                 }
 
                                 OutlinedButton(
-                                    onClick = { triggerHaptic() },
+                                    onClick = hapticClick {},
                                     shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                                     modifier = Modifier.weight(1f)
@@ -652,8 +646,8 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Switch(
                             checked = isHighContrast,
-                            onCheckedChange = {
-                                triggerHaptic()
+                            onCheckedChange = hapticChange {
+
                                 settingsManager.setHighContrast(it)
                             },
                             colors = SwitchDefaults.colors(
@@ -686,8 +680,7 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Switch(
                             checked = isHapticsEnabled,
-                            onCheckedChange = {
-                                if (it) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onCheckedChange = hapticChange {
                                 settingsManager.setHapticsEnabled(it)
                             },
                             colors = SwitchDefaults.colors(
@@ -746,11 +739,11 @@ fun SettingsScreen(
 
                         val langItems = listOf(
                             M3ButtonGroupItem(AppLanguage.ZH_TW.label) {
-                                triggerHaptic()
+
                                 settingsManager.setLanguage(AppLanguage.ZH_TW)
                             },
                             M3ButtonGroupItem(AppLanguage.EN.label) {
-                                triggerHaptic()
+
                                 settingsManager.setLanguage(AppLanguage.EN)
                             }
                         )
@@ -774,8 +767,8 @@ fun SettingsScreen(
 
             // 6. Reset to Defaults & App Version Info
             OutlinedButton(
-                onClick = {
-                    triggerHaptic()
+                onClick = hapticClick {
+
                     settingsManager.setThemeMode(ThemeMode.DARK)
                     settingsManager.setOledBlack(true)
                     settingsManager.resetColorSchemeDefaults()
@@ -813,27 +806,27 @@ fun SettingsScreen(
                 contrastLevel = contrastLevel,
                 customColorHex = customColorHex,
                 onSelectColorScheme = { scheme ->
-                    triggerHaptic()
+
                     settingsManager.setDynamicColor(false)
                     settingsManager.setColorScheme(scheme)
                 },
                 onSelectPaletteStyle = { style ->
-                    triggerHaptic()
+
                     settingsManager.setPaletteStyle(style)
                 },
                 onToggleInvertedColors = { inverted ->
-                    triggerHaptic()
+
                     settingsManager.setInvertedColors(inverted)
                 },
                 onToggleDynamicColor = { dynamic ->
-                    triggerHaptic()
+
                     settingsManager.setDynamicColor(dynamic)
                 },
                 onContrastLevelChange = { level ->
                     settingsManager.setContrastLevel(level)
                 },
                 onCustomColorSelected = { color ->
-                    triggerHaptic()
+
                     val colorLong = ((color.red * 255).toLong() shl 16) or
                             ((color.green * 255).toLong() shl 8) or
                             (color.blue * 255).toLong() or
@@ -841,7 +834,7 @@ fun SettingsScreen(
                     settingsManager.setCustomColorHex(colorLong)
                 },
                 onResetDefaults = {
-                    triggerHaptic()
+
                     settingsManager.resetColorSchemeDefaults()
                 },
                 onDismiss = { showColorSchemeSheet = false }

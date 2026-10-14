@@ -1,5 +1,8 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticChange
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenBottomPadding
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -257,7 +260,7 @@ fun WriteReviewScreen(
                         )
                         Switch(
                             checked = isAnonymous,
-                            onCheckedChange = { isAnonymous = it },
+                            onCheckedChange = hapticChange { isAnonymous = it },
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
@@ -283,7 +286,7 @@ fun WriteReviewScreen(
                 val isSubmitHovered by submitInteractionSource.collectIsHoveredAsState()
                 // Submit Button - Material 3 Expressive
                 Button(
-                    onClick = {
+                    onClick = hapticClick {
                         viewModel.updateCourseInfo(courseCode, courseTitle, instructorName)
                         viewModel.updateTerm(term, academicYear, grade)
                         viewModel.updateRatings(teachingRating, gradingRating, workloadRating, difficultyRating)

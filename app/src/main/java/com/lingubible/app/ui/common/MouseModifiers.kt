@@ -56,7 +56,7 @@ fun Modifier.mouseClickable(
             role = role,
             interactionSource = source,
             indication = null,
-            onClick = onClick
+            onClick = hapticClick(onClick)
         )
 }
 

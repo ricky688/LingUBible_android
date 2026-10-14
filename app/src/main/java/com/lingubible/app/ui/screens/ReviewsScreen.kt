@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenContentPadding
 import com.lingubible.app.core.navigation.screenBottomPadding
 import com.lingubible.app.core.navigation.LocalScreenBottomClearance
@@ -83,7 +85,7 @@ fun ReviewsScreen(
             ) {
                 Text("登入以查看我的評價 · Sign in to view your reviews")
                 Spacer(Modifier.height(16.dp))
-                Button(onClick = onNavigateToAuth, shapes = ButtonDefaults.shapes()) {
+                Button(onClick = hapticClick(onNavigateToAuth), shapes = ButtonDefaults.shapes()) {
                     Text("登入 · Sign in")
                 }
             }

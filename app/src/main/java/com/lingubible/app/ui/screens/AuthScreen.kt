@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenBottomPadding
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -132,7 +134,7 @@ fun AuthScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 OutlinedButton(
-                    onClick = {
+                    onClick = hapticClick {
                         activity?.let { viewModel.loginWithGoogle(it, onAuthSuccess) }
                     },
                     modifier = Modifier
@@ -255,7 +257,7 @@ fun AuthScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = {
+                    onClick = hapticClick {
                         if (isLoginMode) {
                             viewModel.login(email, password, onAuthSuccess)
                         } else {

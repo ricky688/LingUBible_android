@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -123,7 +125,7 @@ fun AvatarCustomizerModal(
                     }
 
                     IconButton(
-                        onClick = onDismiss,
+                        onClick = hapticClick(onDismiss),
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
@@ -185,7 +187,7 @@ fun AvatarCustomizerModal(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { randomize() },
+                        onClick = hapticClick { randomize() },
                         modifier = Modifier.weight(1f),
                         shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -196,7 +198,7 @@ fun AvatarCustomizerModal(
                     }
 
                     Button(
-                        onClick = {
+                        onClick = hapticClick {
                             onSave(selectedAnimal, selectedBackgroundIndex)
                             onDismiss()
                         },
@@ -223,7 +225,7 @@ fun AvatarCustomizerModal(
                 ) {
                     Tab(
                         selected = activeTab == 0,
-                        onClick = { activeTab = 0 },
+                        onClick = hapticClick { activeTab = 0 },
                         selectedContentColor = MaterialTheme.colorScheme.primary,
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         text = {
@@ -239,7 +241,7 @@ fun AvatarCustomizerModal(
                     )
                     Tab(
                         selected = activeTab == 1,
-                        onClick = { activeTab = 1 },
+                        onClick = hapticClick { activeTab = 1 },
                         selectedContentColor = MaterialTheme.colorScheme.primary,
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         text = {
@@ -280,7 +282,7 @@ fun AvatarCustomizerModal(
                                     modifier = Modifier
                                         .aspectRatio(1f)
                                         .clip(RoundedCornerShape(12.dp))
-                                        .clickable { selectedAnimal = animal }
+                                        .clickable (onClick = hapticClick { selectedAnimal = animal })
                                         .pointerHoverIcon(PointerIcon.Hand)
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
@@ -311,7 +313,7 @@ fun AvatarCustomizerModal(
                                             color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.4f),
                                             shape = RoundedCornerShape(12.dp)
                                         )
-                                        .clickable { selectedBackgroundIndex = index }
+                                        .clickable (onClick = hapticClick { selectedBackgroundIndex = index })
                                         .pointerHoverIcon(PointerIcon.Hand),
                                     contentAlignment = Alignment.Center
                                 ) {

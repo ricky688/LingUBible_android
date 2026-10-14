@@ -1,0 +1,20 @@
+[
+  {
+    "action": "calendar",
+    "host_elapsed_s": 1.5,
+    "x": 235,
+    "y": 215
+  },
+  {
+    "action": "planner",
+    "host_elapsed_s": 2.958,
+    "x": 115,
+    "y": 215
+  },
+  {
+    "action": "repress_selected",
+    "host_elapsed_s": 4.408,
+    "x": 115,
+    "y": 215
+  }
+]

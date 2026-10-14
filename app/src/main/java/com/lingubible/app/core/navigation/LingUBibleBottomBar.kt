@@ -1,5 +1,7 @@
 package com.lingubible.app.core.navigation
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -220,7 +222,7 @@ fun LingUBibleBottomBar(
                         selected = selected,
                         enabled = isVisible,
                         modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
-                        onClick = {
+                        onClick = hapticClick {
                             if (isVisible && !selected) {
                                 if (destination == BottomNavDestination.EXPLORE) {
                                     navController.navigate(Screen.Home) {

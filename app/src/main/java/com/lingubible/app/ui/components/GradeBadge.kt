@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -54,7 +56,7 @@ fun GradeBadge(
                 if (onClick != null) {
                     Modifier
                         .pointerHoverIcon(PointerIcon.Hand)
-                        .clickable(onClick = onClick)
+                        .clickable(onClick = hapticClick(onClick))
                 } else Modifier
             ),
         contentAlignment = Alignment.Center

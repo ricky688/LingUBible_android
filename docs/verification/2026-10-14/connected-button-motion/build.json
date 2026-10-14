@@ -1,0 +1,18 @@
+{
+  "variant": "releaseValidation",
+  "optimized": true,
+  "certificate_matches_previously_installed": true,
+  "data_cleared": false,
+  "apk_sha256": "98401440a79f7bda5f513ed08da7e3a0020d268025b937db513405b880450b9d",
+  "unit_tests": {
+    "tests": 411,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "final_incoming_fill": "opaque",
+  "outgoing_fill": "fades",
+  "press_focus_coordinated_across_group": true,
+  "native_focus_hover_layers_retained": true,
+  "installed_apk_matches_final_artifact": true
+}

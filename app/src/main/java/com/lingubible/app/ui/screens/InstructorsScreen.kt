@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenContentPadding
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -82,7 +84,7 @@ fun InstructorsScreen(
                 },
                 trailingIcon = {
                     if (searchInput.isNotEmpty()) {
-                        IconButton(onClick = {
+                        IconButton(onClick = hapticClick {
                             searchInput = ""
                             viewModel.search("")
                         }) {

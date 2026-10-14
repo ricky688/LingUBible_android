@@ -1,0 +1,110 @@
+[
+  {
+    "action": "primary_button_on",
+    "expected_requests": 1,
+    "observed_requests": 1,
+    "passed": true
+  },
+  {
+    "action": "outlined_button_on",
+    "expected_requests": 1,
+    "observed_requests": 1,
+    "passed": true
+  },
+  {
+    "action": "disable_haptics",
+    "expected_requests": 0,
+    "observed_requests": 0,
+    "passed": true
+  },
+  {
+    "action": "primary_button_off",
+    "expected_requests": 0,
+    "observed_requests": 0,
+    "passed": true
+  },
+  {
+    "action": "outlined_button_off",
+    "expected_requests": 0,
+    "observed_requests": 0,
+    "passed": true
+  },
+  {
+    "action": "back_button_off",
+    "expected_requests": 0,
+    "observed_requests": 0,
+    "passed": true
+  },
+  {
+    "action": "connected_group_off",
+    "expected_requests": 0,
+    "observed_requests": 0,
+    "passed": true
+  },
+  {
+    "action": "bottom_navigation_off",
+    "expected_requests": 0,
+    "observed_requests": 0,
+    "passed": true
+  },
+  {
+    "action": "course_popup_off",
+    "expected_requests": 0,
+    "observed_requests": 0,
+    "passed": true
+  },
+  {
+    "action": "course_popup_close_off",
+    "expected_requests": 0,
+    "observed_requests": 0,
+    "passed": true
+  },
+  {
+    "action": "profile_navigation_off",
+    "expected_requests": 0,
+    "observed_requests": 0,
+    "passed": true
+  },
+  {
+    "action": "appearance_settings_link_off",
+    "expected_requests": 0,
+    "observed_requests": 0,
+    "passed": true
+  },
+  {
+    "action": "enable_haptics_preview",
+    "expected_requests": 1,
+    "observed_requests": 1,
+    "passed": true
+  },
+  {
+    "action": "primary_button_restored",
+    "expected_requests": 1,
+    "observed_requests": 1,
+    "passed": true
+  },
+  {
+    "action": "back_button_on",
+    "expected_requests": 1,
+    "observed_requests": 1,
+    "passed": true
+  },
+  {
+    "action": "academic_navigation_on",
+    "expected_requests": 1,
+    "observed_requests": 1,
+    "passed": true
+  },
+  {
+    "action": "course_popup_on",
+    "expected_requests": 1,
+    "observed_requests": 1,
+    "passed": true
+  },
+  {
+    "action": "course_popup_close_on",
+    "expected_requests": 1,
+    "observed_requests": 1,
+    "passed": true
+  }
+]

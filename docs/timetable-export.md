@@ -11,6 +11,10 @@ A selected meeting repeats weekly through the selected term. Other lecture/tutor
 
 The existing **匯出日曆** action still exports every meeting of all selected sections.
 
+## Course popup layout
+
+The course title, credits, CRN, instructor, meetings and weekly term dates appear once as compact details. Each meeting has separate time/type and Location lines. For sections with multiple meetings, a check identifies the clicked meeting. Add to calendar and Export meeting (.ics) are in the footer, followed by Remove/Close as the final row; details scroll separately.
+
 ## Export the full timetable as a PNG
 
 With at least one selected class, choose **匯出圖片 Image** beside the weekly grid controls, then select a destination in Android's file picker. The image contains the seven day headers and full timetable body, including rows and columns outside the current scroll viewport. It follows the current Direct/Scroll layout and selected colors. Scroll mode gives wider day columns for sharing.

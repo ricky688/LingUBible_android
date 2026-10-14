@@ -1,0 +1,12 @@
+{
+  "light": {
+    "paired_ring_frame_s": 1.511533,
+    "old_edge_minus_center_primary_fraction": 0.485,
+    "new_edge_minus_center_primary_fraction": 0.997,
+    "paired_direction_assertion_passed": true
+  },
+  "dark": {
+    "max_edge_center_difference": 0.016,
+    "uniform_crossfade_assertion_passed": true
+  }
+}

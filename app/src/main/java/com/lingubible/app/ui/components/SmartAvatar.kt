@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -59,7 +61,7 @@ fun SmartAvatar(
             .then(
                 if (onClick != null) {
                     Modifier
-                        .clickable(onClick = onClick)
+                        .clickable(onClick = hapticClick(onClick))
                         .pointerHoverIcon(PointerIcon.Hand)
                 } else Modifier
             ),

@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenContentPadding
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -270,7 +272,7 @@ fun SchoolCalendarView(
                             )
 
                             TextButton(shapes = ButtonDefaults.shapes(),
-                                onClick = onShowAllCategories,
+                                onClick = hapticClick(onShowAllCategories),
                                 enabled = hiddenCategories.isNotEmpty(),
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
                             ) {
@@ -375,7 +377,7 @@ private fun WebCalendarEventItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { isExpanded = !isExpanded }
+                .clickable (onClick = hapticClick { isExpanded = !isExpanded })
                 .pointerHoverIcon(PointerIcon.Hand)
                 .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
@@ -466,7 +468,7 @@ private fun WebCalendarEventItem(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         OutlinedButton(
-                            onClick = { onExportIcs(event) },
+                            onClick = hapticClick { onExportIcs(event) },
                             shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 3.dp),
                             modifier = Modifier
@@ -485,7 +487,7 @@ private fun WebCalendarEventItem(
                         Spacer(modifier = Modifier.width(8.dp))
 
                         Button(
-                            onClick = { onAddToCalendar(event) },
+                            onClick = hapticClick { onAddToCalendar(event) },
                             shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
@@ -527,7 +529,7 @@ private fun LegendCategoryItem(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(6.dp))
-            .clickable { onToggle() }
+            .clickable (onClick = hapticClick { onToggle() })
             .pointerHoverIcon(PointerIcon.Hand)
             .padding(vertical = 6.dp, horizontal = 2.dp),
         verticalAlignment = Alignment.CenterVertically

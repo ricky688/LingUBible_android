@@ -1,0 +1,34 @@
+{
+  "unit_tests": {
+    "tests": 400,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "initial_combined_build_exit": 143,
+  "initial_completed": [
+    "unit tests",
+    "optimized validation APK"
+  ],
+  "release_retry_exit": 0,
+  "release_retry_duration": "1m21s",
+  "version": "1.0.5 (6)",
+  "installed_variant": "releaseValidation",
+  "installed_apk_matches": true,
+  "apk_sha256": "d03d0dd53c4d30b2d31198f29a5e1661abe01a6377608423950c800676173d3c",
+  "device": "Waydroid Android 13, density180",
+  "checks": [
+    "CLC9022: course title, credits 3, CRN381, instructor and WED meeting each shown once",
+    "calendar/ICS at footer bottom",
+    "Close dismisses; course remains and popup reopens",
+    "landscape footer reachable; body scroll reaches term dates",
+    "display size restored to physical480x1000"
+  ],
+  "app_runtime_errors": "none in recent app-scoped logs",
+  "pending": [
+    "large fonts",
+    "conflict and multiple-meeting popup fixtures",
+    "physical Samsung/Pixel",
+    "external calendar/ICS handoff not repeated"
+  ]
+}

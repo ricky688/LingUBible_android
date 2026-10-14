@@ -1,3 +1,47 @@
+## 2026-10-14 — GPA 4.0 / 「GPA God 祈福求籤」廣東話彩蛋
+
+- User requested the GPA 4.0 / "GPA God 祈福求籤" Easter egg with authentic Cantonese vernacular words.
+- Created `GpaFortune.kt` with authentic Cantonese fortunes covering Dean's List, First Hon, avoiding free-riders, curve pulling, presentation skills, and course registration (Reg科).
+- Designed `GpaGodFortuneModal.kt` with Material 3 Expressive spring shaking animation (🎋 搖籤筒中), temple red seal stamp, parchment poem box, Cantonese interpretation, and dual oracle advice (宜 / 忌).
+- Integrated `求籤 🎋` and `4.0 神蹟 ✨` badges into the Cumulative GPA card in `GpaDashboard.kt` & `GpaHonsScreen.kt`.
+- 415 unit tests pass (including 4 new tests in `GpaGodFortuneTest.kt`). Bumped `versionCode = 7`, `versionName = "1.0.6"`.
+- Verified on Waydroid with live screenshots showing badge, shaking animation, Cantonese fortune cards, and seamless dismiss.
+
+## 2026-10-14 — Clarified Light Mode convergent/divergent connected-group color motion
+
+- Replaced the earlier fill/text color-merging interpretation with the requested spatial dual ripple: perimeter-to-center primary fill for focused/pressed Light buttons, center-to-perimeter clearing and fading wash for the former selection. Selected re-presses replay a subtle inward highlight.
+- Dark/OLED bypasses custom spatial drawing and uses a uniform crossfade. Coordinated shared press focus starts both fronts together; cancellation restores selection appearance. Incoming fill stays opaque; outgoing wash fades. Native shape morphing, keyboard/hover layers, semantics, selected colors and haptics retained. Shared standard/scrollable groups use cached Path/Paint drawing; label tint follows the filled area.
+- 411 tests pass; optimized releaseValidation APK built and installed on Waydroid with matching certificate and no data clear. Installed hash verified. Normal-speed recordings and pixel checks confirm paired Light perimeter fills and uniform Dark fallback; 650 ms held press, rapid selections and selected re-presses sampled. Cancellation restored the original header exactly and requested zero haptics; normal taps requested one. No current-process fatal exception.
+- Restored Light Mode (visible before testing), Chinese, Lingnan Red and planner; retained CLC9022/3-credit data and preferences. System animator scale remained 1. No version/signing/dependency changes, no publishing.
+- Guide: `docs/connected-button-motion.md`; evidence/report/videos/screenshots: `docs/verification/2026-10-14/connected-button-motion/`; local APK/mapping/build log: `build/connected-button-motion-2026-10-14/`.
+- Pending: physical Samsung/Pixel smoothness, visual motion in custom/dynamic palettes, reduced-motion device check and separate scrollable-group recording. No maintained instrumentation tests added. Signed release APK/AAB from the prior task not rebuilt for this UI-only change.
+
+## 2026-10-14 — App-wide button/navigation haptics
+
+- Added shared preference-aware native tap callbacks to 174 activation sites in 39 files, including bottom navigation, buttons, tabs, connected groups, cards, switches and menus. Removed duplicate legacy Settings/group pulses.
+- Read the existing preference live and use the current window's feedback for dialogs. Enabling haptics previews once; disabling suppresses immediately. Replaced the text-selection token with VirtualKey after verifying Waydroid disables text-handle haptics.
+- 408 unit tests pass. Optimized validation APK, signed release APK and AAB build successfully. Release artifact guard PASS; unchanged 1.0.5/versionCode6/signing configuration.
+- Installed final validation APK on authorized Waydroid using compatible certificate and `install -r`; installed hash matches, no data clear. 20 sampled request-count checks passed (1 enabled / 0 disabled), including navigation and course popup. Restored haptics ON; theme, language, course retained. Samsung untouched.
+- Guide: `docs/app-haptics.md`; evidence/screenshots: `docs/verification/2026-10-14/app-haptics/report.md`; artifacts/logs/mappings: `build/app-haptics-2026-10-14/`.
+- Pending: actual vibration feel/strength on Samsung/Pixel. Waydroid validates requests only. No maintained UI tests added, no publishing/version bump.
+
+## 2026-10-14 — Light-only convergent press colors, smaller Discover cards, final popup layout
+
+- User clarified fill/text converge while held and separate on release. Restored this in the shared M3ButtonGroupButton using native press state, palette-derived opaque midpoint targets and existing stiffness-only springs. Dark/OLED press colors unchanged; native shapes/selection/semantics retained. Light-held labels intentionally blend visually into fill.
+- Scoped card corner token to Discover:20dp resting/8dp pressed versus28/16dp. Covers stats/tools/popular/review cards there; other pages' shared cards retain their defaults.
+- Timetable popup now separates time/type from Location per meeting. Calendar/ICS remain in footer; Remove/Close moved to final bottom row per latest request. Existing credits/selected meeting/export callbacks remain. Preserved committed removal of Easter egg; no icon-rain source, backend/preference/version/signing changes.
+- 403 tests pass (three new color policy tests). Optimized validation APK and signed release APK/AAB built; local release guard PASS. Deployed matching-certificate validation1.0.5/code6 on Waydroid with adb install -r, no data clear; installed hash verified.
+- Verified light-held/released and dark-held colors, smaller Discover corners in both themes, and CLC9022 separate time/MBG11 Location plus final Close/Remove row. Original Dark setting restored; palette/language/OLED unchanged, selected course unchanged, popup left open. Connected Samsung untouched; no app-scoped runtime errors.
+- Evidence/screenshots: docs/verification/2026-10-14/ui-refinement/. Artifacts: build/ui-refinement-2026-10-14/. Physical/TalkBack/large-font/rotated/split-screen and multi-meeting/conflict fixture checks not repeated.
+
+## 2026-10-14 — Compact course popup with bottom export actions
+
+- User requested removal of repeated meeting text and the existing course-title/detail-row design throughout. Removed tinted Selected meeting card and duplicate conflict badge. Credits/CRN/instructor/meetings/term appear once; a check identifies clicked meeting only for multi-meeting sections. Instructor values wrap. Existing conflict detail and clicked-meeting export behavior remain.
+- Calendar/ICS moved to the bottom footer, below compact Remove/Close controls. Details scroll independently. Preserved user's committed v1.0.5 and removed Easter egg; no version/backend/preference/signing changes.
+- 400 unit tests pass; validation APK built. Initial combined build terminated exit143; remaining signed release APK/AAB tasks succeeded on retry. Release guard PASS. Installed matching-certificate validation1.0.5/code6 on Waydroid with adb install -r, no data clear; hash verified.
+- Verified CLC9022 credits3 and one copy of course/meeting metadata, bottom action order, Close/reopen, and landscape footer reachability with details scrolled to term dates. Restored480×1000 display; course selection unchanged; popup left open. No app-scoped runtime errors. Connected Samsung not touched.
+- Evidence/screenshots: docs/verification/2026-10-14/timetable-popup/. Artifacts: build/timetable-popup-2026-10-14/. Large fonts, conflict/multi-meeting fixtures, external calendar/ICS and physical hardware checks not repeated.
+
 ## 2026-10-14 — Remove logo rain Easter egg & release v1.0.5
 
 - User requested clean removal of logo-rain Easter egg feature.

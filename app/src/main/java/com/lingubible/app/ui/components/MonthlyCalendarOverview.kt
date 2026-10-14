@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -238,7 +240,7 @@ fun MonthlyCalendarOverview(
                     ) {
                         // "今天" Quick Jump
                         OutlinedButton(
-                            onClick = {
+                            onClick = hapticClick {
                                 val thisMonth = YearMonth.now()
                                 onMonthChanged(thisMonth.toString())
                                 onSelectDate(todayString)
@@ -260,7 +262,7 @@ fun MonthlyCalendarOverview(
 
                         // "學期開始" Quick Jump
                         OutlinedButton(
-                            onClick = onJumpTermStart,
+                            onClick = hapticClick(onJumpTermStart),
                             contentPadding = PaddingValues(horizontal = 9.dp, vertical = 2.dp),
                             shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(8.dp)),
                             border = BorderStroke(1.dp, if (isDark) Color(0xFF3F3F46) else Color(0xFFCBD5E1)),
@@ -278,7 +280,7 @@ fun MonthlyCalendarOverview(
 
                         // Previous Button (<)
                         IconButton(
-                            onClick = {
+                            onClick = hapticClick {
                                 when (viewMode) {
                                     CalendarViewMode.MONTH -> {
                                         val prevMonth = currentYearMonth.minusMonths(1)
@@ -310,7 +312,7 @@ fun MonthlyCalendarOverview(
 
                         // Next Button (>)
                         IconButton(
-                            onClick = {
+                            onClick = hapticClick {
                                 when (viewMode) {
                                     CalendarViewMode.MONTH -> {
                                         val nextMonth = currentYearMonth.plusMonths(1)
@@ -394,7 +396,7 @@ fun MonthlyCalendarOverview(
                         Spacer(modifier = Modifier.width(2.dp))
 
                         IconButton(
-                            onClick = { isExpanded = !isExpanded },
+                            onClick = hapticClick { isExpanded = !isExpanded },
                             modifier = Modifier
                                 .size(28.dp)
                                 .pointerHoverIcon(PointerIcon.Hand)
@@ -878,7 +880,7 @@ private fun GoogleCalendarWeekRow(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            onClick = {
+                            onClick = hapticClick {
                                 if (!isCurrentMonth) {
                                     val targetMonth = YearMonth.from(date)
                                     onMonthChanged(targetMonth.toString())
@@ -953,7 +955,7 @@ private fun GoogleCalendarWeekRow(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                        onClick = {
+                        onClick = hapticClick {
                             onSelectDate(p.event.start)
                             onSelectEvent(p.event)
                         }
@@ -989,7 +991,7 @@ private fun GoogleCalendarWeekRow(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            onClick = { onSelectDate(dateStr) }
+                            onClick = hapticClick { onSelectDate(dateStr) }
                         )
                         .pointerHoverIcon(PointerIcon.Hand),
                     contentAlignment = Alignment.CenterStart

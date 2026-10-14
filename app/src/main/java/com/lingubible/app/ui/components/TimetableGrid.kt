@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -171,7 +173,7 @@ fun TimetableGrid(
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
-                    onClick = onNavigateToAddCourse,
+                    onClick = hapticClick(onNavigateToAddCourse),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -220,7 +222,7 @@ fun TimetableGrid(
                 border = BorderStroke(1.dp, gridBorder),
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
-                    .clickable { isDirectView = !isDirectView }
+                    .clickable (onClick = hapticClick { isDirectView = !isDirectView })
                     .pointerHoverIcon(PointerIcon.Hand)
             ) {
                 Row(
@@ -240,7 +242,7 @@ fun TimetableGrid(
                 shapes = ButtonDefaults.shapes(),
                 enabled = !exportingImage && pendingImagePath == null,
                 contentPadding = PaddingValues(horizontal = 10.dp),
-                onClick = {
+                onClick = hapticClick {
                     exportingImage = true
                     scope.launch {
                         try {
@@ -441,7 +443,7 @@ fun TimetableGrid(
                                                     color = if (isClashing) Color(0xFFEF4444) else blockColor.copy(alpha = 0.8f),
                                                     shape = RoundedCornerShape(6.dp)
                                                 )
-                                                .clickable { selectedMeetingForDialog = section to meeting }
+                                                .clickable (onClick = hapticClick { selectedMeetingForDialog = section to meeting })
                                                 .pointerHoverIcon(PointerIcon.Hand),
                                             color = blockColor.copy(alpha = 0.92f),
                                             shape = RoundedCornerShape(6.dp),
@@ -565,53 +567,11 @@ fun TimetableGrid(
                         text = "${section.courseCode} Section ${section.section}",
                         fontWeight = FontWeight.Bold
                     )
-                    if (sectionConflicts.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (isDark) Color(0xFF450A0A) else Color(0xFFFEE2E2),
-                            border = BorderStroke(0.5.dp, if (isDark) Color(0xFFB91C1C) else Color(0xFFFCA5A5))
-                        ) {
-                            Text(
-                                text = "時段衝突 Schedule Conflict",
-                                color = if (isDark) Color(0xFFFCA5A5) else Color(0xFFDC2626),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
+
                 }
             },
             text = {
                 Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(16.dp)) {
-                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("所選時段 Selected meeting", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                            Text(
-                                text = if (credits != null) "$credits 學分 Credits" else "學分暫無資料 / Credits unavailable",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text("${meeting.day} ${meeting.start} – ${meeting.end} · ${meeting.type}")
-                            Text(meeting.venue.ifBlank { "地點待定 / Venue TBD" })
-                            Text("每週重複 Weekly · ${term.startDate} – ${term.endDate}", style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                    Button(
-                        shapes = ButtonDefaults.shapes(),
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = { onAddMeetingToCalendar(section, meeting) }
-                    ) {
-                        Icon(Icons.Default.EventAvailable, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("加至日曆 Add to calendar")
-                    }
-                    OutlinedButton(
-                        shapes = ButtonDefaults.shapes(),
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = { onExportMeetingIcs(section, meeting) }
-                    ) { Text("匯出此時段 Export meeting (.ics)") }
                     // Expressive conflict warning callout if clashing
                     if (sectionConflicts.isNotEmpty()) {
                         Surface(
@@ -656,6 +616,14 @@ fun TimetableGrid(
                         fontWeight = FontWeight.SemiBold
                     )
                     HorizontalDivider()
+                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                        Text("學分 Credits:", style = MaterialTheme.typography.labelMedium, color = textMuted)
+                        Text(
+                            text = credits?.toString() ?: "暫無資料 / Unavailable",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     if (section.crn.isNotBlank()) {
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Text("CRN:", style = MaterialTheme.typography.labelMedium, color = textMuted)
@@ -664,43 +632,85 @@ fun TimetableGrid(
                     }
                     if (section.instructors.isNotEmpty()) {
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text("講師 Instructor:", style = MaterialTheme.typography.labelMedium, color = textMuted)
-                            Text(section.instructors.joinToString(", "), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                            Text("講師 Instructor:", style = MaterialTheme.typography.labelMedium, color = textMuted, modifier = Modifier.weight(1f))
+                            Text(
+                                section.instructors.joinToString(", "),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                     }
                     Text("上課時間 Meetings:", style = MaterialTheme.typography.labelMedium, color = textMuted)
                     section.meetings.forEach { m ->
-                        Text(
-                            text = "• ${m.day} ${m.start} - ${m.end} (${m.venue.ifBlank { "TBD" }}) [${m.type}]",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Medium
-                        )
+                        val isSelected = section.meetings.size > 1 && m == meeting
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(
+                                text = "${if (isSelected) "✓" else "•"} ${m.day} ${m.start} – ${m.end} · ${m.type}",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else textMuted
+                            )
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("地點 Location:", style = MaterialTheme.typography.labelMedium, color = textMuted)
+                                Text(
+                                    m.venue.ifBlank { "待定 TBD" },
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    textAlign = TextAlign.End,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
                     }
+                    Text(
+                        "每週重複 Weekly · ${term.startDate} – ${term.endDate}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = textMuted
+                    )
                 }
             },
             confirmButton = {
-                TextButton(shapes = ButtonDefaults.shapes(),
-                    onClick = { selectedMeetingForDialog = null },
-                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
-                ) {
-                    Text("關閉 Close")
-                }
-            },
-            dismissButton = {
-                Button(shapes = ButtonDefaults.shapes(),
-                    onClick = {
-                        onRemoveSection(section.id)
-                        selectedMeetingForDialog = null
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    ),
-                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
-                ) {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("從課表移除 Remove")
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = hapticClick { onAddMeetingToCalendar(section, meeting) }
+                    ) {
+                        Icon(Icons.Default.EventAvailable, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("加至日曆 Add to calendar", textAlign = TextAlign.Center)
+                    }
+                    OutlinedButton(
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = hapticClick { onExportMeetingIcs(section, meeting) }
+                    ) { Text("匯出此時段 Export meeting (.ics)", textAlign = TextAlign.Center) }
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        TextButton(
+                            shapes = ButtonDefaults.shapes(),
+                            onClick = hapticClick {
+                                onRemoveSection(section.id)
+                                selectedMeetingForDialog = null
+                            },
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                        ) {
+                            Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("移除 Remove")
+                        }
+                        TextButton(
+                            shapes = ButtonDefaults.shapes(),
+                            onClick = hapticClick { selectedMeetingForDialog = null },
+                            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                        ) { Text("關閉 Close") }
+                    }
                 }
             }
         )

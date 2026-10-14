@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -275,7 +277,7 @@ fun TimeConflictAlertCard(
                                 shape = RoundedCornerShape(12.dp),
                                 color = if (isDark) Color(0xFF450A0A) else Color(0xFFFEE2E2),
                                 modifier = Modifier
-                                    .clickable { isExpanded = !isExpanded }
+                                    .clickable (onClick = hapticClick { isExpanded = !isExpanded })
                                     .pointerHoverIcon(PointerIcon.Hand)
                             ) {
                                 Row(
@@ -335,7 +337,7 @@ fun TimeConflictAlertCard(
                                 .then(
                                     if (onSelectConflict != null) {
                                         Modifier
-                                            .clickable { onSelectConflict(conflict) }
+                                            .clickable (onClick = hapticClick { onSelectConflict(conflict) })
                                             .pointerHoverIcon(PointerIcon.Hand)
                                     } else Modifier
                                 )
@@ -442,7 +444,7 @@ fun TimeConflictAlertCard(
                         ) {
                             if (onSelectConflict != null) {
                                 OutlinedButton(
-                                    onClick = { onSelectConflict(conflicts.first()) },
+                                    onClick = hapticClick { onSelectConflict(conflicts.first()) },
                                     shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
@@ -459,7 +461,7 @@ fun TimeConflictAlertCard(
                             if (onResolveClick != null) {
                                 Spacer(modifier = Modifier.width(8.dp))
                                 FilledTonalButton(
-                                    onClick = onResolveClick,
+                                    onClick = hapticClick(onResolveClick),
                                     colors = ButtonDefaults.filledTonalButtonColors(
                                         containerColor = LingnanRed.copy(alpha = if (isDark) 0.30f else 0.15f),
                                         contentColor = if (isDark) Color(0xFFFCA5A5) else LingnanRed

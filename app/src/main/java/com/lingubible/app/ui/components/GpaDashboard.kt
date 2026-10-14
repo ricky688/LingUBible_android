@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import android.graphics.Paint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
@@ -87,9 +89,13 @@ internal fun GpaMetric(
     value: String,
     icon: ImageVector,
     accentColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    badgeText: String? = null,
+    onClick: (() -> Unit)? = null
 ) {
     Surface(
+        onClick = onClick ?: {},
+        enabled = onClick != null,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         shape = RoundedCornerShape(18.dp),
         border = CardDefaults.outlinedCardBorder().copy(
@@ -107,40 +113,61 @@ internal fun GpaMetric(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(26.dp)
-                        .background(accentColor.copy(alpha = 0.15f), RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.weight(1f, fill = false)
                 ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = accentColor,
-                        modifier = Modifier.size(15.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .background(accentColor.copy(alpha = 0.15f), RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = accentColor,
+                            modifier = Modifier.size(15.dp)
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
-                Column {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                if (badgeText != null) {
+                    Surface(
+                        color = accentColor.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(8.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.35f))
+                    ) {
+                        Text(
+                            text = badgeText,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                            color = accentColor,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
                 }
             }
 
@@ -166,7 +193,11 @@ internal fun GpaMetric(
 }
 
 @Composable
-fun GpaSummary(state: GpaHonsUiState) {
+fun GpaSummary(
+    state: GpaHonsUiState,
+    onOpenGpaGod: (() -> Unit)? = null
+) {
+    val isFourFlat = state.cgpa != null && state.cgpa >= 4.0
     GpaPanel {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             GpaMetric(
@@ -174,8 +205,10 @@ fun GpaSummary(state: GpaHonsUiState) {
                 subtitle = "Cumulative GPA",
                 value = gpaNumber(state.cgpa),
                 icon = Icons.Default.School,
-                accentColor = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.weight(1f)
+                accentColor = if (isFourFlat) Color(0xFFF59E0B) else MaterialTheme.colorScheme.primary,
+                modifier = Modifier.weight(1f),
+                badgeText = if (isFourFlat) "4.0 神蹟 ✨" else "求籤 🎋",
+                onClick = onOpenGpaGod
             )
             GpaMetric(
                 title = "已計入學分",
@@ -316,7 +349,7 @@ fun GpaTargetCard(state: GpaHonsUiState, onTarget: (String) -> Unit, onRemaining
                 val isSelected = state.targetCgpaInput.toDoubleOrNull() == tier.minCgpa
                 FilterChip(
                     selected = isSelected,
-                    onClick = { onTarget(String.format(Locale.US, "%.2f", tier.minCgpa)) },
+                    onClick = hapticClick { onTarget(String.format(Locale.US, "%.2f", tier.minCgpa)) },
                     shape = RoundedCornerShape(12.dp),
                     label = {
                         Text(
@@ -474,19 +507,19 @@ fun GpaTrendCard(state: GpaHonsUiState) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             FilterChip(
                 selected = honours,
-                onClick = { honours = !honours },
+                onClick = hapticClick { honours = !honours },
                 shape = RoundedCornerShape(12.dp),
                 label = { Text("榮譽線 Honours") }
             )
             FilterChip(
                 selected = awards,
-                onClick = { awards = !awards },
+                onClick = hapticClick { awards = !awards },
                 shape = RoundedCornerShape(12.dp),
                 label = { Text("榮譽榜 Awards") }
             )
             FilterChip(
                 selected = fullScale,
-                onClick = { fullScale = !fullScale },
+                onClick = hapticClick { fullScale = !fullScale },
                 shape = RoundedCornerShape(12.dp),
                 label = { Text(if (fullScale) "全刻度 0–4" else "自動刻度 Auto") }
             )

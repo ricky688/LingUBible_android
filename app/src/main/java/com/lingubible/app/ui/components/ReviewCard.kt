@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -52,7 +54,7 @@ fun ReviewCard(
             .then(if (onClick != null) Modifier.mousePointer().clickable(
                 interactionSource = interactionSource,
                 indication = null,
-                onClick = onClick
+                onClick = hapticClick(onClick)
             ) else Modifier),
         shape = shape,
         colors = CardDefaults.cardColors(containerColor = bgColor),
@@ -202,7 +204,7 @@ fun ReviewCard(
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                                 .pointerHoverIcon(PointerIcon.Hand)
-                                .clickable { isExpanded = !isExpanded }
+                                .clickable (onClick = hapticClick { isExpanded = !isExpanded })
                                 .padding(vertical = 4.dp)
                         )
                     }
@@ -239,7 +241,7 @@ fun ReviewCard(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
                             .pointerHoverIcon(PointerIcon.Hand)
-                            .clickable { onVote?.invoke("up") },
+                            .clickable (onClick = hapticClick { onVote?.invoke("up") }),
                         color = if (isUpvoted) Color(0xFFDCFCE7) else if (isDark) Color(0xFF27272A) else Color(0xFFF3F4F6),
                         shape = RoundedCornerShape(20.dp)
                     ) {
@@ -269,7 +271,7 @@ fun ReviewCard(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
                             .pointerHoverIcon(PointerIcon.Hand)
-                            .clickable { onVote?.invoke("down") },
+                            .clickable (onClick = hapticClick { onVote?.invoke("down") }),
                         color = if (isDownvoted) Color(0xFFFEE2E2) else if (isDark) Color(0xFF27272A) else Color(0xFFF3F4F6),
                         shape = RoundedCornerShape(20.dp)
                     ) {

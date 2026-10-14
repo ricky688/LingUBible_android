@@ -1,0 +1,10 @@
+{
+  "device_serial": "192.168.240.112:5555",
+  "package": "com.lingubible.app",
+  "version": "1.0.5 (6)",
+  "installed_apk_sha256": "9479be3c31e71e8fe0946cb57e192e3470b61941e07c540e661bbc585493ea31",
+  "matches_final_releaseValidation_apk": true,
+  "current_process_AndroidRuntime_fatal_exceptions": 0,
+  "data_cleared": false,
+  "other_device_modified": false
+}

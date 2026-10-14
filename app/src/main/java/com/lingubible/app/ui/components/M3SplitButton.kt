@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticChange
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -134,7 +136,7 @@ private fun M3SplitButtonSegment(
 
     ToggleButton(
         checked = selected,
-        onCheckedChange = { onClick() },
+        onCheckedChange = hapticChange { onClick() },
         modifier = Modifier.fillMaxHeight().pointerHoverIcon(PointerIcon.Hand),
         shapes = ToggleButtonDefaults.shapes(shape = shape, checkedShape = shape),
         colors = ToggleButtonDefaults.toggleButtonColors(

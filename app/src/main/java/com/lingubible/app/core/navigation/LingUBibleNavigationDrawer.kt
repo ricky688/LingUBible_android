@@ -1,5 +1,7 @@
 package com.lingubible.app.core.navigation
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -188,7 +190,7 @@ fun LingUBibleDrawerSheet(
 
                             NavigationDrawerItem(
                                 selected = selected,
-                                onClick = {
+                                onClick = hapticClick {
                                     onCloseDrawer()
                                     if (!selected) {
                                         if (destination == DrawerNavDestination.HOME) {
@@ -327,7 +329,7 @@ fun LingUBibleDrawerSheet(
                                     color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(16.dp))
-                                        .clickable { settingsManager.setThemeMode(mode) }
+                                        .clickable (onClick = hapticClick { settingsManager.setThemeMode(mode) })
                                         .pointerHoverIcon(PointerIcon.Hand)
                                 ) {
                                     Row(
@@ -396,7 +398,7 @@ fun LingUBibleDrawerSheet(
                                     color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(16.dp))
-                                        .clickable { settingsManager.setLanguage(lang) }
+                                        .clickable (onClick = hapticClick { settingsManager.setLanguage(lang) })
                                         .pointerHoverIcon(PointerIcon.Hand)
                                 ) {
                                     Text(

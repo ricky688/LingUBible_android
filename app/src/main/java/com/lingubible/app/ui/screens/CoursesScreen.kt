@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenContentPadding
 import android.content.res.Configuration
 import androidx.compose.animation.*
@@ -94,7 +96,7 @@ fun CoursesScreen(
             trailingIcon = {
                 if (searchInput.isNotEmpty()) {
                     IconButton(
-                        onClick = {
+                        onClick = hapticClick {
                             searchInput = ""
                             viewModel.search("")
                         },
@@ -163,7 +165,7 @@ fun CoursesScreen(
             )
 
             Surface(
-                onClick = { isGridExpanded = !isGridExpanded },
+                onClick = hapticClick { isGridExpanded = !isGridExpanded },
                 shape = RoundedCornerShape(12.dp),
                 color = if (isGridExpanded) {
                     if (isDark) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
@@ -259,7 +261,7 @@ fun CoursesScreen(
                     }
 
                     TextButton(shapes = ButtonDefaults.shapes(),
-                        onClick = { isGridExpanded = false },
+                        onClick = hapticClick { isGridExpanded = false },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                         modifier = Modifier
                             .pointerHoverIcon(PointerIcon.Hand)
@@ -376,7 +378,7 @@ fun CoursesScreen(
 
             if (uiState.selectedSubject != null && !uiState.selectedSubject.equals("ALL", ignoreCase = true)) {
                 TextButton(shapes = ButtonDefaults.shapes(),
-                    onClick = { viewModel.filterSubject(null) },
+                    onClick = hapticClick { viewModel.filterSubject(null) },
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
                     modifier = Modifier.height(26.dp)
                 ) {
@@ -465,7 +467,7 @@ private fun CourseCategoryGridChip(
     val chipShape = RoundedCornerShape(corner)
 
     Surface(
-        onClick = onClick,
+        onClick = hapticClick(onClick),
         interactionSource = interactionSource,
         shape = chipShape,
         color = if (isSelected) {

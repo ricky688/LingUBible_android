@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenContentPadding
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
@@ -525,7 +527,7 @@ private fun StatisticsFilterBar(
                         enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) + scaleIn(spring(stiffness = Spring.StiffnessMediumLow)),
                         exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) + scaleOut(spring(stiffness = Spring.StiffnessMedium))
                     ) {
-                        IconButton(onClick = { onQueryChange("") }) {
+                        IconButton(onClick = hapticClick { onQueryChange("") }) {
                             Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(18.dp))
                         }
                     }
@@ -542,7 +544,7 @@ private fun StatisticsFilterBar(
             )
 
             FilledTonalIconButton(
-                onClick = onFiltersExpandedToggle,
+                onClick = hapticClick(onFiltersExpandedToggle),
                 shape = RoundedCornerShape(18.dp),
                 colors = IconButtonDefaults.filledTonalIconButtonColors(
                     containerColor = if (filtersExpanded || activeFilterCount > 0)
@@ -623,7 +625,7 @@ private fun StatisticsFilterBar(
 
                         if (activeFilterCount > 0) {
                             TextButton(shapes = ButtonDefaults.shapes(),
-                                onClick = onResetFilters,
+                                onClick = hapticClick(onResetFilters),
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                             ) {
                                 Icon(Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(14.dp))
@@ -647,7 +649,7 @@ private fun StatisticsFilterBar(
                             item {
                                 FilterChip(
                                     selected = faculty.isEmpty(),
-                                    onClick = { onFacultyChange("") },
+                                    onClick = hapticClick { onFacultyChange("") },
                                     label = { Text("全部 All") },
                                     shape = RoundedCornerShape(12.dp)
                                 )
@@ -656,7 +658,7 @@ private fun StatisticsFilterBar(
                                 val shortTitle = name.substringBefore(" · ")
                                 FilterChip(
                                     selected = faculty == key,
-                                    onClick = { onFacultyChange(key) },
+                                    onClick = hapticClick { onFacultyChange(key) },
                                     label = { Text(shortTitle) },
                                     shape = RoundedCornerShape(12.dp)
                                 )
@@ -682,7 +684,7 @@ private fun StatisticsFilterBar(
                         )
 
                         OutlinedCard(
-                            onClick = { onSortByNameChange(!sortByName) },
+                            onClick = hapticClick { onSortByNameChange(!sortByName) },
                             modifier = Modifier.weight(1f).heightIn(min = 54.dp),
                             shape = RoundedCornerShape(14.dp),
                             colors = CardDefaults.outlinedCardColors(
@@ -768,7 +770,7 @@ private fun HonoursProgrammeCard(
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
-                onClick = {}
+                onClick = hapticClick {}
             ),
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
@@ -977,7 +979,7 @@ private fun HonoursEmptyState(
                 textAlign = TextAlign.Center
             )
             FilledTonalButton(
-                onClick = onResetFilters,
+                onClick = hapticClick(onResetFilters),
                 shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp))
             ) {
                 Icon(Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -1007,7 +1009,7 @@ private fun ExpressiveSwitchRow(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .clickable { onCheckedChange(!checked) }
+            .clickable (onClick = hapticClick { onCheckedChange(!checked) })
     ) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
@@ -1063,7 +1065,7 @@ private fun StatisticsDropdown(
         modifier = modifier
     ) {
         OutlinedCard(
-            onClick = { expanded = true },
+            onClick = hapticClick { expanded = true },
             modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
@@ -1095,7 +1097,7 @@ private fun StatisticsDropdown(
             options.forEach { (key, option) ->
                 DropdownMenuItem(
                     text = { Text(option) },
-                    onClick = {
+                    onClick = hapticClick {
                         onSelect(key)
                         expanded = false
                     }

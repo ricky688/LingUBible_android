@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenContentPadding
 import com.lingubible.app.core.navigation.LocalScreenBottomClearance
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -64,6 +66,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var statistics by rememberSaveable { mutableStateOf(false) }
     var showResetDialog by rememberSaveable { mutableStateOf(false) }
+    var showGpaGodModal by rememberSaveable { mutableStateOf(false) }
     val viewState = rememberSaveableStateHolder()
     val calculatorScroll = rememberLazyListState()
     val statisticsScroll = rememberLazyListState()
@@ -97,7 +100,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
             listOf("計算器" to "Calculator", "榮譽統計" to "Statistics").forEachIndexed { index, (zh, en) ->
                 Tab(
                     selected = statistics == (index == 1),
-                    onClick = { statistics = index == 1 },
+                    onClick = hapticClick { statistics = index == 1 },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     text = {
@@ -142,7 +145,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                         GpaSectionTitle("GPA 與榮譽規劃", "GPA & Honours Planner")
                         Text("資料只儲存於本機 · Saved on this device", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(12.dp))
-                        GpaSummary(state)
+                        GpaSummary(state = state, onOpenGpaGod = { showGpaGodModal = true })
                     }
                     item("backup") {
                         Surface(shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
@@ -151,15 +154,15 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                 Text("JSON 可還原完整資料；CSV 可用於試算表。\nRestore with JSON; view CSV in a spreadsheet.",
                                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = { jsonExport.launch(exportName("json")) }, enabled = !state.backupBusy) {
+                                    FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { jsonExport.launch(exportName("json")) }, enabled = !state.backupBusy) {
                                         Icon(Icons.Outlined.SaveAlt, contentDescription = null, modifier = Modifier.size(18.dp))
                                         Spacer(Modifier.width(6.dp))
                                         Text("備份 Backup")
                                     }
-                                    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { csvExport.launch(exportName("csv")) }, enabled = !state.backupBusy) {
+                                    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { csvExport.launch(exportName("csv")) }, enabled = !state.backupBusy) {
                                         Text("匯出 CSV")
                                     }
-                                    TextButton(shapes = ButtonDefaults.shapes(), onClick = { importBackup.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }, enabled = !state.backupBusy) {
+                                    TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { importBackup.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }, enabled = !state.backupBusy) {
                                         Text("還原 Restore")
                                     }
                                 }
@@ -196,7 +199,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
                                     IconButton(
-                                        onClick = viewModel::undo,
+                                        onClick = hapticClick(viewModel::undo),
                                         enabled = state.canUndo,
                                         modifier = Modifier.size(36.dp)
                                     ) {
@@ -208,7 +211,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                         )
                                     }
                                     IconButton(
-                                        onClick = viewModel::redo,
+                                        onClick = hapticClick(viewModel::redo),
                                         enabled = state.canRedo,
                                         modifier = Modifier.size(36.dp)
                                     ) {
@@ -224,7 +227,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                         color = MaterialTheme.colorScheme.outlineVariant
                                     )
                                     IconButton(
-                                        onClick = { showResetDialog = true },
+                                        onClick = hapticClick { showResetDialog = true },
                                         modifier = Modifier.size(36.dp)
                                     ) {
                                         Icon(
@@ -271,7 +274,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                     }
                     if (years.size < 8) item("add_year") {
                         Surface(
-                            onClick = viewModel::addYear,
+                            onClick = hapticClick(viewModel::addYear),
                             shape = RoundedCornerShape(18.dp),
                             color = MaterialTheme.colorScheme.surfaceContainerLow,
                             border = CardDefaults.outlinedCardBorder().copy(
@@ -322,17 +325,23 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
             onDismissRequest = viewModel::dismissCalculatorRestore,
             title = { Text("還原計算器備份？\nRestore calculator backup?") },
             text = { Text("備份包含 $terms 個學期、$courses 個課程。將取代目前的計算器資料及目標設定，可按「復原 Undo」還原。\n$terms terms and $courses courses will replace the current entries and goals. You can Undo this change.") },
-            confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = viewModel::confirmCalculatorRestore) { Text("還原 Restore") } },
-            dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = viewModel::dismissCalculatorRestore) { Text("取消 Cancel") } }
+            confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(viewModel::confirmCalculatorRestore)) { Text("還原 Restore") } },
+            dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(viewModel::dismissCalculatorRestore)) { Text("取消 Cancel") } }
         )
     }
     if (showResetDialog) AlertDialog(
         onDismissRequest = { showResetDialog = false },
         title = { Text("重設所有成績？ Reset planner?") },
         text = { Text("學期、課程和成績將回復初始狀態。可按「復原 Undo」還原。") },
-        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { viewModel.resetAll(); showResetDialog = false }) { Text("重設 Reset") } },
-        dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { showResetDialog = false }) { Text("取消 Cancel") } }
+        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { viewModel.resetAll(); showResetDialog = false }) { Text("重設 Reset") } },
+        dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { showResetDialog = false }) { Text("取消 Cancel") } }
     )
+    if (showGpaGodModal) {
+        GpaGodFortuneModal(
+            cgpa = state.cgpa,
+            onDismiss = { showGpaGodModal = false }
+        )
+    }
 }
 
 @Composable
@@ -343,7 +352,7 @@ private fun AcademicYearSelector(selected: String, onSelect: (String) -> Unit) {
 
     Box(modifier = Modifier.fillMaxWidth()) {
         Surface(
-            onClick = { expanded = true },
+            onClick = hapticClick { expanded = true },
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 52.dp)
@@ -433,7 +442,7 @@ private fun AcademicYearSelector(selected: String, onSelect: (String) -> Unit) {
                             )
                         }
                     } else null,
-                    onClick = {
+                    onClick = hapticClick {
                         onSelect(label)
                         expanded = false
                     }
@@ -586,7 +595,7 @@ fun YearCard(
 
                 if (canRemoveYear) {
                     IconButton(
-                        onClick = onRemoveYear,
+                        onClick = hapticClick(onRemoveYear),
                         modifier = Modifier
                             .size(36.dp)
                             .pointerHoverIcon(PointerIcon.Hand)
@@ -632,7 +641,7 @@ fun YearCard(
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                 )
                 Surface(
-                    onClick = onAddTerm,
+                    onClick = hapticClick(onAddTerm),
                     shape = RoundedCornerShape(14.dp),
                     color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
@@ -715,7 +724,7 @@ fun TermSection(
 
             if (canRemoveTerm) {
                 IconButton(
-                    onClick = onRemoveTerm,
+                    onClick = hapticClick(onRemoveTerm),
                     modifier = Modifier
                         .size(36.dp)
                         .pointerHoverIcon(PointerIcon.Hand)
@@ -759,7 +768,7 @@ fun TermSection(
         if (term.courses.size < term.part.maxCourses) {
             Spacer(modifier = Modifier.height(8.dp))
             Surface(
-                onClick = onAddCourse,
+                onClick = hapticClick(onAddCourse),
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
@@ -849,7 +858,7 @@ fun CourseRow(
                 trailingIcon = if (canRemove) {
                     {
                         IconButton(
-                            onClick = onRemove,
+                            onClick = hapticClick(onRemove),
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                         ) {
                             Icon(
@@ -881,7 +890,7 @@ fun CourseRow(
                                 )
                             }
                         },
-                        onClick = {
+                        onClick = hapticClick {
                             onPickCourse(match)
                             showSuggestions = false
                         }
@@ -895,7 +904,7 @@ fun CourseRow(
             // Credits Selector Dropdown Trigger
             Box(Modifier.weight(1f)) {
                 Surface(
-                    onClick = { showCreditsMenu = true },
+                    onClick = hapticClick { showCreditsMenu = true },
                     shape = RoundedCornerShape(14.dp),
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f)),
@@ -951,7 +960,7 @@ fun CourseRow(
                                     )
                                 }
                             } else null,
-                            onClick = {
+                            onClick = hapticClick {
                                 onUpdateCredits(cr)
                                 showCreditsMenu = false
                             }
@@ -971,7 +980,7 @@ fun CourseRow(
                 } else "成績 · Grade"
 
                 Surface(
-                    onClick = { showGradeMenu = true },
+                    onClick = hapticClick { showGradeMenu = true },
                     shape = RoundedCornerShape(14.dp),
                     color = if (hasGrade) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
                     border = BorderStroke(
@@ -1050,7 +1059,7 @@ fun CourseRow(
                                     )
                                 }
                             } else null,
-                            onClick = {
+                            onClick = hapticClick {
                                 onUpdateGrade(g)
                                 showGradeMenu = false
                             }
@@ -1088,7 +1097,7 @@ fun CourseRow(
                                     )
                                 }
                             } else null,
-                            onClick = {
+                            onClick = hapticClick {
                                 onUpdateGrade(g)
                                 showGradeMenu = false
                             }

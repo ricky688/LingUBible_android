@@ -1,6 +1,9 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticChange
+
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -12,6 +15,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
@@ -26,7 +30,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -70,6 +73,9 @@ fun M3ButtonGroup(
     equalWeight: Boolean = false
 ) {
     val isDark = isAppDarkTheme()
+    val sources = remember(items.size) { List(items.size) { MutableInteractionSource() } }
+    val pressedIndex = sources.map { it.collectIsPressedAsState().value }.indexOfFirst { it }
+    val focusIndex = connectedButtonFocusIndex(selectedIndex, pressedIndex, isDark)
 
     Row(
         modifier = modifier.height(height),
@@ -86,6 +92,8 @@ fun M3ButtonGroup(
             val buttonModifier = if (equalWeight) Modifier.weight(1f) else Modifier
             M3ButtonGroupButton(
                 selected = selectedIndex == index,
+                focused = focusIndex == index,
+                interactionSource = sources[index],
                 onClick = item.onClick,
                 label = item.label,
                 icon = item.icon,
@@ -127,6 +135,9 @@ fun ScrollableM3ButtonGroup(
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start
 ) {
     val isDark = isAppDarkTheme()
+    val sources = remember(items.size) { List(items.size) { MutableInteractionSource() } }
+    val pressedIndex = sources.map { it.collectIsPressedAsState().value }.indexOfFirst { it }
+    val focusIndex = connectedButtonFocusIndex(selectedIndex, pressedIndex, isDark)
     val scrollState = rememberScrollState()
 
     val canScrollBackward = scrollState.value > 0
@@ -199,6 +210,8 @@ fun ScrollableM3ButtonGroup(
             items.forEachIndexed { index, item ->
                 M3ButtonGroupButton(
                     selected = selectedIndex == index,
+                    focused = focusIndex == index,
+                    interactionSource = sources[index],
                     onClick = item.onClick,
                     label = item.label,
                     icon = item.icon,
@@ -254,6 +267,8 @@ fun M3ButtonGroup(
 @Composable
 private fun M3ButtonGroupButton(
     selected: Boolean,
+    focused: Boolean,
+    interactionSource: MutableInteractionSource,
     onClick: () -> Unit,
     label: String,
     icon: ImageVector?,
@@ -267,8 +282,22 @@ private fun M3ButtonGroupButton(
     index: Int,
     count: Int
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val hapticFeedback = LocalHapticFeedback.current
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val focus = animateFloatAsState(
+        targetValue = if (focused) 1f else 0f,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "connectedButtonPerimeterFill"
+    )
+    val pressWave = remember { Animatable(1f) }
+    LaunchedEffect(isPressed, isDark) {
+        if (isDark) {
+            pressWave.snapTo(1f)
+        } else {
+            // A selected button can replay inward focus without clearing its selection.
+            if (isPressed && selected) pressWave.snapTo(0f)
+            pressWave.animateTo(1f, spring(stiffness = Spring.StiffnessLow))
+        }
+    }
 
     val shapes = when {
         count == 1 -> ToggleButtonDefaults.shapes()
@@ -288,24 +317,18 @@ private fun M3ButtonGroupButton(
     // Colors matching Google Material 3 Expressive Connected Button Group:
     // Active: High-contrast primary fill with onPrimary content
     // Inactive: Soft tonal pastel fill with primary/onPrimaryContainer content
-    val targetContainerColor = when {
-        selected -> MaterialTheme.colorScheme.primary
-        isDark -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-        else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
-    }
+    val (targetContainerColor, targetContentColor) = connectedButtonTargetColors(
+        MaterialTheme.colorScheme, selected, isDark, isPressed
+    )
     val containerColor by animateColorAsState(
-        targetValue = targetContainerColor,
+        targetValue = if (isDark) targetContainerColor
+            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
         animationSpec = spring(stiffness = Spring.StiffnessMedium),
         label = "connectedButtonContainer"
     )
 
-    val targetContentColor = when {
-        selected -> MaterialTheme.colorScheme.onPrimary
-        isDark -> MaterialTheme.colorScheme.onPrimaryContainer
-        else -> MaterialTheme.colorScheme.primary
-    }
     val contentColor by animateColorAsState(
-        targetValue = targetContentColor,
+        targetValue = if (isDark) targetContentColor else MaterialTheme.colorScheme.primary,
         animationSpec = spring(stiffness = Spring.StiffnessMedium),
         label = "connectedButtonContent"
     )
@@ -317,61 +340,98 @@ private fun M3ButtonGroupButton(
         label
     }
 
-    ToggleButton(
-        checked = selected,
-        onCheckedChange = {
-            hapticFeedback.performHapticFeedback(TactileMotionTokens.hapticTap)
-            onClick()
-        },
-        modifier = modifier.fillMaxHeight().pointerHoverIcon(PointerIcon.Hand),
-        shapes = shapes,
-        colors = ToggleButtonDefaults.toggleButtonColors(
-            containerColor = containerColor,
-            contentColor = contentColor,
-            checkedContainerColor = containerColor,
-            checkedContentColor = contentColor
-        ),
-        contentPadding = PaddingValues(0.dp),
-        interactionSource = interactionSource
-    ) {
-        val rowModifier = if (equalWeight) {
-            Modifier.fillMaxSize()
-        } else {
-            Modifier.fillMaxHeight()
-        }.padding(horizontal = contentHorizontalPadding)
-
-        Row(
-            modifier = rowModifier,
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+    // Replace the touch-origin ripple while retaining native keyboard-focus and hover layers.
+    val rippleConfiguration = remember {
+        RippleConfiguration(rippleAlpha = RippleAlpha(
+            draggedAlpha = 0f, focusedAlpha = 0.12f, hoveredAlpha = 0.08f, pressedAlpha = 0f
+        ))
+    }
+    CompositionLocalProvider(LocalRippleConfiguration provides rippleConfiguration) {
+        ToggleButton(
+            checked = selected,
+            onCheckedChange = hapticChange {
+                onClick()
+            },
+            modifier = modifier.fillMaxHeight().pointerHoverIcon(PointerIcon.Hand),
+            shapes = shapes,
+            colors = ToggleButtonDefaults.toggleButtonColors(
+                containerColor = containerColor,
+                contentColor = contentColor,
+                checkedContainerColor = containerColor,
+                checkedContentColor = contentColor
+            ),
+            contentPadding = PaddingValues(0.dp),
+            interactionSource = interactionSource
         ) {
-            if (selected && showCheckmarkOnSelected) {
-                // Expressive checkmark indicating active selection
-                Icon(
-                    imageVector = Icons.Rounded.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(15.dp),
-                    tint = contentColor
+            val rowModifier = if (equalWeight) {
+                Modifier.fillMaxSize()
+            } else {
+                Modifier.fillMaxHeight()
+            }.then(
+                if (isDark) Modifier else Modifier.connectedButtonPerimeterFill(
+                    focus = focus,
+                    focused = focused,
+                    pressWave = pressWave.asState(),
+                    primary = MaterialTheme.colorScheme.primary,
+                    highlight = MaterialTheme.colorScheme.onPrimary
                 )
-                Spacer(modifier = Modifier.width(if (equalWeight) 3.dp else 5.dp))
-            } else if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(15.dp),
-                    tint = contentColor
-                )
-                Spacer(modifier = Modifier.width(if (equalWeight) 3.dp else 5.dp))
-            }
+            ).padding(horizontal = contentHorizontalPadding)
 
-            Text(
-                text = displayLabel,
-                fontSize = if (equalWeight) 12.sp else 12.5.sp,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
-                color = contentColor,
-                maxLines = 1,
-                softWrap = false
-            )
+            Row(
+                modifier = rowModifier,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                if (selected && showCheckmarkOnSelected) {
+                    // Expressive checkmark indicating active selection
+                    Icon(
+                        imageVector = Icons.Rounded.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp),
+                        tint = contentColor
+                    )
+                    Spacer(modifier = Modifier.width(if (equalWeight) 3.dp else 5.dp))
+                } else if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp),
+                        tint = contentColor
+                    )
+                    Spacer(modifier = Modifier.width(if (equalWeight) 3.dp else 5.dp))
+                }
+
+                Text(
+                    text = displayLabel,
+                    fontSize = if (equalWeight) 12.sp else 12.5.sp,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
+                    color = contentColor,
+                    maxLines = 1,
+                    softWrap = false
+                )
+            }
         }
     }
+}
+
+internal fun connectedButtonFocusIndex(selectedIndex: Int, pressedIndex: Int, isDark: Boolean): Int =
+    if (isDark || pressedIndex < 0) selectedIndex else pressedIndex
+
+internal fun connectedButtonTargetColors(
+    scheme: ColorScheme,
+    selected: Boolean,
+    isDark: Boolean,
+    isPressed: Boolean
+): Pair<Color, Color> {
+    val container = when {
+        selected || (!isDark && isPressed) -> scheme.primary
+        isDark -> scheme.primaryContainer.copy(alpha = 0.5f)
+        else -> scheme.primaryContainer.copy(alpha = 0.35f)
+    }
+    val content = when {
+        selected || (!isDark && isPressed) -> scheme.onPrimary
+        isDark -> scheme.onPrimaryContainer
+        else -> scheme.primary
+    }
+    return container to content
 }

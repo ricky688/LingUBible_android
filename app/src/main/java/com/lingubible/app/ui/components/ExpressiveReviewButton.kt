@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -135,7 +137,7 @@ fun ExpressiveReviewFab(
     val shadowColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isHovered) 0.5f else 0.35f)
 
     Surface(
-        onClick = onClick,
+        onClick = hapticClick(onClick),
         modifier = modifier
             .offset(x = translationX, y = translationY)
             .pointerHoverIcon(PointerIcon.Hand)
@@ -223,7 +225,7 @@ fun ExpressiveInlineReviewButton(
     val isHovered by interactionSource.collectIsHoveredAsState()
 
     Button(
-        onClick = onClick,
+        onClick = hapticClick(onClick),
         modifier = modifier
             .pointerHoverIcon(PointerIcon.Hand)
             .shadow(

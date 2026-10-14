@@ -1,5 +1,7 @@
 package com.lingubible.app.core.navigation
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.Spring
@@ -347,7 +349,7 @@ fun LingUBibleTopBar(
                 navigationIcon = {
                     if (canNavigateBack) {
                         IconButton(
-                            onClick = { navController.popBackStack() },
+                            onClick = hapticClick { navController.popBackStack() },
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                         ) {
                             Icon(
@@ -477,7 +479,7 @@ fun LingUBibleTopBar(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (home) {
                                     IconButton(
-                                        onClick = { navController.navigate(Screen.Courses) },
+                                        onClick = hapticClick { navController.navigate(Screen.Courses) },
                                         modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                     ) {
                                         Icon(
@@ -488,7 +490,7 @@ fun LingUBibleTopBar(
                                     }
                                 } else if (reviewable) {
                                     IconButton(
-                                        onClick = {
+                                        onClick = hapticClick {
                                             val courseCode = try {
                                                 navBackStackEntry?.toRoute<Screen.CourseDetail>()?.courseCode
                                             } catch (_: Exception) { null }

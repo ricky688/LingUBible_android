@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -56,7 +58,7 @@ fun CourseSyllabusButton(
     )
 
     Surface(
-        onClick = { if (isEnabled) onClick() },
+        onClick = hapticClick { if (isEnabled) onClick() },
         enabled = isEnabled,
         shape = RoundedCornerShape(cornerRadius),
         color = when {

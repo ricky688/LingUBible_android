@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenBottomPadding
 import android.content.Context
 import androidx.compose.foundation.background
@@ -179,7 +181,7 @@ fun PlannerScreen(
 
                 // ICS Export Button
                 FilledTonalButton(shapes = ButtonDefaults.shapes(),
-                    onClick = { timetableViewModel.exportTimetableIcs(context) },
+                    onClick = hapticClick { timetableViewModel.exportTimetableIcs(context) },
                     enabled = timetableState.selectedSections.isNotEmpty(),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)

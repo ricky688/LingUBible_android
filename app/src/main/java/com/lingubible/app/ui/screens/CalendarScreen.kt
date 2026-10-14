@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticClick
+
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -106,7 +108,7 @@ fun CalendarScreen(
 
                         // Batch Export Button
                         FilledTonalButton(shapes = ButtonDefaults.shapes(),
-                            onClick = { calendarViewModel.exportAllEventsToIcs(context) },
+                            onClick = hapticClick { calendarViewModel.exportAllEventsToIcs(context) },
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             colors = ButtonDefaults.filledTonalButtonColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),

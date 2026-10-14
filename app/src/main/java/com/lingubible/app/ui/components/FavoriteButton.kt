@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.Spring
@@ -39,7 +41,7 @@ fun FavoriteButton(
     )
 
     IconButton(
-        onClick = {
+        onClick = hapticClick {
             val newState = !isToggled
             isToggled = newState
             triggerBounce = true

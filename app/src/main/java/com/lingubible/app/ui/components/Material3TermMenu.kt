@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
@@ -83,7 +85,7 @@ fun Material3TermSelector(
     Box(modifier = modifier) {
         // ── 1. Concise Material 3 Trigger Button ──
         OutlinedButton(
-            onClick = {
+            onClick = hapticClick {
                 expandedState.targetState = !expandedState.targetState
             },
             shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
@@ -204,7 +206,7 @@ fun Material3TermSelector(
                                                 )
                                             }
                                         } else null,
-                                        onClick = {
+                                        onClick = hapticClick {
                                             onSelectTerm(term)
                                             expandedState.targetState = false
                                         },

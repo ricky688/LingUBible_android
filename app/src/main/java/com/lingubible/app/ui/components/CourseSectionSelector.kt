@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import android.content.res.Configuration
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
@@ -184,7 +186,7 @@ fun CourseSectionSelector(
 
                                 // Toggle Action Button
                                 Button(
-                                    onClick = { onToggleSection(section) },
+                                    onClick = hapticClick { onToggleSection(section) },
                                     colors = if (isSelected) {
                                         ButtonDefaults.buttonColors(
                                             containerColor = Color(0xFF059669),
@@ -351,7 +353,7 @@ fun CourseSectionSelector(
                     },
                     trailingIcon = {
                         if (searchQuery.isNotBlank()) {
-                            IconButton(onClick = { onSearchQueryChange("") }) {
+                            IconButton(onClick = hapticClick { onSearchQueryChange("") }) {
                                 Icon(imageVector = Icons.Default.Clear, contentDescription = "Clear")
                             }
                         }
@@ -408,7 +410,7 @@ fun CourseSectionSelector(
                     )
 
                     Surface(
-                        onClick = { isGridExpanded = !isGridExpanded },
+                        onClick = hapticClick { isGridExpanded = !isGridExpanded },
                         shape = RoundedCornerShape(12.dp),
                         color = if (isGridExpanded) {
                             if (isDark) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
@@ -504,7 +506,7 @@ fun CourseSectionSelector(
                             }
 
                             TextButton(shapes = ButtonDefaults.shapes(),
-                                onClick = { isGridExpanded = false },
+                                onClick = hapticClick { isGridExpanded = false },
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                                 modifier = Modifier
                                     .pointerHoverIcon(PointerIcon.Hand)
@@ -607,7 +609,7 @@ private fun CategoryGridChip(
     val chipShape = RoundedCornerShape(10.dp)
 
     Surface(
-        onClick = onClick,
+        onClick = hapticClick(onClick),
         interactionSource = interactionSource,
         shape = chipShape,
         color = if (isSelected) {

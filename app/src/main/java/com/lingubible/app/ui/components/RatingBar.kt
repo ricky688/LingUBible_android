@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -61,7 +63,7 @@ fun RatingBar(
                             if (onRatingChanged != null) {
                                 Modifier
                                     .pointerHoverIcon(PointerIcon.Hand)
-                                    .clickable { onRatingChanged(i.toDouble()) }
+                                    .clickable (onClick = hapticClick { onRatingChanged(i.toDouble()) })
                             } else Modifier
                         )
                 )

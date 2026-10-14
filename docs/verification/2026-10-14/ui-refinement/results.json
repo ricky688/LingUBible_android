@@ -1,0 +1,32 @@
+{
+  "unit_tests": {
+    "tests": 403,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "validation_build": "SUCCESSFUL in 2m51s",
+  "release_apk_aab_build": "SUCCESSFUL in 2m7s",
+  "version": "1.0.5 (6)",
+  "installed_variant": "releaseValidation",
+  "installed_apk_matches": true,
+  "apk_sha256": "ae8e4204fc667b7f01e549d2591a0b2a1ddbf7e3b00afb7186caaadbeee6a8d4",
+  "device": "Waydroid Android13,480x1000/density180",
+  "data_preserved": true,
+  "checks": [
+    "light-mode held fill/text converge; release restores selected palette colors",
+    "dark-mode held label remains visible without convergence",
+    "original Dark setting restored",
+    "Discover cards visibly use smaller20dp corners in both themes",
+    "CLC9022 meeting time separated from MBG11 Location row",
+    "Close/Remove final footer row below calendar/ICS",
+    "Easter egg code remains absent"
+  ],
+  "app_runtime_errors": "none in recent app-scoped logs",
+  "pending": [
+    "physical Samsung/Pixel",
+    "TalkBack manual use",
+    "large fonts/rotated/split-screen follow-up",
+    "multi-meeting/conflict popup fixtures"
+  ]
+}

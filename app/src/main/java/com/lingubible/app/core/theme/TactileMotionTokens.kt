@@ -21,7 +21,7 @@ object TactileMotionTokens {
     const val PRESS_SCALE_CARD = 0.96f
 
     /** Standard haptic feedback for button taps */
-    val hapticTap = HapticFeedbackType.TextHandleMove
+    val hapticTap = HapticFeedbackType.VirtualKey
 
     /**
      * Bouncy spring animation specification for playful, organic motion.

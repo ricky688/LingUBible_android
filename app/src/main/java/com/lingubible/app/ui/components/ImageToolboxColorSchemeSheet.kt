@@ -1,5 +1,8 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticChange
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -138,7 +141,7 @@ fun ScallopedFlowerBadge(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onClick
+                onClick = hapticClick(onClick)
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -283,16 +286,16 @@ fun PaletteStyleDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
+                            .clickable (onClick = hapticClick {
                                 onSelectStyle(style)
                                 onDismiss()
-                            }
+                            })
                             .padding(vertical = 10.dp, horizontal = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
                             selected = currentStyle == style,
-                            onClick = {
+                            onClick = hapticClick {
                                 onSelectStyle(style)
                                 onDismiss()
                             }
@@ -315,7 +318,7 @@ fun PaletteStyleDialog(
             }
         },
         confirmButton = {
-            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
                 Text("完成")
             }
         },
@@ -439,7 +442,7 @@ fun CustomColorPickerDialog(
         },
         confirmButton = {
             Button(
-                onClick = {
+                onClick = hapticClick {
                     onColorSelected(currentColor)
                     onDismiss()
                 },
@@ -449,7 +452,7 @@ fun CustomColorPickerDialog(
             }
         },
         dismissButton = {
-            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
                 Text("取消")
             }
         },
@@ -611,7 +614,7 @@ fun ImageToolboxColorSchemeSheet(
                         )
                     }
                     IconButton(
-                        onClick = { showPaletteStyleDialog = true },
+                        onClick = hapticClick { showPaletteStyleDialog = true },
                         colors = IconButtonDefaults.iconButtonColors(
                             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -676,7 +679,7 @@ fun ImageToolboxColorSchemeSheet(
                     Spacer(modifier = Modifier.width(8.dp))
                     Switch(
                         checked = isInvertedColors,
-                        onCheckedChange = onToggleInvertedColors,
+                        onCheckedChange = hapticChange(onToggleInvertedColors),
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                             checkedTrackColor = MaterialTheme.colorScheme.primary
@@ -736,7 +739,7 @@ fun ImageToolboxColorSchemeSheet(
                     Spacer(modifier = Modifier.width(8.dp))
                     Switch(
                         checked = isDynamicColor,
-                        onCheckedChange = onToggleDynamicColor,
+                        onCheckedChange = hapticChange(onToggleDynamicColor),
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                             checkedTrackColor = MaterialTheme.colorScheme.primary
@@ -897,7 +900,7 @@ fun ImageToolboxColorSchemeSheet(
                         .size(width = 68.dp, height = 44.dp)
                         .clip(RoundedCornerShape(22.dp))
                         .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f))
-                        .clickable(onClick = onResetDefaults),
+                        .clickable(onClick = hapticClick(onResetDefaults)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -916,7 +919,7 @@ fun ImageToolboxColorSchemeSheet(
                         .size(width = 68.dp, height = 44.dp)
                         .clip(RoundedCornerShape(22.dp))
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = if (isDark) 0.22f else 0.12f))
-                        .clickable { showColorPickerDialog = true },
+                        .clickable (onClick = hapticClick { showColorPickerDialog = true }),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -931,7 +934,7 @@ fun ImageToolboxColorSchemeSheet(
 
                 // Close button ("關閉")
                 Button(
-                    onClick = onDismiss,
+                    onClick = hapticClick(onDismiss),
                     shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(22.dp)),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,

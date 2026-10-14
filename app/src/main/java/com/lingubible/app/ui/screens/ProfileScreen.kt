@@ -1,5 +1,8 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticChange
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenBottomPadding
 import android.content.Intent
 import android.net.Uri
@@ -200,7 +203,7 @@ fun ProfileScreen(
                                 }
 
                                 OutlinedButton(
-                                    onClick = { showAvatarModal = true },
+                                    onClick = hapticClick { showAvatarModal = true },
                                     shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -331,7 +334,7 @@ fun ProfileScreen(
 
                                 if (!isEditingUsername) {
                                     OutlinedButton(
-                                        onClick = {
+                                        onClick = hapticClick {
                                             editUsernameValue = user.name
                                             isEditingUsername = true
                                         },
@@ -383,7 +386,7 @@ fun ProfileScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         TextButton(shapes = ButtonDefaults.shapes(),
-                                            onClick = { isEditingUsername = false },
+                                            onClick = hapticClick { isEditingUsername = false },
                                             enabled = !uiState.isUpdatingUsername
                                         ) {
                                             Text(if (isZh) "取消" else "Cancel")
@@ -392,7 +395,7 @@ fun ProfileScreen(
                                         Spacer(modifier = Modifier.width(8.dp))
 
                                         Button(
-                                            onClick = {
+                                            onClick = hapticClick {
                                                 viewModel.updateUsername(
                                                     newUsername = editUsernameValue.trim(),
                                                     onSuccess = {
@@ -448,7 +451,7 @@ fun ProfileScreen(
 
                                 if (!isEditingPassword) {
                                     OutlinedButton(
-                                        onClick = {
+                                        onClick = hapticClick {
                                             currentPasswordValue = ""
                                             newPasswordValue = ""
                                             confirmPasswordValue = ""
@@ -511,18 +514,18 @@ fun ProfileScreen(
                                     ) {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.clickable { showPasswords = !showPasswords }
+                                            modifier = Modifier.clickable (onClick = hapticClick { showPasswords = !showPasswords })
                                         ) {
                                             Checkbox(
                                                 checked = showPasswords,
-                                                onCheckedChange = { showPasswords = it }
+                                                onCheckedChange = hapticChange { showPasswords = it }
                                             )
                                             Text(if (isZh) "顯示密碼" else "Show password", style = MaterialTheme.typography.bodySmall)
                                         }
 
                                         Row {
                                             TextButton(shapes = ButtonDefaults.shapes(),
-                                                onClick = { isEditingPassword = false },
+                                                onClick = hapticClick { isEditingPassword = false },
                                                 enabled = !uiState.isUpdatingPassword
                                             ) {
                                                 Text(if (isZh) "取消" else "Cancel")
@@ -531,14 +534,14 @@ fun ProfileScreen(
                                             Spacer(modifier = Modifier.width(6.dp))
 
                                             Button(
-                                                onClick = {
+                                                onClick = hapticClick {
                                                     if (newPasswordValue.length < 8) {
                                                         Toast.makeText(context, if (isZh) "新密碼長度至少需8個字元" else "Password must be at least 8 characters", Toast.LENGTH_SHORT).show()
-                                                        return@Button
+                                                        return@hapticClick
                                                     }
                                                     if (newPasswordValue != confirmPasswordValue) {
                                                         Toast.makeText(context, if (isZh) "兩次輸入的新密碼不相符" else "Passwords do not match", Toast.LENGTH_SHORT).show()
-                                                        return@Button
+                                                        return@hapticClick
                                                     }
 
                                                     viewModel.updatePassword(
@@ -677,7 +680,7 @@ fun ProfileScreen(
                         // Action button (Unlink / Link)
                         if (uiState.isGoogleLinked) {
                             OutlinedButton(
-                                onClick = {
+                                onClick = hapticClick {
                                     viewModel.unlinkGoogle(
                                         onSuccess = {
                                             Toast.makeText(context, if (isZh) "已取消連結 Google 帳戶" else "Google account unlinked", Toast.LENGTH_SHORT).show()
@@ -701,7 +704,7 @@ fun ProfileScreen(
                             }
                         } else {
                             Button(
-                                onClick = {
+                                onClick = hapticClick {
                                     val activity = context as? ComponentActivity
                                     if (activity != null) {
                                         viewModel.linkGoogle(
@@ -763,7 +766,7 @@ fun ProfileScreen(
                         )
 
                         OutlinedButton(
-                            onClick = { showAvatarModal = true },
+                            onClick = hapticClick { showAvatarModal = true },
                             shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
                         ) {
                             Icon(Icons.Default.Palette, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -785,7 +788,7 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Button(
-                            onClick = onNavigateToAuth,
+                            onClick = hapticClick(onNavigateToAuth),
                             shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -930,7 +933,7 @@ fun ProfileScreen(
                         },
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
-                            .clickable { onNavigateToSettings() }
+                            .clickable (onClick = hapticClick { onNavigateToSettings() })
                             .pointerHoverIcon(PointerIcon.Hand)
                     )
 
@@ -950,7 +953,7 @@ fun ProfileScreen(
                         },
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
-                            .clickable { onNavigateToReviews() }
+                            .clickable (onClick = hapticClick { onNavigateToReviews() })
                             .pointerHoverIcon(PointerIcon.Hand)
                     )
                 }
@@ -960,7 +963,7 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(18.dp))
 
                 OutlinedButton(
-                    onClick = { viewModel.logout {} },
+                    onClick = hapticClick { viewModel.logout {} },
                     modifier = Modifier.fillMaxWidth(),
                     shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
                     colors = ButtonDefaults.outlinedButtonColors(
@@ -997,7 +1000,7 @@ fun ProfileScreen(
                         color = Color(0xFFFCE7F3),
                         border = BorderStroke(1.dp, Color(0xFFF472B6).copy(alpha = 0.5f)),
                         modifier = Modifier
-                            .clickable { openUrl("https://ko-fi.com/lingubible") }
+                            .clickable (onClick = hapticClick { openUrl("https://ko-fi.com/lingubible") })
                             .pointerHoverIcon(PointerIcon.Hand)
                     ) {
                         Row(
@@ -1063,7 +1066,7 @@ fun ProfileScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
-                                .clickable { openUrl(pair.second) }
+                                .clickable (onClick = hapticClick { openUrl(pair.second) })
                                 .pointerHoverIcon(PointerIcon.Hand)
                         )
                         if (index < links.size - 1) {
@@ -1145,7 +1148,7 @@ fun ProfileScreen(
                     shape = RoundedCornerShape(12.dp),
                     color = Color.Transparent,
                     modifier = Modifier
-                        .clickable { openUrl("https://github.com/ricky688/LingUBible_android.git") }
+                        .clickable (onClick = hapticClick { openUrl("https://github.com/ricky688/LingUBible_android.git") })
                         .pointerHoverIcon(PointerIcon.Hand)
                 ) {
                     Row(

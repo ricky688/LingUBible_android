@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.ui.common.hapticClick
+
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
@@ -51,7 +53,7 @@ fun PopularCourseCard(
     val subtextColor = if (isDark) Color(0xFF94A3B8) else Color(0xFF6B7280)
 
     Card(
-        onClick = onClick,
+        onClick = hapticClick(onClick),
         interactionSource = interactionSource,
         modifier = modifier
             .fillMaxWidth()
@@ -208,7 +210,7 @@ fun PopularInstructorCard(
     val subtextColor = if (isDark) Color(0xFF94A3B8) else Color(0xFF6B7280)
 
     Card(
-        onClick = onClick,
+        onClick = hapticClick(onClick),
         interactionSource = interactionSource,
         modifier = modifier
             .fillMaxWidth()

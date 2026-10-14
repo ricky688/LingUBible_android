@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenContentPadding
 import com.lingubible.app.core.navigation.LocalScreenBottomClearance
 import androidx.compose.ui.layout.onSizeChanged
@@ -98,7 +100,7 @@ fun CourseDetailScreen(
         floatingActionButton = {
             if (selectedTab == 0 && !uiState.isLoading && uiState.course != null) {
                 ExtendedFloatingActionButton(
-                    onClick = onNavigateToWriteReview,
+                    onClick = hapticClick(onNavigateToWriteReview),
                     expanded = isScrollingUp,
                     icon = {
                         Icon(Icons.Filled.Create, contentDescription = "撰寫評價 · Write review")
@@ -553,7 +555,7 @@ private fun AuthRequiredPastPapersCard(
             )
             Spacer(modifier = Modifier.height(20.dp))
             Button(
-                onClick = onNavigateToAuth,
+                onClick = hapticClick(onNavigateToAuth),
                 shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary

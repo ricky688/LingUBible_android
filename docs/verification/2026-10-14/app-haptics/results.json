@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-14",
+  "device": "Waydroid Android 13 (192.168.240.112:5555)",
+  "callback_sites": 174,
+  "callback_files": 39,
+  "measured_actions": 20,
+  "all_request_checks_passed": true,
+  "navigation_on_requests": 1,
+  "connected_group_on_requests": 1,
+  "original_haptics_restored": true,
+  "original_theme_language_and_course_preserved": true,
+  "physical_motor_strength_verified": false,
+  "maintained_UI_tests_authored": false,
+  "unit_tests": 408,
+  "release_guard": "PASS"
+}
