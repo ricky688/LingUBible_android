@@ -256,6 +256,24 @@ object TimetableImageExport {
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
         }
+        val typeBadgeBg = Paint().apply {
+            color = Color.argb(70, 0, 0, 0)
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+        val typeBadgeStroke = Paint().apply {
+            color = Color.argb(60, 255, 255, 255)
+            style = Paint.Style.STROKE
+            strokeWidth = 1f
+            isAntiAlias = true
+        }
+        val typeBadgeText = Paint().apply {
+            color = Color.WHITE
+            textSize = 15f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+            isAntiAlias = true
+        }
 
         for (section in selectedSections) {
             for (meeting in section.meetings) {
@@ -300,58 +318,79 @@ object TimetableImageExport {
                 val contentRight = right - 14f
                 val contentWidth = contentRight - contentLeft
 
+                // Top-right corner badge: LEC / TUT
+                val typeStr = meeting.type.ifBlank { "LEC" }.uppercase()
+                val typeTextWidth = try { typeBadgeText.measureText(typeStr) } catch (_: Exception) { 36f }
+                val typeBadgeWidth = (typeTextWidth + 18f).coerceAtLeast(46f)
+                val badgeTop = top + 10f
+                val badgeBottom = badgeTop + 24f
+                val typeBadgeRect = RectF(contentRight - typeBadgeWidth, badgeTop, contentRight, badgeBottom)
+                canvas.drawRoundRect(typeBadgeRect, 6f, 6f, typeBadgeBg)
+                canvas.drawRoundRect(typeBadgeRect, 6f, 6f, typeBadgeStroke)
+                canvas.drawText(typeStr, typeBadgeRect.centerX(), badgeTop + 17f, typeBadgeText)
+
+                // Optional Clash badge to the left of LEC/TUT badge
+                val codeRightLimit: Float
+                if (isClashing) {
+                    val clashBadgeWidth = 52f
+                    val clashRight = typeBadgeRect.left - 6f
+                    val clashLeft = clashRight - clashBadgeWidth
+                    val clashRect = RectF(clashLeft, badgeTop, clashRight, badgeBottom)
+                    canvas.drawRoundRect(clashRect, 6f, 6f, clashBadgeBg)
+                    canvas.drawText("衝堂", clashRect.centerX(), badgeTop + 17f, clashBadgeText)
+                    codeRightLimit = clashLeft - 6f
+                } else {
+                    codeRightLimit = typeBadgeRect.left - 6f
+                }
+
+                val courseCodeMaxWidth = (codeRightLimit - contentLeft).coerceAtLeast(60f)
                 val courseTitle = section.courseTitle.ifBlank { section.courseTitleZh }
                 val truncatedTitle = truncateText(courseTitle, titlePaintCard, contentWidth)
-                val typeText = "S${section.section} • ${meeting.type}"
+
+                val crnText = when {
+                    section.section.isNotBlank() && section.crn.isNotBlank() -> "Sect ${section.section} • CRN ${section.crn}"
+                    section.crn.isNotBlank() -> "CRN ${section.crn}"
+                    section.section.isNotBlank() -> "Section ${section.section}"
+                    else -> ""
+                }
                 val venueText = if (meeting.venue.isNotBlank()) "📍 ${meeting.venue}" else "📍 TBA"
                 val timeSpanText = "🕒 ${meeting.start} - ${meeting.end}"
 
                 if (cardHeight >= 145f) {
                     // Full multi-line layout for 1.5h - 3h meetings
-                    var cy = top + 30f
-                    // Line 1: Course code
-                    canvas.drawText(section.courseCode, contentLeft, cy, codePaint)
-                    if (isClashing) {
-                        val badgeLeft = contentRight - 64f
-                        val badgeRect = RectF(badgeLeft, top + 12f, contentRight, top + 34f)
-                        canvas.drawRoundRect(badgeRect, 6f, 6f, clashBadgeBg)
-                        canvas.drawText("衝堂", badgeRect.centerX(), top + 28f, clashBadgeText)
-                    }
+                    // Line 1: Course code on top-left, LEC/TUT on top-right
+                    canvas.drawText(truncateText(section.courseCode, codePaint, courseCodeMaxWidth), contentLeft, top + 29f, codePaint)
 
                     // Line 2: Truncated Course Name
-                    cy += 27f
-                    canvas.drawText(truncatedTitle, contentLeft, cy, titlePaintCard)
+                    canvas.drawText(truncatedTitle, contentLeft, top + 56f, titlePaintCard)
 
-                    // Line 3: Section & Meeting Type
-                    cy += 25f
-                    canvas.drawText(typeText, contentLeft, cy, typePaint)
+                    // Line 3: Section & CRN
+                    canvas.drawText(crnText, contentLeft, top + 82f, typePaint)
 
                     // Line 4: Location
-                    cy += 24f
-                    canvas.drawText(venueText, contentLeft, cy, venuePaint)
+                    canvas.drawText(venueText, contentLeft, top + 107f, venuePaint)
 
                     // Line 5: Time
-                    cy += 24f
-                    canvas.drawText(timeSpanText, contentLeft, cy, timePaint)
-                } else if (cardHeight >= 85f) {
+                    canvas.drawText(timeSpanText, contentLeft, top + 132f, timePaint)
+                } else if (cardHeight >= 95f) {
                     // Medium compact layout for 1h - 1.5h meetings
-                    // Row 1: Course code on left, Type on right
-                    canvas.drawText(section.courseCode, contentLeft, top + 26f, codePaint)
-                    typePaint.textAlign = Paint.Align.RIGHT
-                    canvas.drawText(meeting.type, contentRight, top + 26f, typePaint)
-                    typePaint.textAlign = Paint.Align.LEFT
+                    // Row 1: Course code on top-left, LEC/TUT on top-right
+                    canvas.drawText(truncateText(section.courseCode, codePaint, courseCodeMaxWidth), contentLeft, top + 27f, codePaint)
 
                     // Row 2: Truncated Course Name
-                    canvas.drawText(truncatedTitle, contentLeft, top + 52f, titlePaintCard)
+                    canvas.drawText(truncatedTitle, contentLeft, top + 50f, titlePaintCard)
 
-                    // Row 3: Venue & Time combined
+                    // Row 3: Section & CRN
+                    canvas.drawText(crnText, contentLeft, top + 72f, typePaint)
+
+                    // Row 4: Combined Venue & Time
                     val combinedVenueTime = "${if (meeting.venue.isNotBlank()) meeting.venue else "TBA"}  •  ${meeting.start}-${meeting.end}"
-                    canvas.drawText(combinedVenueTime, contentLeft, top + 76f, venuePaint)
+                    canvas.drawText(combinedVenueTime, contentLeft, top + 93f, venuePaint)
                 } else {
                     // Short layout (< 1h meetings)
-                    canvas.drawText("${section.courseCode} (${meeting.type})", contentLeft, top + 24f, codePaint)
-                    canvas.drawText(truncatedTitle, contentLeft, top + 48f, titlePaintCard)
-                    val compactInfo = "${if (meeting.venue.isNotBlank()) meeting.venue else "TBA"} ${meeting.start}-${meeting.end}"
+                    canvas.drawText(truncateText(section.courseCode, codePaint, courseCodeMaxWidth), contentLeft, top + 26f, codePaint)
+                    canvas.drawText(truncatedTitle, contentLeft, top + 49f, titlePaintCard)
+                    val compactInfo = "${if (section.crn.isNotBlank()) "CRN ${section.crn} • " else ""}${if (meeting.venue.isNotBlank()) meeting.venue else "TBA"} • ${meeting.start}-${meeting.end}"
                     canvas.drawText(compactInfo, contentLeft, top + 70f, venuePaint)
                 }
             }

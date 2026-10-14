@@ -519,8 +519,13 @@ fun TimetableGrid(
                                                             overflow = TextOverflow.Ellipsis
                                                         )
                                                     }
+                                                    val sectionSubtitle = if (section.crn.isNotBlank()) {
+                                                        "S${section.section} • CRN ${section.crn} • ${meeting.type}"
+                                                    } else {
+                                                        "S${section.section} • ${meeting.type}"
+                                                    }
                                                     Text(
-                                                        text = "S${section.section} • ${meeting.type}",
+                                                        text = sectionSubtitle,
                                                         style = MaterialTheme.typography.labelSmall,
                                                         fontSize = if (isDirectView) 7.5.sp else 9.sp,
                                                         color = Color.White.copy(alpha = 0.9f),

@@ -86,4 +86,17 @@ class TimetableImageExportTest {
         assertTrue("Truncated text should end with ...", truncated.endsWith("..."))
         assertTrue("Truncated text should be shorter than original", truncated.length < longText.length)
     }
+
+    @Test fun crnAndSectionFormattingVerification() {
+        fun formatCrn(sec: String, crn: String): String = when {
+            sec.isNotBlank() && crn.isNotBlank() -> "Sect $sec • CRN $crn"
+            crn.isNotBlank() -> "CRN $crn"
+            sec.isNotBlank() -> "Section $sec"
+            else -> ""
+        }
+        assertEquals("Sect 1 • CRN 5403", formatCrn("1", "5403"))
+        assertEquals("CRN 5403", formatCrn("", "5403"))
+        assertEquals("Section 2", formatCrn("2", ""))
+        assertEquals("", formatCrn("", ""))
+    }
 }

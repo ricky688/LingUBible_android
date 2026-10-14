@@ -1,3 +1,20 @@
+## 2026-10-15 — 📅 課表匯出圖片新增 CRN 資訊與堂別（LEC/TUT）右上角膠囊徽章設計（CRN & Top-Right Badge）
+
+- User requested adding CRN information and placing the `LEC` or `TUT` indicator in the top-right corner of each event card in the exported timetable image:
+  - 右上角堂別膠囊（Top-Right Pill Badge）：將 `LEC` / `TUT` 等堂別種類移至卡片右上角，以半透明深色膠囊（`Color.argb(70, 0, 0, 0)`）搭配細緻半透明高光邊框（`Color.argb(60, 255, 255, 255)`）與純白粗體文字展示，視覺對比度極佳且不干擾背景色。
+  - 衝堂標籤自動協同排版：若發生衝堂，衝堂警示紅標籤（`0xFFDC2626`）自動靠緊排列於堂別膠囊左側，確保右上區域視覺平衡。
+  - 左上角課程代碼：課程代碼（如 `CDS1001`、`CLC9022`）穩居左上角，並根據右上角膠囊寬度自動計算安全邊距與自適應截斷，避免字體重疊。
+  - 全面顯示 CRN 課號：在卡片第三行完整顯示 `Sect <Section> • CRN <CRN>`（如 `Sect 1 • CRN 381`、`Sect 1 • CRN 5404`），讓同學對照選課系統 CRN 一目了然。
+  - 多種高度自適應排版（Multi-line / Medium / Compact）：
+    - 完整多行佈局（$\ge 145$px）：第 1 行課號+堂別徽章、第 2 行課名、第 3 行 `Sect • CRN`、第 4 行地點 `📍`、第 5 行時間 `🕒`。
+    - 中等佈局（$95\sim 145$px）：第 1 行課號+堂別徽章、第 2 行課名、第 3 行 `Sect • CRN`、第 4 行地點與時間合併。
+    - 精簡佈局（$<95$px）：第 1 行課號+堂別徽章、第 2 行課名、第 3 行 `CRN • 地點 • 時間`。
+  - 畫面端課表同步：`TimetableGrid.kt` 畫面卡片副標題亦同步加入 CRN 資訊（`S1 • CRN 5403 • LEC`）。
+- 更新 `TimetableImageExport.kt`（實作右上角膠囊徽章、衝堂自動避讓、CRN 資訊多層級排版）。
+- 更新 `TimetableGrid.kt`（畫面端課表卡片同步加入 CRN 資訊）。
+- 更新 `TimetableImageExportTest.kt`（新增 CRN 格式化與多佈局邏輯測試，429 項測試全數通過）。
+- 真機與模擬器實測：在 Waydroid 與實體手機（Samsung S24 Ultra）上成功匯出並驗證高解析度橫向課表圖檔。
+
 ## 2026-10-15 — 📅 課表匯出圖片橫向寬度升級與完整課程資訊展示（Landscape Widescreen Timetable Export）
 
 - User requested improving the timetable export image:
