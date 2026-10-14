@@ -1,8 +1,10 @@
 package com.lingubible.app.core.navigation
 
 import com.lingubible.app.ui.common.hapticClick
+import kotlinx.coroutines.launch
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -11,6 +13,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,14 +27,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import com.lingubible.app.R
+import com.lingubible.app.ui.components.LingnanCatModal
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -104,6 +111,52 @@ fun LingUBibleTopBar(
     var previousTabIndex by remember { mutableIntStateOf(0) }
     var wasDetail by remember { mutableStateOf(false) }
     var transitionDirection by remember { mutableStateOf(TransitionDirection.FORWARD_TAB) }
+
+    // Lingnan Campus Cat Easter Egg State
+    var showCatModal by remember { mutableStateOf(false) }
+    var logoTapCount by remember { mutableIntStateOf(0) }
+    var lastTapTimestamp by remember { mutableLongStateOf(0L) }
+    val logoScale = remember { Animatable(1f) }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+
+    val onLogoClick: () -> Unit = {
+        val now = System.currentTimeMillis()
+        if (now - lastTapTimestamp > 2500L) {
+            logoTapCount = 0
+        }
+        lastTapTimestamp = now
+        logoTapCount++
+
+        haptic.performHapticFeedback(TactileMotionTokens.hapticTap)
+
+        coroutineScope.launch {
+            logoScale.animateTo(0.82f, spring(stiffness = Spring.StiffnessHigh))
+            logoScale.animateTo(1f, spring(stiffness = Spring.StiffnessMediumLow))
+        }
+
+        when (logoTapCount) {
+            3 -> {
+                android.widget.Toast.makeText(
+                    context,
+                    "🐾 再點 2 次召喚嶺大貓咪...",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+            4 -> {
+                android.widget.Toast.makeText(
+                    context,
+                    "🐾 再點 1 次！貓咪就快出嚟啦...",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+            5 -> {
+                logoTapCount = 0
+                showCatModal = true
+            }
+        }
+    }
 
     val currentTabIndex = remember(destination) {
         when {
@@ -359,14 +412,21 @@ fun LingUBibleTopBar(
                             )
                         }
                     } else {
-                        // Expressive squircle brand logo badge on top-level tabs
+                        // Expressive squircle brand logo badge on top-level tabs (Easter Egg: 5 taps)
                         Image(
                             painter = painterResource(id = R.drawable.ic_lingubible_logo),
                             contentDescription = "LingUBible Logo",
                             modifier = Modifier
                                 .padding(start = 16.dp, end = 4.dp)
                                 .size(34.dp)
+                                .scale(logoScale.value)
                                 .clip(RoundedCornerShape(10.dp))
+                                .pointerHoverIcon(PointerIcon.Hand)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                    onClick = onLogoClick
+                                )
                         )
                     }
                 },
@@ -590,5 +650,9 @@ fun LingUBibleTopBar(
             }
         }
     }
-}
+    }
+
+    if (showCatModal) {
+        LingnanCatModal(onDismiss = { showCatModal = false })
+    }
 }

@@ -285,7 +285,7 @@ private fun M3ButtonGroupButton(
     val isPressed by interactionSource.collectIsPressedAsState()
     val focus = animateFloatAsState(
         targetValue = if (focused) 1f else 0f,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        animationSpec = spring(stiffness = TactileMotionTokens.CONNECTED_COLOR_STIFFNESS),
         label = "connectedButtonPerimeterFill"
     )
     val pressWave = remember { Animatable(1f) }
@@ -295,7 +295,7 @@ private fun M3ButtonGroupButton(
         } else {
             // A selected button can replay inward focus without clearing its selection.
             if (isPressed && selected) pressWave.snapTo(0f)
-            pressWave.animateTo(1f, spring(stiffness = Spring.StiffnessLow))
+            pressWave.animateTo(1f, spring(stiffness = TactileMotionTokens.CONNECTED_COLOR_STIFFNESS))
         }
     }
 
@@ -312,6 +312,15 @@ private fun M3ButtonGroupButton(
             bottomEnd = if (index == count - 1) activeCornerRadius else inactiveCornerRadius
         ),
         checkedShape = RoundedCornerShape(activeCornerRadius)
+    )
+    val pressProgress by rememberCompletedConnectedPress(interactionSource, isPressed)
+    val selectionProgress by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = TactileMotionTokens.gentleSpring(),
+        label = "connectedButtonSelectionShape"
+    )
+    val animatedShape = CompletedConnectedButtonShape(
+        shapes.shape, shapes.checkedShape, shapes.pressedShape, selectionProgress, pressProgress
     )
 
     // Colors matching Google Material 3 Expressive Connected Button Group:
@@ -353,7 +362,7 @@ private fun M3ButtonGroupButton(
                 onClick()
             },
             modifier = modifier.fillMaxHeight().pointerHoverIcon(PointerIcon.Hand),
-            shapes = shapes,
+            shapes = ToggleButtonShapes(animatedShape, animatedShape, animatedShape),
             colors = ToggleButtonDefaults.toggleButtonColors(
                 containerColor = containerColor,
                 contentColor = contentColor,

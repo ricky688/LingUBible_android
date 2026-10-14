@@ -23,6 +23,8 @@ object TactileMotionTokens {
     /** Standard haptic feedback for button taps */
     val hapticTap = HapticFeedbackType.VirtualKey
 
+    const val CONNECTED_COLOR_STIFFNESS = 800f
+
     /**
      * Bouncy spring animation specification for playful, organic motion.
      * Uses medium bounce and low stiffness for an elastic feel.
