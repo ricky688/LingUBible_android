@@ -61,4 +61,29 @@ class TimetableImageExportTest {
             assertEquals("image-to-export", source.readText())
         } finally { source.delete() }
     }
+
+    @Test fun landscapeExportDimensionsAreInWidescreenLandscapeMode() {
+        assertEquals(2400, TimetableImageExport.EXPORT_WIDTH)
+        assertEquals(1400, TimetableImageExport.EXPORT_HEIGHT)
+        assertTrue("Exported image must be landscape (width > height)",
+            TimetableImageExport.EXPORT_WIDTH > TimetableImageExport.EXPORT_HEIGHT)
+        val aspectRatio = TimetableImageExport.EXPORT_WIDTH.toFloat() / TimetableImageExport.EXPORT_HEIGHT.toFloat()
+        assertTrue("Aspect ratio should be widescreen (> 1.5)", aspectRatio > 1.5f)
+    }
+
+    @Test fun textTruncationHandlesShortAndLongStringsSafely() {
+        val paint = mockk<android.graphics.Paint>()
+        every { paint.measureText(any<String>()) } answers {
+            it.invocation.args[0].toString().length * 10f
+        }
+        // Short text returns directly (70f <= 200f)
+        assertEquals("CDS1001", TimetableImageExport.truncateText("CDS1001", paint, 200f))
+        assertEquals("", TimetableImageExport.truncateText("", paint, 200f))
+
+        // Long text truncation contains ellipsis (660f > 150f)
+        val longText = "Very Long Course Title That Exceeds Normal Card Width In Timetable"
+        val truncated = TimetableImageExport.truncateText(longText, paint, 150f)
+        assertTrue("Truncated text should end with ...", truncated.endsWith("..."))
+        assertTrue("Truncated text should be shorter than original", truncated.length < longText.length)
+    }
 }

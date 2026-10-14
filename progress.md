@@ -1,4 +1,21 @@
-## 2026-10-14 — 🐱 嶺南「校園貓咪 / 屯門特產」文化彩蛋（頂部圖標 5 連擊解鎖粉嫩貓爪漫步、觸碰心心粒子爆發與 3-4 秒漸隱）
+## 2026-10-15 — 📅 課表匯出圖片橫向寬度升級與完整課程資訊展示（Landscape Widescreen Timetable Export）
+
+- User requested improving the timetable export image:
+  - 橫向版面（Landscape Mode）：全圖採用 2400 × 1400 寬螢幕橫向比例（1.71 : 1），每週七天（週日–週六）各佔約 323px 寬度，每張課程卡片寬度高達 311px，徹底解決原直向版面窄擠壓縮問題。
+  - 完整事件資訊展示：每張卡片皆清晰包含：
+    1. 課程代碼（Course Code，如 `CDS1001`、`CLC9022`，粗體顯眼）。
+    2. 課程名稱（Course Name / Title，長標題以 `...` 省略號優雅截斷，如 `Digital Economy&SocialMedia...`）。
+    3. 授課類型（`LEC` 或 `TUT`，如 `S1 • LEC`）。
+    4. 上課地點（Location / Venue，如 `📍 MBG11`）。
+    5. 上課時間（Time，如 `🕒 14:30 - 17:29`）。
+    6. 衝堂警示（Clash Indicator，若發生時段重疊則標記紅框與衝堂標籤）。
+  - 精緻頂部與欄位設計：頂部包含嶺南紅品牌徽章、中英標題、學期名稱與總學分數統計；時間軸完整涵蓋 08:30 至 21:30。
+  - 畫面端同步優化：`TimetableGrid.kt` 展開捲動（Scroll）模式欄寬自 105dp 擴增至 135dp，畫面端課程卡片亦同步支援課程名稱展示。
+- 更新 `TimetableImageExport.kt`（新增 `generateLandscapeBitmap`、`captureLandscape`、`truncateText`）。
+- 更新 `TimetableGrid.kt`（切換至 `captureLandscape` 匯出橫向圖檔、優化捲動欄寬與畫面卡片）。
+- 更新 `TimetableImageExportTest.kt`（新增橫向尺寸、寬螢幕比例與字串截斷測試，428 項測試 100% 通過）。
+- 真機與模擬器實測：在 Waydroid 與實體手機（Samsung S24 Ultra）上成功匯出並驗證高解析度橫向課表圖檔。
+
 
 - User requested replacing the previous modal with the "🐱 嶺南「校園貓咪 / 屯門特產」文化（嶺大專屬溫度）" Easter egg:
   - 觸發方式：快速連擊頂部左側 LingUBible 圖標 5 次（2.5 秒超時窗口，每次點擊具備觸覺反饋與微回彈縮放）。

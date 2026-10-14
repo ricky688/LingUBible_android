@@ -246,9 +246,16 @@ fun TimetableGrid(
                     exportingImage = true
                     scope.launch {
                         try {
-                            val file = TimetableImageExport.capture(context, headerLayer, bodyLayer, imageBackground)
+                            val file = TimetableImageExport.captureLandscape(
+                                context = context,
+                                term = term,
+                                selectedSections = selectedSections,
+                                conflicts = conflicts,
+                                isDark = isDark,
+                                creditsByCode = creditsByCode
+                            )
                             pendingImagePath = file.absolutePath
-                            saveImage.launch("LingUBible_${term.short}_Timetable.png")
+                            saveImage.launch("LingUBible_${term.short}_Timetable_Landscape.png")
                         } catch (cancelled: CancellationException) {
                             throw cancelled
                         } catch (_: Exception) {
@@ -275,7 +282,7 @@ fun TimetableGrid(
             val dayColWidth = if (isDirectView) {
                 (availableWidth / DAYS_SUN_TO_SAT.size).coerceAtLeast(44.dp)
             } else {
-                105.dp
+                135.dp
             }
             val needsHorizontalScroll = !isDirectView || (dayColWidth * DAYS_SUN_TO_SAT.size + timeColWidth > totalWidth)
 
@@ -499,6 +506,18 @@ fun TimetableGrid(
                                                                 }
                                                             }
                                                         }
+                                                    }
+                                                    val courseName = section.courseTitle.ifBlank { section.courseTitleZh }
+                                                    if (courseName.isNotBlank() && (!isDirectView || blockHeight >= 42f)) {
+                                                        Text(
+                                                            text = courseName,
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            fontSize = if (isDirectView) 7.sp else 8.5.sp,
+                                                            fontWeight = FontWeight.Medium,
+                                                            color = Color.White.copy(alpha = 0.92f),
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis
+                                                        )
                                                     }
                                                     Text(
                                                         text = "S${section.section} • ${meeting.type}",

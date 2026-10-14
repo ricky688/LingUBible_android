@@ -3,14 +3,415 @@ package com.lingubible.app.core.util
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.net.Uri
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.GraphicsLayer
+import com.lingubible.app.domain.model.TimeConflict
+import com.lingubible.app.domain.model.TimetableMeeting
+import com.lingubible.app.domain.model.TimetableSection
+import com.lingubible.app.domain.model.TimetableTerm
+import com.lingubible.app.ui.components.DAYS_SUN_TO_SAT
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Locale
 
 object TimetableImageExport {
+
+    const val EXPORT_WIDTH = 2400
+    const val EXPORT_HEIGHT = 1400
+
+    private const val HEADER_HEIGHT = 130f
+    private const val DAY_HEADER_HEIGHT = 75f
+    private const val TIME_COL_WIDTH = 140f
+    private val DAY_COL_WIDTH = (EXPORT_WIDTH - TIME_COL_WIDTH) / 7f
+
+    private const val START_HOUR = 8
+    private const val START_MINUTE = 30 // 08:30 -> 510 min
+    private const val END_HOUR = 21
+    private const val END_MINUTE = 30   // 21:30 -> 1290 min
+    private const val TOTAL_MINUTES = (END_HOUR * 60 + END_MINUTE) - (START_HOUR * 60 + START_MINUTE) // 780 min
+
+    private const val GRID_TOP = HEADER_HEIGHT + DAY_HEADER_HEIGHT
+    private const val GRID_HEIGHT = EXPORT_HEIGHT - GRID_TOP
+
+    /**
+     * Generates a high-definition landscape timetable bitmap (2400x1400)
+     * with spacious day columns and comprehensive course event blocks.
+     */
+    fun generateLandscapeBitmap(
+        term: TimetableTerm,
+        selectedSections: List<TimetableSection>,
+        conflicts: List<TimeConflict> = emptyList(),
+        isDark: Boolean = false,
+        creditsByCode: Map<String, Int> = emptyMap()
+    ): Bitmap {
+        val bitmap = Bitmap.createBitmap(EXPORT_WIDTH, EXPORT_HEIGHT, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        // Palette definitions
+        val bgColor = if (isDark) 0xFF0F172A.toInt() else 0xFFFFFFFF.toInt()
+        val headerBg = if (isDark) 0xFF1E293B.toInt() else 0xFFF8FAFC.toInt()
+        val dayHeaderBg = if (isDark) 0xFF1E293B.toInt() else 0xFFF1F5F9.toInt()
+        val gridBg = if (isDark) 0xFF0B1120.toInt() else 0xFFFAFAFA.toInt()
+        val timeColBg = if (isDark) 0xFF1E293B.toInt() else 0xFFF8FAFC.toInt()
+        val gridBorder = if (isDark) 0xFF334155.toInt() else 0xFFE2E8F0.toInt()
+        val hourLineColor = if (isDark) 0xFF1E293B.toInt() else 0xFFF1F5F9.toInt()
+        val textPrimary = if (isDark) 0xFFF8FAFC.toInt() else 0xFF0F172A.toInt()
+        val textSecondary = if (isDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt()
+        val lingnanRed = 0xFFDC2626.toInt()
+
+        // Background fill
+        val bgPaint = Paint().apply { color = bgColor; style = Paint.Style.FILL }
+        canvas.drawRect(0f, 0f, EXPORT_WIDTH.toFloat(), EXPORT_HEIGHT.toFloat(), bgPaint)
+
+        // 1. Top Brand & Term Banner (0 to HEADER_HEIGHT)
+        val bannerPaint = Paint().apply { color = headerBg; style = Paint.Style.FILL }
+        canvas.drawRect(0f, 0f, EXPORT_WIDTH.toFloat(), HEADER_HEIGHT, bannerPaint)
+
+        val borderPaint = Paint().apply {
+            color = gridBorder
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
+            isAntiAlias = true
+        }
+        canvas.drawLine(0f, HEADER_HEIGHT, EXPORT_WIDTH.toFloat(), HEADER_HEIGHT, borderPaint)
+
+        // LingUBible Brand Badge (Red Squircle)
+        val brandBadgePaint = Paint().apply { color = lingnanRed; style = Paint.Style.FILL; isAntiAlias = true }
+        canvas.drawRoundRect(RectF(48f, 38f, 102f, 92f), 14f, 14f, brandBadgePaint)
+
+        // Book mark inside badge
+        val badgeTextPaint = Paint().apply {
+            color = Color.WHITE
+            textSize = 28f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+            isAntiAlias = true
+        }
+        canvas.drawText("📖", 75f, 75f, badgeTextPaint)
+
+        // Brand Title & Subtitle
+        val titlePaint = Paint().apply {
+            color = textPrimary
+            textSize = 36f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            isAntiAlias = true
+        }
+        canvas.drawText("LingUBible", 120f, 75f, titlePaint)
+
+        val subtitlePaint = Paint().apply {
+            color = textSecondary
+            textSize = 22f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            isAntiAlias = true
+        }
+        canvas.drawText("每週課表 • Weekly Timetable", 325f, 75f, subtitlePaint)
+
+        // Right side: Term & Course Summary Info
+        val termPaint = Paint().apply {
+            color = textPrimary
+            textSize = 28f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.RIGHT
+            isAntiAlias = true
+        }
+        canvas.drawText(term.name, EXPORT_WIDTH - 48f, 58f, termPaint)
+
+        val totalCredits = selectedSections.sumOf { s ->
+            creditsByCode[s.courseCode.trim().uppercase(Locale.ROOT)] ?: 3
+        }
+        val summaryText = "${selectedSections.size} 科課程 • 共 $totalCredits 學分"
+        val summaryPaint = Paint().apply {
+            color = textSecondary
+            textSize = 21f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            textAlign = Paint.Align.RIGHT
+            isAntiAlias = true
+        }
+        canvas.drawText(summaryText, EXPORT_WIDTH - 48f, 95f, summaryPaint)
+
+        // 2. Day Headers Row (HEADER_HEIGHT to GRID_TOP)
+        val dayHeaderPaint = Paint().apply { color = dayHeaderBg; style = Paint.Style.FILL }
+        canvas.drawRect(0f, HEADER_HEIGHT, EXPORT_WIDTH.toFloat(), GRID_TOP, dayHeaderPaint)
+        canvas.drawLine(0f, GRID_TOP, EXPORT_WIDTH.toFloat(), GRID_TOP, borderPaint)
+
+        // Top-left "時間 Time" label
+        val timeHeaderPaint = Paint().apply {
+            color = textSecondary
+            textSize = 19f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+            isAntiAlias = true
+        }
+        canvas.drawText("時間 Time", TIME_COL_WIDTH / 2f, HEADER_HEIGHT + 44f, timeHeaderPaint)
+        canvas.drawLine(TIME_COL_WIDTH, HEADER_HEIGHT, TIME_COL_WIDTH, EXPORT_HEIGHT.toFloat(), borderPaint)
+
+        // 7 Day Headers
+        val dayZhPaint = Paint().apply {
+            color = textPrimary
+            textSize = 24f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+            isAntiAlias = true
+        }
+        val dayEnPaint = Paint().apply {
+            color = textSecondary
+            textSize = 16f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            textAlign = Paint.Align.CENTER
+            isAntiAlias = true
+        }
+
+        for (i in DAYS_SUN_TO_SAT.indices) {
+            val day = DAYS_SUN_TO_SAT[i]
+            val cx = TIME_COL_WIDTH + i * DAY_COL_WIDTH + (DAY_COL_WIDTH / 2f)
+            canvas.drawText(day.zh, cx, HEADER_HEIGHT + 35f, dayZhPaint)
+            canvas.drawText(day.en, cx, HEADER_HEIGHT + 60f, dayEnPaint)
+
+            val dividerX = TIME_COL_WIDTH + (i + 1) * DAY_COL_WIDTH
+            canvas.drawLine(dividerX, HEADER_HEIGHT, dividerX, EXPORT_HEIGHT.toFloat(), borderPaint)
+        }
+
+        // 3. Grid Body (GRID_TOP to EXPORT_HEIGHT)
+        // Time column background
+        val timeColBgPaint = Paint().apply { color = timeColBg; style = Paint.Style.FILL }
+        canvas.drawRect(0f, GRID_TOP, TIME_COL_WIDTH, EXPORT_HEIGHT.toFloat(), timeColBgPaint)
+
+        // Day columns background
+        val gridBgPaint = Paint().apply { color = gridBg; style = Paint.Style.FILL }
+        canvas.drawRect(TIME_COL_WIDTH, GRID_TOP, EXPORT_WIDTH.toFloat(), EXPORT_HEIGHT.toFloat(), gridBgPaint)
+
+        val hourLinePaint = Paint().apply {
+            color = hourLineColor
+            style = Paint.Style.STROKE
+            strokeWidth = 1f
+            isAntiAlias = true
+        }
+        val hourTextPaint = Paint().apply {
+            color = textSecondary
+            textSize = 19f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            textAlign = Paint.Align.CENTER
+            isAntiAlias = true
+        }
+
+        for (h in 0 until 13) {
+            val y = GRID_TOP + h * (GRID_HEIGHT / 13f)
+            // Horizontal hour separator
+            canvas.drawLine(0f, y, EXPORT_WIDTH.toFloat(), y, hourLinePaint)
+            // Time mark
+            canvas.drawText(String.format("%02d:30", h + START_HOUR), TIME_COL_WIDTH / 2f, y + 22f, hourTextPaint)
+        }
+
+        // 4. Course Event Blocks
+        val cardFillPaint = Paint().apply { style = Paint.Style.FILL; isAntiAlias = true }
+        val cardStrokePaint = Paint().apply { style = Paint.Style.STROKE; strokeWidth = 1.5f; isAntiAlias = true }
+        val clashStrokePaint = Paint().apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 3.5f
+            color = 0xFFEF4444.toInt()
+            isAntiAlias = true
+        }
+
+        val codePaint = Paint().apply {
+            color = Color.WHITE
+            textSize = 25f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            isAntiAlias = true
+        }
+        val titlePaintCard = Paint().apply {
+            color = Color.argb(235, 255, 255, 255)
+            textSize = 20f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            isAntiAlias = true
+        }
+        val typePaint = Paint().apply {
+            color = Color.argb(230, 255, 255, 255)
+            textSize = 18f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            isAntiAlias = true
+        }
+        val venuePaint = Paint().apply {
+            color = Color.WHITE
+            textSize = 18f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            isAntiAlias = true
+        }
+        val timePaint = Paint().apply {
+            color = Color.argb(220, 255, 255, 255)
+            textSize = 17f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            isAntiAlias = true
+        }
+        val clashBadgeBg = Paint().apply { color = 0xFFDC2626.toInt(); style = Paint.Style.FILL; isAntiAlias = true }
+        val clashBadgeText = Paint().apply {
+            color = Color.WHITE
+            textSize = 14f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+            isAntiAlias = true
+        }
+
+        for (section in selectedSections) {
+            for (meeting in section.meetings) {
+                val dayIndex = DAYS_SUN_TO_SAT.indexOfFirst { it.code.equals(meeting.day, ignoreCase = true) }
+                if (dayIndex < 0) continue
+
+                val startMin = (meeting.startMinutes - (START_HOUR * 60 + START_MINUTE)).coerceAtLeast(0)
+                val durationMin = (meeting.endMinutes - meeting.startMinutes + 1).coerceAtLeast(30)
+
+                val top = GRID_TOP + (startMin.toFloat() / TOTAL_MINUTES.toFloat()) * GRID_HEIGHT
+                val cardHeight = (durationMin.toFloat() / TOTAL_MINUTES.toFloat()) * GRID_HEIGHT
+                val bottom = top + cardHeight
+
+                val colLeft = TIME_COL_WIDTH + dayIndex * DAY_COL_WIDTH
+                val left = colLeft + 6f
+                val right = colLeft + DAY_COL_WIDTH - 6f
+                val cardRect = RectF(left, top, right, bottom)
+
+                val isClashing = conflicts.any {
+                    (it.sectionA.id == section.id || it.sectionB.id == section.id) && it.day.equals(meeting.day, ignoreCase = true)
+                }
+
+                val blockColor = try {
+                    Color.parseColor(section.colorHex)
+                } catch (_: Exception) {
+                    lingnanRed
+                }
+
+                // Draw Card
+                cardFillPaint.color = blockColor
+                canvas.drawRoundRect(cardRect, 14f, 14f, cardFillPaint)
+
+                if (isClashing) {
+                    canvas.drawRoundRect(cardRect, 14f, 14f, clashStrokePaint)
+                } else {
+                    cardStrokePaint.color = Color.argb(60, 255, 255, 255)
+                    canvas.drawRoundRect(cardRect, 14f, 14f, cardStrokePaint)
+                }
+
+                // Inner card content
+                val contentLeft = left + 14f
+                val contentRight = right - 14f
+                val contentWidth = contentRight - contentLeft
+
+                val courseTitle = section.courseTitle.ifBlank { section.courseTitleZh }
+                val truncatedTitle = truncateText(courseTitle, titlePaintCard, contentWidth)
+                val typeText = "S${section.section} • ${meeting.type}"
+                val venueText = if (meeting.venue.isNotBlank()) "📍 ${meeting.venue}" else "📍 TBA"
+                val timeSpanText = "🕒 ${meeting.start} - ${meeting.end}"
+
+                if (cardHeight >= 145f) {
+                    // Full multi-line layout for 1.5h - 3h meetings
+                    var cy = top + 30f
+                    // Line 1: Course code
+                    canvas.drawText(section.courseCode, contentLeft, cy, codePaint)
+                    if (isClashing) {
+                        val badgeLeft = contentRight - 64f
+                        val badgeRect = RectF(badgeLeft, top + 12f, contentRight, top + 34f)
+                        canvas.drawRoundRect(badgeRect, 6f, 6f, clashBadgeBg)
+                        canvas.drawText("衝堂", badgeRect.centerX(), top + 28f, clashBadgeText)
+                    }
+
+                    // Line 2: Truncated Course Name
+                    cy += 27f
+                    canvas.drawText(truncatedTitle, contentLeft, cy, titlePaintCard)
+
+                    // Line 3: Section & Meeting Type
+                    cy += 25f
+                    canvas.drawText(typeText, contentLeft, cy, typePaint)
+
+                    // Line 4: Location
+                    cy += 24f
+                    canvas.drawText(venueText, contentLeft, cy, venuePaint)
+
+                    // Line 5: Time
+                    cy += 24f
+                    canvas.drawText(timeSpanText, contentLeft, cy, timePaint)
+                } else if (cardHeight >= 85f) {
+                    // Medium compact layout for 1h - 1.5h meetings
+                    // Row 1: Course code on left, Type on right
+                    canvas.drawText(section.courseCode, contentLeft, top + 26f, codePaint)
+                    typePaint.textAlign = Paint.Align.RIGHT
+                    canvas.drawText(meeting.type, contentRight, top + 26f, typePaint)
+                    typePaint.textAlign = Paint.Align.LEFT
+
+                    // Row 2: Truncated Course Name
+                    canvas.drawText(truncatedTitle, contentLeft, top + 52f, titlePaintCard)
+
+                    // Row 3: Venue & Time combined
+                    val combinedVenueTime = "${if (meeting.venue.isNotBlank()) meeting.venue else "TBA"}  •  ${meeting.start}-${meeting.end}"
+                    canvas.drawText(combinedVenueTime, contentLeft, top + 76f, venuePaint)
+                } else {
+                    // Short layout (< 1h meetings)
+                    canvas.drawText("${section.courseCode} (${meeting.type})", contentLeft, top + 24f, codePaint)
+                    canvas.drawText(truncatedTitle, contentLeft, top + 48f, titlePaintCard)
+                    val compactInfo = "${if (meeting.venue.isNotBlank()) meeting.venue else "TBA"} ${meeting.start}-${meeting.end}"
+                    canvas.drawText(compactInfo, contentLeft, top + 70f, venuePaint)
+                }
+            }
+        }
+
+        return bitmap
+    }
+
+    /**
+     * Truncates text with an ellipsis (...) if its rendered width exceeds maxWidth.
+     */
+    fun truncateText(text: String, paint: Paint, maxWidth: Float): String {
+        if (text.isBlank()) return text
+        try {
+            if (paint.measureText(text) <= maxWidth) return text
+            var low = 0
+            var high = text.length
+            var best = ""
+            while (low <= high) {
+                val mid = (low + high) / 2
+                val candidate = text.substring(0, mid).trimEnd() + "..."
+                if (paint.measureText(candidate) <= maxWidth) {
+                    best = candidate
+                    low = mid + 1
+                } else {
+                    high = mid - 1
+                }
+            }
+            return if (best.isNotBlank()) best else text.take(1) + "..."
+        } catch (_: Exception) {
+            // Fallback for JVM unit tests where paint.measureText may not be mocked
+            return if (text.length > 22) text.take(20).trimEnd() + "..." else text
+        }
+    }
+
+    suspend fun captureLandscape(
+        context: Context,
+        term: TimetableTerm,
+        selectedSections: List<TimetableSection>,
+        conflicts: List<TimeConflict> = emptyList(),
+        isDark: Boolean = false,
+        creditsByCode: Map<String, Int> = emptyMap()
+    ): File = withContext(Dispatchers.IO) {
+        val bitmap = generateLandscapeBitmap(term, selectedSections, conflicts, isDark, creditsByCode)
+        try {
+            val file = File.createTempFile("timetable-landscape-", ".png", context.cacheDir)
+            try {
+                file.outputStream().use { out ->
+                    check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)) { "Failed to compress timetable bitmap" }
+                }
+                file
+            } catch (e: Exception) {
+                file.delete()
+                throw e
+            }
+        } finally {
+            bitmap.recycle()
+        }
+    }
+
     suspend fun capture(context: Context, headerLayer: GraphicsLayer, bodyLayer: GraphicsLayer, background: Int): File {
         val header = checkNotNull(headerLayer.toImageBitmap().asAndroidBitmap().copy(Bitmap.Config.ARGB_8888, false))
         try {
