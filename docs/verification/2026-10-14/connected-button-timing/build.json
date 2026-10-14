@@ -1,0 +1,35 @@
+{
+  "variant": "releaseValidation",
+  "optimized": true,
+  "version": "1.0.6 (7)",
+  "certificate_matches_previously_installed": true,
+  "data_cleared": false,
+  "apk_sha256": "b37ef54040f1cec281d32159dcfe6cfd2a4931e7a8744338a4915eab3be2101c",
+  "unit_tests": {
+    "tests": 424,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "new_motion_tests": 5,
+  "source_changes": [
+    "TactileMotionTokens.kt",
+    "M3ButtonGroup.kt",
+    "ConnectedButtonShape.kt",
+    "ConnectedButtonShapeTest.kt"
+  ],
+  "initial_optimized_run_exit_code": 143,
+  "optimized_retry": "PASS",
+  "installed_apk_matches_final_artifact": false,
+  "device_verified_apk_sha256": "b37ef54040f1cec281d32159dcfe6cfd2a4931e7a8744338a4915eab3be2101c",
+  "latest_local_apk_sha256": "55966a57d255c04284f121f31c7f9973e0a637ec8a46cec703662f1fa2ef3c34",
+  "latest_local_unit_tests": {
+    "tests": 420,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "source_identity_guard": "Animatable remembers its interaction source, resetting cleanly if categories rebuild",
+  "latest_local_build": "PASS",
+  "latest_reinstall": "deferred: avoid disturbing Waydroid dialog; installed timing implementation was verified before the final source-identity guard"
+}

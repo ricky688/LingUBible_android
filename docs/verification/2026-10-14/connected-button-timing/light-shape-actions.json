@@ -1,0 +1,17 @@
+[
+  {
+    "action": "quick_100ms",
+    "hold_ms": 100,
+    "host_elapsed_s": 1.5
+  },
+  {
+    "action": "held_650ms",
+    "hold_ms": 650,
+    "host_elapsed_s": 2.737
+  },
+  {
+    "action": "quick_repeat_100ms",
+    "hold_ms": 100,
+    "host_elapsed_s": 4.515
+  }
+]

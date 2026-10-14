@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 internal fun rememberCompletedConnectedPress(source: InteractionSource, isPressed: Boolean): State<Float> {
-    val progress = remember { Animatable(0f) }
+    val progress = remember(source) { Animatable(0f) }
     val held = rememberUpdatedState(isPressed)
     LaunchedEffect(source) {
         animateCompletedConnectedPress(source, progress) { held.value }
@@ -70,7 +70,12 @@ internal class CompletedConnectedButtonShape(
             is Outline.Rectangle -> RoundRect(outline.rect, CornerRadius.Zero)
             is Outline.Generic -> error("Connected buttons require rounded or rectangular outlines")
         }
-        val rest = lerp(unchecked.roundRect(), checked.roundRect(), selectionProgress.coerceIn(0f, 1f))
-        return Outline.Rounded(lerp(rest, pressed.roundRect(), pressProgress.coerceIn(0f, 1f)))
+        return Outline.Rounded(connectedButtonRoundRect(
+            unchecked.roundRect(), checked.roundRect(), pressed.roundRect(), selectionProgress, pressProgress
+        ))
     }
 }
+
+internal fun connectedButtonRoundRect(
+    unchecked: RoundRect, checked: RoundRect, pressed: RoundRect, selection: Float, press: Float
+): RoundRect = lerp(lerp(unchecked, checked, selection.coerceIn(0f, 1f)), pressed, press.coerceIn(0f, 1f))

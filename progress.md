@@ -1,3 +1,25 @@
+## 2026-10-14 — 🐱 嶺南「校園貓咪 / 屯門特產」文化彩蛋（頂部圖標 5 連擊解鎖粉嫩貓爪漫步、觸碰心心粒子爆發與 3-4 秒漸隱）
+
+- User requested replacing the previous modal with the "🐱 嶺南「校園貓咪 / 屯門特產」文化（嶺大專屬溫度）" Easter egg:
+  - 觸發方式：快速連擊頂部左側 LingUBible 圖標 5 次（2.5 秒超時窗口，每次點擊具備觸覺反饋與微回彈縮放）。
+  - 動態漫步：貓爪腳印以隨機二次貝茲曲線（Quadratic Bézier curve）優雅穿過螢幕，步長約 110px、左右交替偏移與自然偏角旋轉，逐步以彈簧動畫浮現。
+  - 漸隱消散：每一步貓爪各自維持 3 至 4 秒後平滑淡出並自動釋放資源。
+  - 摸摸互動：貓爪可點擊互動，輕觸當前腳印觸發輕快觸覺反饋與心心／星光粒子爆發（擴散、旋轉、微重力、淡出），點擊後的腳印即時消散。
+  - 背景穿透：貓爪以外的所有螢幕區域完全穿透點擊與手勢，絕不阻擋下方頁面滾動與操作；無 Toast 橫幅干擾，保持彩蛋神祕感。
+- 建立 `CatFootstepsEasterEgg.kt`（包含 `CatPathGenerator`、`CatWalkState`、`CatFootstepsOverlay`、向量 Canvas `CatPawPrint`）。
+- 更新 `LingUBibleTopBar.kt` 提供 `onLogoClick` 回調並具備 40dp 點擊熱區與動畫；更新 `MainActivity.kt` 於最外層掛載 `CatFootstepsOverlay`。
+- 新增 `CatFootstepsTest.kt`（5 項單元測試涵蓋路徑生成、點擊計數超時、粒子生成與過期清理）。
+- 426 項單元測試全數通過（0 failures, 100% success）；在 Waydroid 實體環境驗證隨機漫步路徑與點擊互動。
+
+
+- Quick 100 ms taps now finish the inward shape spring before returning. Holds reach the same native pressed outline, wait for release, then return to the current checked/rest outline. Actions remain immediate; overlapping presses coalesce rather than queuing stale animations.
+- Added `ConnectedButtonShape.kt`: native PressInteraction-driven Animatable, native rounded/rectangular outline interpolation, and zero-size header handling. Animatable is keyed to the interaction source so category rebuilds reset the transient pose. Existing spring tokens, focus/hover, semantics and haptics retained. Shared by regular and scrollable groups.
+- Light perimeter/highlight spring stiffness 200 → 800, targeting about half the old color duration; Dark uniform crossfade unchanged. No damping overrides, dependencies, backend/preferences/signing/version changes. Kept current 1.0.6/code7 and concurrent campus-cat/TopBar work.
+- Initial suite424 and final captured suite420 pass, including five new motion tests. Debug and optimized releaseValidation APKs built; first optimized process exited143, retry passed. Timing APK installed on Waydroid with compatible certificate and no data clear. Final local build adds an interaction-source reset guard; reinstall deferred while device dialog is in use. Device-verified/latest local hashes are separately recorded.
+- Optimized Light video/pixel checks: 100 ms tap, 650 ms hold, repeated100 ms tap all reach identical pressed-corner coverage0.8813 and recover. Debug verifies faster colors, canceled drag (0 haptics/header restored), normal tap (1 haptic) and collapsed header without crash. No current-process fatal entry in final optimized app.
+- Waydroid switched to campus-cats dialog during final Dark-check preparation; stopped UI interaction and left Light appearance in place. Fresh Dark device recording, separate scrollable recording, reduced-motion/custom palettes and physical Samsung/Pixel smoothness remain pending. Shared Dark logic/unit tests pass. No production APK/AAB rebuild/publish or maintained UI tests.
+- Guide: `docs/connected-button-motion.md`; recordings/screenshots/results: `docs/verification/2026-10-14/connected-button-timing/report.md`; local optimized APK/mappings/logs: `build/connected-button-timing-2026-10-14/`.
+
 ## 2026-10-14 — GPA 4.0 / 「GPA God 祈福求籤」廣東話彩蛋
 
 - User requested the GPA 4.0 / "GPA God 祈福求籤" Easter egg with authentic Cantonese vernacular words.

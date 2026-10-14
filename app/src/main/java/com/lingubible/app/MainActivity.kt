@@ -23,6 +23,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,7 +43,9 @@ import com.lingubible.app.core.navigation.TopBarState
 import com.lingubible.app.core.navigation.Screen
 import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.settings.ThemeMode
+import com.lingubible.app.ui.components.CatFootstepsOverlay
 import com.lingubible.app.ui.components.DiscoverTopBarGlass
+import com.lingubible.app.ui.components.rememberCatWalkState
 import com.lingubible.app.core.theme.LingUBibleTheme
 import org.koin.android.ext.android.inject
 import java.util.Locale
@@ -276,61 +279,78 @@ fun LingUBibleMainScreen() {
         )
     }
 
+    val catWalkState = rememberCatWalkState()
+    val haptic = LocalHapticFeedback.current
+
     CompositionLocalProvider(
         LocalBottomBarState provides bottomBarState,
         LocalTopBarState provides topBarState
     ) {
-        Scaffold(
-            modifier = Modifier.nestedScroll(nestedScrollConnection),
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            containerColor = MaterialTheme.colorScheme.background,
-            topBar = {
-                LingUBibleTopBar(
-                    navController = navController,
-                    isVisible = isTopBarVisible,
-                    isExpanded = isTopBarExpanded,
-                    academicSubTab = academicSubTab
-                )
-            },
-            bottomBar = {
-                if (shouldShowBottomBar) {
-                    LingUBibleBottomBar(
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val density = LocalDensity.current
+            val screenWidthPx = with(density) { maxWidth.toPx() }
+            val screenHeightPx = with(density) { maxHeight.toPx() }
+
+            Scaffold(
+                modifier = Modifier.nestedScroll(nestedScrollConnection),
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                containerColor = MaterialTheme.colorScheme.background,
+                topBar = {
+                    LingUBibleTopBar(
                         navController = navController,
-                        isVisible = isBottomBarVisible && !imeVisible,
-                        onExpand = { isBottomBarVisible = true }
+                        isVisible = isTopBarVisible,
+                        isExpanded = isTopBarExpanded,
+                        academicSubTab = academicSubTab,
+                        onLogoClick = {
+                            catWalkState.onLogoTap(screenWidthPx, screenHeightPx) { hapticType ->
+                                haptic.performHapticFeedback(hapticType)
+                            }
+                        }
                     )
+                },
+                bottomBar = {
+                    if (shouldShowBottomBar) {
+                        LingUBibleBottomBar(
+                            navController = navController,
+                            isVisible = isBottomBarVisible && !imeVisible,
+                            onExpand = { isBottomBarVisible = true }
+                        )
+                    }
                 }
-            }
-        ) { innerPadding ->
-            val topBarPadding = innerPadding.calculateTopPadding()
-            val statusBarPadding = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
-            val effectiveTopPadding = maxOf(topBarPadding, statusBarPadding)
-            val systemBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            val bottomClearance = when {
-                imeVisible -> 0.dp // imePadding below owns the entire keyboard inset.
-                shouldShowBottomBar && isBottomBarVisible -> maxOf(innerPadding.calculateBottomPadding(), systemBottom)
-                else -> systemBottom
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = effectiveTopPadding)
-                    .consumeWindowInsets(PaddingValues(top = effectiveTopPadding))
-                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
-                    .imePadding()
-            ) {
-                CompositionLocalProvider(LocalScreenBottomClearance provides bottomClearance) {
-                    LingUBibleNavHost(
-                        navController = navController,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    // Draw over the list, immediately below the measured top bar.
-                    // This decorative layer neither reserves space nor intercepts touches.
-                    if (currentDestination?.hasRoute<Screen.Home>() == true && isTopBarVisible) {
-                        DiscoverTopBarGlass()
+            ) { innerPadding ->
+                val topBarPadding = innerPadding.calculateTopPadding()
+                val statusBarPadding = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                val effectiveTopPadding = maxOf(topBarPadding, statusBarPadding)
+                val systemBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                val bottomClearance = when {
+                    imeVisible -> 0.dp // imePadding below owns the entire keyboard inset.
+                    shouldShowBottomBar && isBottomBarVisible -> maxOf(innerPadding.calculateBottomPadding(), systemBottom)
+                    else -> systemBottom
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = effectiveTopPadding)
+                        .consumeWindowInsets(PaddingValues(top = effectiveTopPadding))
+                        .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                        .imePadding()
+                ) {
+                    CompositionLocalProvider(LocalScreenBottomClearance provides bottomClearance) {
+                        LingUBibleNavHost(
+                            navController = navController,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        // Draw over the list, immediately below the measured top bar.
+                        // This decorative layer neither reserves space nor intercepts touches.
+                        if (currentDestination?.hasRoute<Screen.Home>() == true && isTopBarVisible) {
+                            DiscoverTopBarGlass()
+                        }
                     }
                 }
             }
+
+            // 🐱 嶺南「校園貓咪 / 屯門特產」文化彩蛋覆蓋層
+            CatFootstepsOverlay(state = catWalkState)
         }
     }
 }

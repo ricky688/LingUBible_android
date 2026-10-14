@@ -1,0 +1,28 @@
+{
+  "variant": "debug",
+  "baseline_corner_coverage": 0.5202,
+  "same_pressed_shape_on_quick_and_held": true,
+  "presses": [
+    {
+      "action": "quick_100ms",
+      "first_changed_frame_s": 1.4315,
+      "last_changed_frame_s": 1.7342,
+      "max_pressed_corner_coverage": 0.8788,
+      "returned_to_rest": true
+    },
+    {
+      "action": "held_650ms",
+      "first_changed_frame_s": 2.6722,
+      "last_changed_frame_s": 3.451,
+      "max_pressed_corner_coverage": 0.8813,
+      "returned_to_rest": true
+    },
+    {
+      "action": "quick_repeat_100ms",
+      "first_changed_frame_s": 4.4447,
+      "last_changed_frame_s": 4.7679,
+      "max_pressed_corner_coverage": 0.8813,
+      "returned_to_rest": true
+    }
+  ]
+}

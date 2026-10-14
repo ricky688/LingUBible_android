@@ -1,0 +1,9 @@
+{
+  "variant": "releaseValidation",
+  "current_process_fatal_exceptions": 0,
+  "theme_last_observed": "Light",
+  "animator_duration_scale": "1",
+  "system_animation_scale_modified": false,
+  "dark_device_recheck": "pending: device switched to campus-cats dialog during theme-check preparation; stopped UI interaction",
+  "authenticated_flows_exercised": false
+}

@@ -1,0 +1,29 @@
+{
+  "variant": "releaseValidation",
+  "theme": "light",
+  "baseline_corner_coverage": 0.5202,
+  "same_pressed_shape_on_quick_and_held": true,
+  "presses": [
+    {
+      "action": "quick_100ms",
+      "first_changed_frame_s": 1.4933,
+      "last_changed_frame_s": 1.819,
+      "max_pressed_corner_coverage": 0.8813,
+      "returned_to_rest": true
+    },
+    {
+      "action": "held_650ms",
+      "first_changed_frame_s": 2.7249,
+      "last_changed_frame_s": 3.504,
+      "max_pressed_corner_coverage": 0.8813,
+      "returned_to_rest": true
+    },
+    {
+      "action": "quick_repeat_100ms",
+      "first_changed_frame_s": 4.4976,
+      "last_changed_frame_s": 4.8199,
+      "max_pressed_corner_coverage": 0.8813,
+      "returned_to_rest": true
+    }
+  ]
+}

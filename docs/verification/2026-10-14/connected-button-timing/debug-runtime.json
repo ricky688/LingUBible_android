@@ -1,0 +1,9 @@
+{
+  "variant": "debug",
+  "canceled_press_haptic_requests": 0,
+  "canceled_group_changed_pixel_fraction": 0.0,
+  "quick_tap_haptic_requests": 1,
+  "collapsed_header_no_crash": true,
+  "current_process_fatal_exceptions": 0,
+  "animator_duration_scale": "1"
+}

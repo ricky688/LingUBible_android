@@ -1,0 +1,12 @@
+{
+  "tests": 5,
+  "failures": 0,
+  "errors": 0,
+  "cases": [
+    "quickTapAndHeldPressCompleteTheSameInwardAnimation",
+    "rapidPressesFinishWithoutAQueueOfStaleAnimations",
+    "shapeReachesTheNativePressedOutlineAndReturnsToTheCurrentSelection",
+    "collapsedHeaderCanHaveAZeroSizedOutline",
+    "lightColorSpringTakesAboutHalfThePreviousDuration"
+  ]
+}

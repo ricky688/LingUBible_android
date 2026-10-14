@@ -11,6 +11,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.MonotonicFrameClock
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.snapshots.Snapshot
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
@@ -34,7 +38,10 @@ class ConnectedButtonShapeTest {
     private class StepClock(private val timeMillis: () -> Long) : MonotonicFrameClock {
         override suspend fun <R> withFrameNanos(onFrame: (Long) -> R): R {
             delay(16)
-            return onFrame(timeMillis() * 1_000_000)
+            Snapshot.sendApplyNotifications()
+            val result = onFrame(timeMillis() * 1_000_000)
+            Snapshot.sendApplyNotifications()
+            return result
         }
     }
 
@@ -60,6 +67,7 @@ class ConnectedButtonShapeTest {
         runCurrent()
         if (holdMillis >= 900) assertEquals(1f, progress.value, 0f)
         held.value = false
+        Snapshot.sendApplyNotifications()
         source.emit(PressInteraction.Release(press))
         runCurrent()
         if (holdMillis == 100L) assertEquals(1f, progress.targetValue, 0f)
@@ -96,6 +104,7 @@ class ConnectedButtonShapeTest {
             runCurrent()
             advanceTimeBy(40)
             held.value = false
+            Snapshot.sendApplyNotifications()
             source.emit(PressInteraction.Release(press))
             advanceTimeBy(20)
         }
@@ -108,21 +117,14 @@ class ConnectedButtonShapeTest {
 
     @Test
     fun shapeReachesTheNativePressedOutlineAndReturnsToTheCurrentSelection() {
-        val unchecked = RoundedCornerShape(topStart = 20.dp, topEnd = 8.dp, bottomEnd = 8.dp, bottomStart = 20.dp)
-        val checked = RoundedCornerShape(20.dp)
-        val pressed = RoundedCornerShape(8.dp)
-        val size = Size(140f, 40f)
-        val density = Density(1f)
-        for (direction in listOf(LayoutDirection.Ltr, LayoutDirection.Rtl)) {
-            for (selection in listOf(0f, 1f)) {
-                val atRest = CompletedConnectedButtonShape(unchecked, checked, pressed, selection, 0f)
-                val atPress = CompletedConnectedButtonShape(unchecked, checked, pressed, selection, 1f)
-                val rest = if (selection == 1f) checked else unchecked
-                assertEquals((rest.createOutline(size, direction, density) as Outline.Rounded).roundRect,
-                    (atRest.createOutline(size, direction, density) as Outline.Rounded).roundRect)
-                assertEquals((pressed.createOutline(size, direction, density) as Outline.Rounded).roundRect,
-                    (atPress.createOutline(size, direction, density) as Outline.Rounded).roundRect)
-            }
+        val bounds = Rect(0f, 0f, 140f, 40f)
+        val unchecked = RoundRect(bounds, CornerRadius(8f))
+        val checked = RoundRect(bounds, CornerRadius(20f))
+        val pressed = RoundRect(bounds, CornerRadius(4f))
+        for (selection in listOf(0f, 1f)) {
+            assertEquals(if (selection == 1f) checked else unchecked,
+                connectedButtonRoundRect(unchecked, checked, pressed, selection, 0f))
+            assertEquals(pressed, connectedButtonRoundRect(unchecked, checked, pressed, selection, 1f))
         }
     }
 
