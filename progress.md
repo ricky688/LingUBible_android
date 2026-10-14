@@ -1,3 +1,11 @@
+## 2026-10-14 — Remove logo rain Easter egg & release v1.0.5
+
+- User requested clean removal of logo-rain Easter egg feature.
+- Removed `IconRainModifier.kt`, `iconRain` trigger and modifier from `MainActivity.kt`, and reverted top-left brand logo in `LingUBibleTopBar.kt` back to a non-clickable static brand badge with standard padding.
+- Cleaned Easter egg unit tests and verification docs.
+- 400 unit tests pass with 0 failures; bumped `versionCode = 6`, `versionName = "1.0.5"`.
+- Built production `assembleRelease` APK and `bundleRelease` AAB with embedded R8 mapping, verified via `verify-play-release.py` (PASS, 649 renamed app types, matching DEX).
+
 ## 2026-10-13 — Logo rain ease-out pacing
 
 - User requested ease-out speed. Replaced quadratic accelerating fall with Material LinearOutSlowInEasing; stiffness-only spring and existing burst behavior preserved.

@@ -35,7 +35,6 @@ import com.lingubible.app.core.navigation.BottomNavDestination
 import com.lingubible.app.core.navigation.LingUBibleBottomBar
 import com.lingubible.app.core.navigation.LingUBibleNavHost
 import com.lingubible.app.core.navigation.LingUBibleTopBar
-import com.lingubible.app.ui.components.iconRain
 import com.lingubible.app.core.navigation.LocalBottomBarState
 import com.lingubible.app.core.navigation.LocalScreenBottomClearance
 import com.lingubible.app.core.navigation.LocalTopBarState
@@ -281,9 +280,8 @@ fun LingUBibleMainScreen() {
         LocalBottomBarState provides bottomBarState,
         LocalTopBarState provides topBarState
     ) {
-        var iconRainTrigger by remember { mutableIntStateOf(0) }
         Scaffold(
-            modifier = Modifier.iconRain(iconRainTrigger).nestedScroll(nestedScrollConnection),
+            modifier = Modifier.nestedScroll(nestedScrollConnection),
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
@@ -291,8 +289,7 @@ fun LingUBibleMainScreen() {
                     navController = navController,
                     isVisible = isTopBarVisible,
                     isExpanded = isTopBarExpanded,
-                    academicSubTab = academicSubTab,
-                    onLogoClick = { iconRainTrigger++ }
+                    academicSubTab = academicSubTab
                 )
             },
             bottomBar = {
