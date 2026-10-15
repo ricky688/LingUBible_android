@@ -11,10 +11,16 @@
   - 互動全螢幕縮放檢視（Fullscreen Interactive Zoom & Pan Viewport）：
     - 在預覽視窗中輕觸預覽圖片卡片（具備「🔍 點擊全螢幕縮放檢視」提示與按壓形狀漸變），即可無縫開啟沉浸式全螢幕檢視器（`TimetableFullscreenPreviewDialog`）。
     - 支援 1.0× 至 5.0× 雙指捏合縮放（Pinch-to-zoom）、任意平移拖曳（Pan）、以及雙擊快速縮放／重設（Double-tap zoom & reset）。
-    - 頂部半透明磨砂玻璃狀態列：顯示返回關閉按鈕、方向比例標籤、操作手勢提示與即時縮放百分比標籤（如 `100%`、`200%`）。
-    - 底部浮動膠囊工具列：配備縮小（`-`）、1.0× 重設、放大（`+`）以及直存按鈕（「儲存 Save」），所有按鈕皆具備動態形狀變換與邊界水波紋。
-- 更新 `TimetableExportPreviewModal.kt`（實作 `ExpressiveMorphButton`、`ExpressiveMorphIconButton`、`OrientationChoiceCard` 形狀變換、邊界水波紋及 `TimetableFullscreenPreviewDialog` 全螢幕縮放檢視）。
-- 431 項單元測試 100% 通過；編譯並於 Waydroid 實體環境驗證按鈕形變、水波紋、全螢幕縮放（200%放大及1.0x重設）、橫向與直向 9:16 全螢幕展示及直接儲存功能。
+  - 頂部導覽列對齊優化（Material 3 TopAppBar Alignment）：
+    - 採用標準 Material 3 `TopAppBar` 取代原本漂浮膠囊卡片，導航關閉按鈕精準坐落於標準導覽槽位（Navigation Slot），與「全螢幕課表檢視」標題及副標題垂直精準對齊，不再出現偏心錯位。
+    - 狀態列與邊距：自動適應系統狀態列高度（`TopAppBarDefaults.windowInsets`），底部搭配細緻漸變邊框，全寬貼頂整潔大氣。
+    - 縮放百分比標籤：整齊收納於 `actions` 右側尾端槽位，維持標準 16.dp 邊界。
+    - 遮罩純黑不透底（Solid Background）：全螢幕檢視器背景改為 100% 不透明純黑底色（`Color(0xFF090D16)`），徹底消除原先半透明導致下方預覽彈窗透出與組件穿插碰撞問題。
+  - 底部控制列全面升級為 Material 3 工具列（Material 3 HorizontalFloatingToolbar）：
+    - 底部縮放與動作控制列採用官方 Material 3 Expressive 標準 `HorizontalFloatingToolbar` 與 `FloatingToolbarDefaults.standardFloatingToolbarColors`。
+    - 具備 28.dp 圓角膠囊外觀、高光細邊框與內置各操作按鈕（`-` 縮小、`1.0×` 重設、`+` 放大、`儲存 Save`），全面整合動態形狀變換與約束水波紋。
+- 更新 `TimetableExportPreviewModal.kt`（實作 `TopAppBar` 完美對齊、純黑背景、`HorizontalFloatingToolbar` 官方工具列升級）。
+- 431 項單元測試 100% 通過；編譯並於 Waydroid 實體環境驗證全新對齊頂部列與 Material 3 浮動工具列。
 
 ## 2026-10-15 — 🖼️ 課表匯出圖片即時預覽互動彈窗與橫向/直向（標準手機比例 9:16）雙模式選擇（Timetable Export Preview & Dual-Orientation Modal）
 

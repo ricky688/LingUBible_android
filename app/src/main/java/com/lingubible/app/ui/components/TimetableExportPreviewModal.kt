@@ -58,10 +58,14 @@ import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -526,7 +530,7 @@ private fun TimetableFullscreenPreviewDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xF00A0E1A))
+                .background(Color(0xFF090D16))
         ) {
             // Interactive Zoom & Pan Viewport
             Box(
@@ -568,7 +572,7 @@ private fun TimetableFullscreenPreviewDialog(
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 12.dp, vertical = 64.dp)
+                        .padding(horizontal = 12.dp, vertical = 72.dp)
                         .graphicsLayer {
                             scaleX = zoomScale
                             scaleY = zoomScale
@@ -578,34 +582,43 @@ private fun TimetableFullscreenPreviewDialog(
                 )
             }
 
-            // Top Bar Overlay (Frosted glass header)
-            Surface(
-                shape = RoundedCornerShape(22.dp),
-                color = Color(0xCC161E2E),
-                border = BorderStroke(1.dp, Color(0x33FFFFFF)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .align(Alignment.TopCenter)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+            // Top Bar Overlay: Material 3 TopAppBar with Frosted Glass styling & clean alignment
+            TopAppBar(
+                title = {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(start = 4.dp)
+                    ) {
+                        Text(
+                            text = if (orientation == TimetableExportOrientation.LANDSCAPE) "全螢幕課表檢視 · 橫向 16:9" else "全螢幕課表檢視 · 直向 9:16",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "雙指縮放 · 雙擊重設 · 拖曳檢視",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.sp,
+                            color = Color(0xFF94A3B8),
+                            maxLines = 1
+                        )
+                    }
+                },
+                navigationIcon = {
+                    Box(
+                        modifier = Modifier.padding(start = 12.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         ExpressiveMorphIconButton(
                             onClick = onDismiss,
-                            restingCorner = 16.dp,
+                            restingCorner = 18.dp,
                             pressedCorner = 8.dp,
                             containerColor = Color(0x33FFFFFF),
                             contentColor = Color.White,
-                            size = 36.dp,
-                            contentDescription = "Back"
+                            size = 38.dp,
+                            contentDescription = "Close"
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
@@ -614,54 +627,68 @@ private fun TimetableFullscreenPreviewDialog(
                                 modifier = Modifier.size(20.dp)
                             )
                         }
-
-                        Column {
-                            Text(
-                                text = if (orientation == TimetableExportOrientation.LANDSCAPE) "全螢幕課表檢視 · 橫向 16:9" else "全螢幕課表檢視 · 直向 9:16",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "雙指縮放 · 雙擊重設 · 拖曳檢視",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontSize = 11.sp,
-                                color = Color(0xFF94A3B8)
-                            )
-                        }
                     }
-
-                    // Zoom level indicator & Reset Zoom
+                },
+                actions = {
                     Surface(
                         shape = RoundedCornerShape(10.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                        modifier = Modifier.padding(end = 16.dp)
                     ) {
                         Text(
                             text = "${(zoomScale * 100).toInt()}%",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                         )
                     }
-                }
-            }
-
-            // Bottom Floating Controls (Zoom +/- / 1x / Save)
-            Surface(
-                shape = RoundedCornerShape(26.dp),
-                color = Color(0xDD161E2E),
-                border = BorderStroke(1.dp, Color(0x33FFFFFF)),
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xEE111827),
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
+                ),
                 modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .border(
+                        width = 1.dp,
+                        brush = Brush.verticalGradient(
+                            listOf(Color.Transparent, Color(0x33FFFFFF))
+                        ),
+                        shape = androidx.compose.ui.graphics.RectangleShape
+                    )
+            )
+
+            // Bottom Floating Controls: Material 3 HorizontalFloatingToolbar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding()
-                    .padding(bottom = 20.dp, start = 16.dp, end = 16.dp)
+                    .padding(bottom = 20.dp, start = 16.dp, end = 16.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                HorizontalFloatingToolbar(
+                    expanded = true,
+                    shape = RoundedCornerShape(28.dp),
+                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
+                        toolbarContainerColor = Color(0xEE161E2E),
+                        toolbarContentColor = Color.White
+                    ),
+                    modifier = Modifier.border(
+                        width = 1.dp,
+                        brush = Brush.linearGradient(
+                            listOf(
+                                Color(0x44FFFFFF),
+                                Color(0x22FFFFFF)
+                            )
+                        ),
+                        shape = RoundedCornerShape(28.dp)
+                    )
                 ) {
                     // Zoom Out Button
                     ExpressiveMorphIconButton(
@@ -695,7 +722,7 @@ private fun TimetableFullscreenPreviewDialog(
                         pressedCorner = 24.dp,
                         containerColor = if (zoomScale > 1.05f) MaterialTheme.colorScheme.primaryContainer else Color(0x22FFFFFF),
                         contentColor = if (zoomScale > 1.05f) MaterialTheme.colorScheme.onPrimaryContainer else Color.White,
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.RestartAlt,
@@ -730,7 +757,7 @@ private fun TimetableFullscreenPreviewDialog(
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
 
                     // Direct Save Button from Fullscreen
                     ExpressiveMorphButton(
@@ -739,7 +766,7 @@ private fun TimetableFullscreenPreviewDialog(
                         pressedCorner = 28.dp,
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 9.dp)
+                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Download,
