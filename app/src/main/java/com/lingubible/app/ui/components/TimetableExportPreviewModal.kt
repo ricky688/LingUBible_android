@@ -1,10 +1,15 @@
 package com.lingubible.app.ui.components
 
+import android.app.Activity
 import android.graphics.Bitmap
+import android.os.Build
+import android.view.WindowManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -12,19 +17,25 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -32,55 +43,63 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AspectRatio
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.StayCurrentLandscape
 import androidx.compose.material.icons.filled.StayCurrentPortrait
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.WindowCompat
+import com.lingubible.app.core.theme.isAppDarkTheme
 import com.lingubible.app.core.util.TimetableExportOrientation
 import com.lingubible.app.core.util.TimetableImageExport
 import com.lingubible.app.domain.model.TimeConflict
 import com.lingubible.app.domain.model.TimetableSection
 import com.lingubible.app.domain.model.TimetableTerm
-import androidx.compose.animation.core.tween
-import com.lingubible.app.core.theme.isAppDarkTheme
 import com.lingubible.app.ui.common.hapticClick
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -88,8 +107,10 @@ import kotlinx.coroutines.withContext
 /**
  * Material 3 Expressive Preview Modal for Timetable Image Export.
  *
- * Provides live image preview and orientation selection between
- * Landscape (Default 16:9 widescreen, 2400x1400) and Portrait (9:16 standard phone ratio, 1440x2560).
+ * Provides live image preview, interactive orientation selection (Landscape default vs.
+ * 9:16 Portrait standard phone ratio), expressive shape-changing buttons on press with
+ * optimized bounded ripples (replacing default press-down scale/elevation drops), and
+ * interactive fullscreen pinch-to-zoom / pan inspection.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -109,6 +130,7 @@ fun TimetableExportPreviewModal(
 
     var previewBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isRendering by remember { mutableStateOf(true) }
+    var showFullscreenViewer by remember { mutableStateOf(false) }
 
     LaunchedEffect(selectedOrientation, term, selectedSections, conflicts, isDark) {
         isRendering = true
@@ -157,7 +179,7 @@ fun TimetableExportPreviewModal(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 1. Header with title & close button
+                // 1. Header with title & expressive shape-morphing close button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -196,14 +218,20 @@ fun TimetableExportPreviewModal(
                         }
                     }
 
-                    IconButton(
-                        onClick = hapticClick(onDismiss),
-                        modifier = Modifier.size(36.dp)
+                    ExpressiveMorphIconButton(
+                        onClick = onDismiss,
+                        restingCorner = 18.dp,
+                        pressedCorner = 8.dp,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.65f),
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        size = 36.dp,
+                        contentDescription = "Close"
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
@@ -236,61 +264,110 @@ fun TimetableExportPreviewModal(
                     )
                 }
 
-                // 3. Image Preview Area
-                Box(
+                // 3. Image Preview Area (Interactive Card with Shape Morphing & Fullscreen Zoom on Press)
+                val previewCardInteractionSource = remember { MutableInteractionSource() }
+                val isPreviewPressed by previewCardInteractionSource.collectIsPressedAsState()
+                val previewCorner by animateDpAsState(
+                    targetValue = if (isPreviewPressed) 24.dp else 16.dp,
+                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                    label = "previewCornerMorph"
+                )
+                val previewCardShape = RoundedCornerShape(previewCorner)
+
+                Surface(
+                    onClick = hapticClick {
+                        if (previewBitmap != null && !isRendering) {
+                            showFullscreenViewer = true
+                        }
+                    },
+                    enabled = previewBitmap != null && !isRendering,
+                    shape = previewCardShape,
+                    color = if (isDark) Color(0xFF090D16) else Color(0xFFF1F5F9),
+                    border = BorderStroke(
+                        1.dp,
+                        if (isPreviewPressed) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                        else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    ),
+                    interactionSource = previewCardInteractionSource,
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 220.dp, max = 340.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(if (isDark) Color(0xFF090D16) else Color(0xFFF1F5F9))
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                            RoundedCornerShape(16.dp)
-                        )
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
+                        .clip(previewCardShape)
+                        .pointerHoverIcon(PointerIcon.Hand)
                 ) {
-                    AnimatedContent(
-                        targetState = previewBitmap to isRendering,
-                        transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(120)) },
-                        label = "previewCrossfade"
-                    ) { (bmp, rendering) ->
-                        if (rendering || bmp == null) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    strokeWidth = 3.dp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "繪製課表預覽中... / Generating preview...",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        } else {
-                            val ratio = if (selectedOrientation == TimetableExportOrientation.LANDSCAPE) {
-                                2400f / 1400f
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AnimatedContent(
+                            targetState = previewBitmap to isRendering,
+                            transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(120)) },
+                            label = "previewCrossfade"
+                        ) { (bmp, rendering) ->
+                            if (rendering || bmp == null) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(32.dp),
+                                        strokeWidth = 3.dp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = "繪製課表預覽中... / Generating preview...",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             } else {
-                                1440f / 2560f
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Image(
+                                        bitmap = bmp.asImageBitmap(),
+                                        contentDescription = "Timetable Image Preview",
+                                        contentScale = ContentScale.Fit,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(8.dp))
+                                    )
+                                }
                             }
-                            Box(
+                        }
+
+                        // Fullscreen Zoom hint pill in bottom-end corner
+                        if (!isRendering && previewBitmap != null) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                                 modifier = Modifier
-                                    .fillMaxSize(),
-                                contentAlignment = Alignment.Center
+                                    .align(Alignment.BottomEnd)
+                                    .padding(6.dp)
                             ) {
-                                Image(
-                                    bitmap = bmp.asImageBitmap(),
-                                    contentDescription = "Timetable Image Preview",
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(RoundedCornerShape(8.dp))
-                                )
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Fullscreen,
+                                        contentDescription = "Fullscreen Zoom",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = "全螢幕放大檢視",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
                     }
@@ -298,7 +375,7 @@ fun TimetableExportPreviewModal(
 
                 // 4. Resolution & usage details pill
                 Surface(
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(14.dp),
                     color = MaterialTheme.colorScheme.surfaceContainer,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
                     modifier = Modifier.fillMaxWidth()
@@ -343,32 +420,37 @@ fun TimetableExportPreviewModal(
                     }
                 }
 
-                // 5. Actions (Cancel / Confirm Save)
+                // 5. Action Buttons with Material 3 Expressive Shape Changing & Bounded Ripple
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedButton(
-                        onClick = hapticClick(onDismiss),
-                        modifier = Modifier
-                            .weight(1f)
-                            .pointerHoverIcon(PointerIcon.Hand),
-                        shape = RoundedCornerShape(16.dp)
+                    // Expressive Outlined Button: Cancel (Morphs from 16dp to 28dp pill on press)
+                    ExpressiveMorphButton(
+                        onClick = onDismiss,
+                        restingCorner = 16.dp,
+                        pressedCorner = 28.dp,
+                        containerColor = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Text("取消 Cancel")
+                        Text(
+                            text = "取消 Cancel",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
 
-                    Button(
-                        onClick = hapticClick { onConfirmSave(selectedOrientation) },
-                        modifier = Modifier
-                            .weight(1.3f)
-                            .pointerHoverIcon(PointerIcon.Hand),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
+                    // Expressive Primary Button: Save (Morphs from 16dp to 28dp pill on press)
+                    ExpressiveMorphButton(
+                        onClick = { onConfirmSave(selectedOrientation) },
+                        restingCorner = 16.dp,
+                        pressedCorner = 28.dp,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.weight(1.3f)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Download,
@@ -378,6 +460,296 @@ fun TimetableExportPreviewModal(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "儲存圖片 Save",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Fullscreen interactive zoom & pan viewer
+    if (showFullscreenViewer && previewBitmap != null) {
+        TimetableFullscreenPreviewDialog(
+            bitmap = previewBitmap!!,
+            orientation = selectedOrientation,
+            onDismiss = { showFullscreenViewer = false },
+            onConfirmSave = {
+                showFullscreenViewer = false
+                onConfirmSave(selectedOrientation)
+            }
+        )
+    }
+}
+
+/**
+ * Fullscreen Interactive Viewer allowing pinch-to-zoom, pan, double-tap zoom/reset,
+ * and quick save with Material 3 Expressive shape morphing buttons and bounded ripples.
+ */
+@Composable
+private fun TimetableFullscreenPreviewDialog(
+    bitmap: Bitmap,
+    orientation: TimetableExportOrientation,
+    onDismiss: () -> Unit,
+    onConfirmSave: () -> Unit
+) {
+    var zoomScale by remember { mutableFloatStateOf(1f) }
+    var panOffset by remember { mutableStateOf(Offset.Zero) }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
+    ) {
+        val view = LocalView.current
+        SideEffect {
+            var parent = view.parent
+            while (parent != null && parent !is DialogWindowProvider) {
+                parent = parent.parent
+            }
+            val dialogWindow = (parent as? DialogWindowProvider)?.window
+                ?: (view.context as? Activity)?.window
+            dialogWindow?.let { window ->
+                WindowCompat.setDecorFitsSystemWindows(window, false)
+                window.statusBarColor = android.graphics.Color.TRANSPARENT
+                window.navigationBarColor = android.graphics.Color.TRANSPARENT
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    window.isNavigationBarContrastEnforced = false
+                }
+                window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xF00A0E1A))
+        ) {
+            // Interactive Zoom & Pan Viewport
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onDoubleTap = {
+                                if (zoomScale > 1.1f) {
+                                    zoomScale = 1f
+                                    panOffset = Offset.Zero
+                                } else {
+                                    zoomScale = 2.5f
+                                }
+                            }
+                        )
+                    }
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            val newScale = (zoomScale * zoom).coerceIn(1f, 5f)
+                            zoomScale = newScale
+                            if (newScale > 1f) {
+                                val maxPanX = 1400f * (newScale - 1f)
+                                val maxPanY = 2200f * (newScale - 1f)
+                                panOffset = Offset(
+                                    x = (panOffset.x + pan.x).coerceIn(-maxPanX, maxPanX),
+                                    y = (panOffset.y + pan.y).coerceIn(-maxPanY, maxPanY)
+                                )
+                            } else {
+                                panOffset = Offset.Zero
+                            }
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = "Timetable Fullscreen Image",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 12.dp, vertical = 64.dp)
+                        .graphicsLayer {
+                            scaleX = zoomScale
+                            scaleY = zoomScale
+                            translationX = panOffset.x
+                            translationY = panOffset.y
+                        }
+                )
+            }
+
+            // Top Bar Overlay (Frosted glass header)
+            Surface(
+                shape = RoundedCornerShape(22.dp),
+                color = Color(0xCC161E2E),
+                border = BorderStroke(1.dp, Color(0x33FFFFFF)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .align(Alignment.TopCenter)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        ExpressiveMorphIconButton(
+                            onClick = onDismiss,
+                            restingCorner = 16.dp,
+                            pressedCorner = 8.dp,
+                            containerColor = Color(0x33FFFFFF),
+                            contentColor = Color.White,
+                            size = 36.dp,
+                            contentDescription = "Back"
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        Column {
+                            Text(
+                                text = if (orientation == TimetableExportOrientation.LANDSCAPE) "全螢幕課表檢視 · 橫向 16:9" else "全螢幕課表檢視 · 直向 9:16",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "雙指縮放 · 雙擊重設 · 拖曳檢視",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 11.sp,
+                                color = Color(0xFF94A3B8)
+                            )
+                        }
+                    }
+
+                    // Zoom level indicator & Reset Zoom
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                    ) {
+                        Text(
+                            text = "${(zoomScale * 100).toInt()}%",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+            }
+
+            // Bottom Floating Controls (Zoom +/- / 1x / Save)
+            Surface(
+                shape = RoundedCornerShape(26.dp),
+                color = Color(0xDD161E2E),
+                border = BorderStroke(1.dp, Color(0x33FFFFFF)),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = 20.dp, start = 16.dp, end = 16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Zoom Out Button
+                    ExpressiveMorphIconButton(
+                        onClick = {
+                            val newScale = (zoomScale - 0.5f).coerceAtLeast(1f)
+                            zoomScale = newScale
+                            if (newScale == 1f) panOffset = Offset.Zero
+                        },
+                        restingCorner = 14.dp,
+                        pressedCorner = 8.dp,
+                        containerColor = Color(0x22FFFFFF),
+                        contentColor = Color.White,
+                        size = 38.dp,
+                        contentDescription = "Zoom Out"
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Remove,
+                            contentDescription = "Zoom Out",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    // Reset 1.0x Button
+                    ExpressiveMorphButton(
+                        onClick = {
+                            zoomScale = 1f
+                            panOffset = Offset.Zero
+                        },
+                        restingCorner = 14.dp,
+                        pressedCorner = 24.dp,
+                        containerColor = if (zoomScale > 1.05f) MaterialTheme.colorScheme.primaryContainer else Color(0x22FFFFFF),
+                        contentColor = if (zoomScale > 1.05f) MaterialTheme.colorScheme.onPrimaryContainer else Color.White,
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.RestartAlt,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "1.0×",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    // Zoom In Button
+                    ExpressiveMorphIconButton(
+                        onClick = {
+                            zoomScale = (zoomScale + 0.5f).coerceAtMost(5f)
+                        },
+                        restingCorner = 14.dp,
+                        pressedCorner = 8.dp,
+                        containerColor = Color(0x22FFFFFF),
+                        contentColor = Color.White,
+                        size = 38.dp,
+                        contentDescription = "Zoom In"
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Zoom In",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    // Direct Save Button from Fullscreen
+                    ExpressiveMorphButton(
+                        onClick = onConfirmSave,
+                        restingCorner = 16.dp,
+                        pressedCorner = 28.dp,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 9.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Download,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "儲存 Save",
+                            style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -387,6 +759,109 @@ fun TimetableExportPreviewModal(
     }
 }
 
+/**
+ * Material 3 Expressive Action Button with dynamic shape morphing on press
+ * (corner radius morphing with pure spring physics, replacing the press-down effect)
+ * and strictly bounded high-contrast ripple highlight.
+ */
+@Composable
+private fun ExpressiveMorphButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    restingCorner: Dp = 16.dp,
+    pressedCorner: Dp = 28.dp,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
+    border: BorderStroke? = null,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    content: @Composable RowScope.() -> Unit
+) {
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    // Smooth spring shape morph replacing traditional scale/elevation drop
+    val cornerRadius by animateDpAsState(
+        targetValue = if (isPressed) pressedCorner else restingCorner,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "btnCornerMorph"
+    )
+    val animatedShape = RoundedCornerShape(cornerRadius)
+
+    Surface(
+        onClick = hapticClick(onClick),
+        enabled = enabled,
+        shape = animatedShape,
+        color = containerColor,
+        contentColor = contentColor,
+        border = border,
+        interactionSource = interactionSource,
+        modifier = modifier
+            .clip(animatedShape)
+            .pointerHoverIcon(PointerIcon.Hand)
+    ) {
+        Row(
+            modifier = Modifier.padding(contentPadding),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            content = content
+        )
+    }
+}
+
+/**
+ * Material 3 Expressive Icon Button with dynamic shape morphing on press
+ * and strictly bounded ripple highlight.
+ */
+@Composable
+private fun ExpressiveMorphIconButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    restingCorner: Dp = 18.dp,
+    pressedCorner: Dp = 8.dp,
+    containerColor: Color = Color.Transparent,
+    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    border: BorderStroke? = null,
+    size: Dp = 36.dp,
+    contentDescription: String? = null,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    content: @Composable () -> Unit
+) {
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val cornerRadius by animateDpAsState(
+        targetValue = if (isPressed) pressedCorner else restingCorner,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "iconBtnCornerMorph"
+    )
+    val animatedShape = RoundedCornerShape(cornerRadius)
+
+    Surface(
+        onClick = hapticClick(onClick),
+        enabled = enabled,
+        shape = animatedShape,
+        color = containerColor,
+        contentColor = contentColor,
+        border = border,
+        interactionSource = interactionSource,
+        modifier = modifier
+            .size(size)
+            .clip(animatedShape)
+            .pointerHoverIcon(PointerIcon.Hand)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            content()
+        }
+    }
+}
+
+/**
+ * Orientation Choice Card with dynamic shape morphing on press and strictly bounded ripple.
+ */
 @Composable
 private fun OrientationChoiceCard(
     title: String,
@@ -397,6 +872,17 @@ private fun OrientationChoiceCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    // Expressive shape morph on press: morphs between 18dp squircle and 8dp pill/squircle
+    val cornerRadius by animateDpAsState(
+        targetValue = if (isPressed) 8.dp else 18.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "choiceCornerMorph"
+    )
+    val animatedShape = RoundedCornerShape(cornerRadius)
+
     val containerColor by animateColorAsState(
         targetValue = if (isSelected) {
             MaterialTheme.colorScheme.primaryContainer
@@ -426,11 +912,14 @@ private fun OrientationChoiceCard(
     )
 
     Surface(
-        shape = RoundedCornerShape(18.dp),
+        onClick = hapticClick(onClick),
+        shape = animatedShape,
         color = containerColor,
+        contentColor = contentColor,
         border = BorderStroke(if (isSelected) 1.5.dp else 1.dp, borderColor),
+        interactionSource = interactionSource,
         modifier = modifier
-            .clickable(onClick = hapticClick(onClick))
+            .clip(animatedShape)
             .pointerHoverIcon(PointerIcon.Hand)
     ) {
         Column(

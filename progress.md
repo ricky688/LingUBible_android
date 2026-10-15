@@ -1,3 +1,21 @@
+## 2026-10-15 — 🎨 課表匯出預覽按鈕動態形狀變換（取代下壓縮放）、全螢幕雙指縮放檢視與邊界水波紋優化（Expressive Shape Morphing Buttons & Fullscreen Zoom Preview）
+
+- User requested replacing button press-down effects with Jetpack Compose shape changing, adding fullscreen pinch-to-zoom preview, and optimizing bounded ripple highlights:
+  - 按鈕動態形狀變換取代下壓縮放（Shape Changing replacing Press-Down Effect）：
+    - 嚴格遵循 Material 3 Expressive 標準，實作 `ExpressiveMorphButton`、`ExpressiveMorphIconButton` 與 `OrientationChoiceCard`。
+    - 移除傳統縮放（`scale`）或下沉（`elevation drop`）的物理下壓效果，按下時按鈕形狀即時動態形變（例如主要操作按鈕從圓角矩形 16.dp 平滑漸變為 28.dp 膠囊 Full Pill；圖標按鈕從 18.dp 圓形平滑漸變為 8.dp 圓角柔和松露形狀 Squircle）。
+    - 物理動效完全採用純彈簧剛度規範 `spring(stiffness = Spring.StiffnessMediumLow)`，絕不覆寫阻尼比（Never override damping ratios）。
+  - 優化嚴格約束水波紋高光（Optimized Bounded Ripple Highlight）：
+    - 解決傳統 Compose 容器外掛 `.clickable()` 導致水波紋穿透圓角矩形溢出的問題，全面結合 `Modifier.clip(animatedShape)` 與 `Surface(shape = animatedShape, ...)`。
+    - 水波紋在動畫形變的每一幀皆嚴格被限制於當前動態邊界內，並具備與主題高對比度的飽滿高光反饋（`onPrimary` 白色或 `primary` 品牌色）。
+  - 互動全螢幕縮放檢視（Fullscreen Interactive Zoom & Pan Viewport）：
+    - 在預覽視窗中輕觸預覽圖片卡片（具備「🔍 點擊全螢幕縮放檢視」提示與按壓形狀漸變），即可無縫開啟沉浸式全螢幕檢視器（`TimetableFullscreenPreviewDialog`）。
+    - 支援 1.0× 至 5.0× 雙指捏合縮放（Pinch-to-zoom）、任意平移拖曳（Pan）、以及雙擊快速縮放／重設（Double-tap zoom & reset）。
+    - 頂部半透明磨砂玻璃狀態列：顯示返回關閉按鈕、方向比例標籤、操作手勢提示與即時縮放百分比標籤（如 `100%`、`200%`）。
+    - 底部浮動膠囊工具列：配備縮小（`-`）、1.0× 重設、放大（`+`）以及直存按鈕（「儲存 Save」），所有按鈕皆具備動態形狀變換與邊界水波紋。
+- 更新 `TimetableExportPreviewModal.kt`（實作 `ExpressiveMorphButton`、`ExpressiveMorphIconButton`、`OrientationChoiceCard` 形狀變換、邊界水波紋及 `TimetableFullscreenPreviewDialog` 全螢幕縮放檢視）。
+- 431 項單元測試 100% 通過；編譯並於 Waydroid 實體環境驗證按鈕形變、水波紋、全螢幕縮放（200%放大及1.0x重設）、橫向與直向 9:16 全螢幕展示及直接儲存功能。
+
 ## 2026-10-15 — 🖼️ 課表匯出圖片即時預覽互動彈窗與橫向/直向（標準手機比例 9:16）雙模式選擇（Timetable Export Preview & Dual-Orientation Modal）
 
 - User requested adding image preview and orientation selection when tapping "Export as image" (匯出圖片):
