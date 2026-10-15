@@ -60,11 +60,47 @@ object TimetableImageExport {
     private const val TIME_COL_WIDTH = 140f
     private val DAY_COL_WIDTH = (EXPORT_WIDTH - TIME_COL_WIDTH) / 7f
 
-    private const val START_HOUR = 8
-    private const val START_MINUTE = 30 // 08:30 -> 510 min
-    private const val END_HOUR = 21
-    private const val END_MINUTE = 30   // 21:30 -> 1290 min
-    private const val TOTAL_MINUTES = (END_HOUR * 60 + END_MINUTE) - (START_HOUR * 60 + START_MINUTE) // 780 min
+    data class TimetableHourRange(
+        val startHour: Int,
+        val endHour: Int
+    ) {
+        val totalHours: Int get() = endHour - startHour
+        val startMinuteTotal: Int get() = startHour * 60 + 30
+        val totalMinutes: Int get() = totalHours * 60
+    }
+
+    /**
+     * Computes dynamic start and end hour slots based on the meetings of selected sections,
+     * leaving at least 1 hour of breathing room at both top and bottom to prevent crowdness.
+     * E.g. if the last event ends at 14:30, the grid extends to 15:30.
+     */
+    fun computeDynamicHourRange(selectedSections: List<TimetableSection>): TimetableHourRange {
+        val allMeetings = selectedSections.flatMap { it.meetings }
+        if (allMeetings.isEmpty()) {
+            return TimetableHourRange(startHour = 8, endHour = 18) // default 08:30 to 18:30
+        }
+
+        val firstStartMin = allMeetings.minOf { it.startMinutes }
+        val lastEndMin = allMeetings.maxOf { it.endMinutes }
+
+        // 1. Top space: leave at least 1 hour of space before the earliest meeting (minimum 07:30, maximum 10:30)
+        // E.g. earliest 08:30 (510 min) -> (510 - 80)/60 = 7 (07:30)
+        // earliest 09:30 (570 min) -> (570 - 80)/60 = 8 (08:30)
+        // earliest 10:30 (630 min) -> (630 - 80)/60 = 9 (09:30)
+        val computedStartHour = ((firstStartMin - 80) / 60).coerceIn(7, 10)
+
+        // 2. Bottom space: leave at least 1 hour of space after the latest meeting ends
+        // E.g. last event ends at 14:30 (870 min) -> (870 + 84)/60 = 15 (15:30)
+        // last event ends at 17:20 (1040 min) -> (1040 + 84)/60 = 18 (18:30)
+        // last event ends at 20:50 (1250 min) -> (1250 + 84)/60 = 22 (22:30)
+        val computedEndHour = ((lastEndMin + 84) / 60)
+
+        // Ensure reasonable minimum span (at least 6 hours) so short schedules remain proportional
+        val endHourWithMinSpan = maxOf(computedEndHour, computedStartHour + 6)
+        val finalEndHour = endHourWithMinSpan.coerceIn(computedStartHour + 4, 23)
+
+        return TimetableHourRange(startHour = computedStartHour, endHour = finalEndHour)
+    }
 
     private const val GRID_TOP = HEADER_HEIGHT + DAY_HEADER_HEIGHT
     private const val GRID_HEIGHT = EXPORT_HEIGHT - GRID_TOP
@@ -230,12 +266,20 @@ object TimetableImageExport {
             isAntiAlias = true
         }
 
-        for (h in 0 until 13) {
-            val y = GRID_TOP + h * (GRID_HEIGHT / 13f)
+        val hourRange = computeDynamicHourRange(selectedSections)
+        val startHour = hourRange.startHour
+        val endHour = hourRange.endHour
+        val totalHours = hourRange.totalHours
+        val startMinuteTotal = hourRange.startMinuteTotal
+        val totalMinutes = hourRange.totalMinutes
+
+        for (h in 0..totalHours) {
+            val y = GRID_TOP + h * (GRID_HEIGHT / totalHours.toFloat())
             // Horizontal hour separator
             canvas.drawLine(0f, y, EXPORT_WIDTH.toFloat(), y, hourLinePaint)
-            // Time mark
-            canvas.drawText(String.format("%02d:30", h + START_HOUR), TIME_COL_WIDTH / 2f, y + 22f, hourTextPaint)
+            // Time mark (avoid cutting off bottom text label)
+            val textY = if (h == totalHours) (y - 8f).coerceAtMost(EXPORT_HEIGHT - 6f) else y + 22f
+            canvas.drawText(String.format("%02d:30", h + startHour), TIME_COL_WIDTH / 2f, textY, hourTextPaint)
         }
 
         // 4. Course Event Blocks
@@ -310,11 +354,11 @@ object TimetableImageExport {
                 val dayIndex = DAYS_SUN_TO_SAT.indexOfFirst { it.code.equals(meeting.day, ignoreCase = true) }
                 if (dayIndex < 0) continue
 
-                val startMin = (meeting.startMinutes - (START_HOUR * 60 + START_MINUTE)).coerceAtLeast(0)
+                val startMin = (meeting.startMinutes - startMinuteTotal).coerceAtLeast(0)
                 val durationMin = (meeting.endMinutes - meeting.startMinutes + 1).coerceAtLeast(30)
 
-                val top = GRID_TOP + (startMin.toFloat() / TOTAL_MINUTES.toFloat()) * GRID_HEIGHT
-                val cardHeight = (durationMin.toFloat() / TOTAL_MINUTES.toFloat()) * GRID_HEIGHT
+                val top = GRID_TOP + (startMin.toFloat() / totalMinutes.toFloat()) * GRID_HEIGHT
+                val cardHeight = (durationMin.toFloat() / totalMinutes.toFloat()) * GRID_HEIGHT
                 val bottom = top + cardHeight
 
                 val colLeft = TIME_COL_WIDTH + dayIndex * DAY_COL_WIDTH
@@ -594,10 +638,18 @@ object TimetableImageExport {
             isAntiAlias = true
         }
 
-        for (h in 0 until 13) {
-            val y = portraitGridTop + h * (portraitGridHeight / 13f)
+        val hourRange = computeDynamicHourRange(selectedSections)
+        val startHour = hourRange.startHour
+        val endHour = hourRange.endHour
+        val totalHours = hourRange.totalHours
+        val startMinuteTotal = hourRange.startMinuteTotal
+        val totalMinutes = hourRange.totalMinutes
+
+        for (h in 0..totalHours) {
+            val y = portraitGridTop + h * (portraitGridHeight / totalHours.toFloat())
             canvas.drawLine(0f, y, PORTRAIT_WIDTH.toFloat(), y, hourLinePaint)
-            canvas.drawText(String.format("%02d:30", h + START_HOUR), portraitTimeColWidth / 2f, y + 22f, hourTextPaint)
+            val textY = if (h == totalHours) (y - 8f).coerceAtMost(PORTRAIT_HEIGHT - 6f) else y + 22f
+            canvas.drawText(String.format("%02d:30", h + startHour), portraitTimeColWidth / 2f, textY, hourTextPaint)
         }
 
         // 4. Course Event Blocks
@@ -671,11 +723,11 @@ object TimetableImageExport {
                 val dayIndex = DAYS_SUN_TO_SAT.indexOfFirst { it.code.equals(meeting.day, ignoreCase = true) }
                 if (dayIndex < 0) continue
 
-                val startMin = (meeting.startMinutes - (START_HOUR * 60 + START_MINUTE)).coerceAtLeast(0)
+                val startMin = (meeting.startMinutes - startMinuteTotal).coerceAtLeast(0)
                 val durationMin = (meeting.endMinutes - meeting.startMinutes + 1).coerceAtLeast(30)
 
-                val top = portraitGridTop + (startMin.toFloat() / TOTAL_MINUTES.toFloat()) * portraitGridHeight
-                val cardHeight = (durationMin.toFloat() / TOTAL_MINUTES.toFloat()) * portraitGridHeight
+                val top = portraitGridTop + (startMin.toFloat() / totalMinutes.toFloat()) * portraitGridHeight
+                val cardHeight = (durationMin.toFloat() / totalMinutes.toFloat()) * portraitGridHeight
                 val bottom = top + cardHeight
 
                 val colLeft = portraitTimeColWidth + dayIndex * portraitDayColWidth

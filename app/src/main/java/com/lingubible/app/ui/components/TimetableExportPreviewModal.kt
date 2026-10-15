@@ -627,18 +627,49 @@ private fun TimetableFullscreenPreviewDialog(
                     }
                 },
                 actions = {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
-                        modifier = Modifier.padding(end = 12.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(end = 8.dp)
                     ) {
-                        Text(
-                            text = "${(zoomScale * 100).toInt()}%",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                        // Quick 1-tap reset pill when zoomed in
+                        if (zoomScale > 1.05f) {
+                            Surface(
+                                onClick = hapticClick {
+                                    zoomScale = 1f
+                                    panOffset = Offset.Zero
+                                },
+                                shape = CircleShape,
+                                color = Color.White.copy(alpha = 0.15f),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .pointerHoverIcon(PointerIcon.Hand)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.RestartAlt,
+                                        contentDescription = "Reset Zoom",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "${(zoomScale * 100).toInt()}%",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+
+                        // Prominent Primary Action Pill: Save
+                        ExpressiveSaveButton(
+                            onClick = onConfirmSave
                         )
                     }
                 },
@@ -659,101 +690,6 @@ private fun TimetableFullscreenPreviewDialog(
                         shape = androidx.compose.ui.graphics.RectangleShape
                     )
             )
-
-            // Bottom Floating Controls: Material 3 HorizontalFloatingToolbar
-            // Strict compliance with https://m3.material.io/components/toolbars/overview
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-                    .padding(bottom = 24.dp, start = 16.dp, end = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                HorizontalFloatingToolbar(
-                    expanded = true,
-                    shape = CircleShape,
-                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-                        toolbarContainerColor = Color(0xFA1E293B),
-                        toolbarContentColor = Color.White
-                    ),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
-                    modifier = Modifier
-                        .shadow(
-                            elevation = 8.dp,
-                            shape = CircleShape,
-                            ambientColor = Color.Black.copy(alpha = 0.5f),
-                            spotColor = Color.Black.copy(alpha = 0.5f)
-                        )
-                        .border(
-                            width = 1.dp,
-                            brush = Brush.verticalGradient(
-                                listOf(
-                                    Color.White.copy(alpha = 0.25f),
-                                    Color.White.copy(alpha = 0.08f)
-                                )
-                            ),
-                            shape = CircleShape
-                        )
-                ) {
-                    // Zoom Out Button: clean uncontained icon button
-                    ExpressiveToolbarIconButton(
-                        onClick = {
-                            val newScale = (zoomScale - 0.5f).coerceAtLeast(1f)
-                            zoomScale = newScale
-                            if (newScale == 1f) panOffset = Offset.Zero
-                        },
-                        enabled = zoomScale > 1f,
-                        contentDescription = "Zoom Out"
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Remove,
-                            contentDescription = "Zoom Out",
-                            tint = if (zoomScale > 1f) Color.White else Color.White.copy(alpha = 0.35f),
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-
-                    // Reset 1.0x / Zoom Level Indicator
-                    ExpressiveZoomResetButton(
-                        zoomScale = zoomScale,
-                        onClick = {
-                            zoomScale = 1f
-                            panOffset = Offset.Zero
-                        }
-                    )
-
-                    // Zoom In Button: clean uncontained icon button
-                    ExpressiveToolbarIconButton(
-                        onClick = {
-                            zoomScale = (zoomScale + 0.5f).coerceAtMost(5f)
-                        },
-                        enabled = zoomScale < 5f,
-                        contentDescription = "Zoom In"
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Zoom In",
-                            tint = if (zoomScale < 5f) Color.White else Color.White.copy(alpha = 0.35f),
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-
-                    // M3 Toolbar Vertical Divider
-                    VerticalDivider(
-                        modifier = Modifier
-                            .height(24.dp)
-                            .padding(horizontal = 6.dp),
-                        color = Color.White.copy(alpha = 0.20f),
-                        thickness = 1.dp
-                    )
-
-                    // Prominent Primary Action Pill: Save
-                    ExpressiveSaveButton(
-                        onClick = onConfirmSave
-                    )
-                }
-            }
         }
     }
 }
@@ -896,7 +832,7 @@ private fun ExpressiveSaveButton(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) 12.dp else 24.dp,
+        targetValue = if (isPressed) 10.dp else 20.dp,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "saveBtnCorner"
     )
@@ -911,7 +847,7 @@ private fun ExpressiveSaveButton(
         modifier = modifier
             .clip(animatedShape)
             .shadow(
-                elevation = if (isPressed) 2.dp else 6.dp,
+                elevation = if (isPressed) 1.dp else 4.dp,
                 shape = animatedShape,
                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
@@ -919,16 +855,16 @@ private fun ExpressiveSaveButton(
             .pointerHoverIcon(PointerIcon.Hand)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.Download,
                 contentDescription = null,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(17.dp)
             )
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(5.dp))
             Text(
                 text = "儲存 Save",
                 style = MaterialTheme.typography.labelMedium,

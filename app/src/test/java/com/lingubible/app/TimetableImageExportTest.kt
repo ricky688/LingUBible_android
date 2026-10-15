@@ -121,4 +121,64 @@ class TimetableImageExportTest {
         assertEquals("Portrait", portrait.titleEn)
         assertTrue(portrait.resolutionLabel.contains("1440 × 2560"))
     }
+
+    @Test fun dynamicHourRangeLeavesBreathingRoomAtTopAndBottom() {
+        // Scenario 1: Empty schedule defaults to 08:30 - 18:30
+        val emptyRange = TimetableImageExport.computeDynamicHourRange(emptyList())
+        assertEquals(8, emptyRange.startHour) // 08:30
+        assertEquals(18, emptyRange.endHour)  // 18:30
+
+        // Scenario 2: User's exact prompt example:
+        // Course ending at 14:30 (870 min) and starting at 10:30 (630 min)
+        // Must show 15:30 at bottom to prevent crowding, and leave space at top
+        val afternoonSection = com.lingubible.app.domain.model.TimetableSection(
+            id = "s1",
+            crn = "1001",
+            courseCode = "TEST1001",
+            courseTitle = "Test Course",
+            section = "1",
+            colorHex = "#3B82F6",
+            meetings = listOf(
+                com.lingubible.app.domain.model.TimetableMeeting(
+                    day = "WED",
+                    start = "10:30",
+                    end = "14:30",
+                    startMinutes = 10 * 60 + 30, // 630 min
+                    endMinutes = 14 * 60 + 30,   // 870 min
+                    venue = "LKK201",
+                    type = "LEC"
+                )
+            )
+        )
+        val range2 = TimetableImageExport.computeDynamicHourRange(listOf(afternoonSection))
+        // Top should leave at least 1 hour of space before 10:30 -> starts at 09:30 (startHour = 9)
+        assertEquals(9, range2.startHour)
+        // Bottom should extend to 15:30 to leave room after 14:30 -> ends at 15:30 (endHour = 15)
+        assertEquals(15, range2.endHour)
+
+        // Scenario 3: Evening class ending at 20:50 (1250 min)
+        val eveningSection = com.lingubible.app.domain.model.TimetableSection(
+            id = "s2",
+            crn = "2001",
+            courseCode = "EVNG2001",
+            courseTitle = "Evening Course",
+            section = "1",
+            colorHex = "#EA580C",
+            meetings = listOf(
+                com.lingubible.app.domain.model.TimetableMeeting(
+                    day = "TUE",
+                    start = "18:00",
+                    end = "20:50",
+                    startMinutes = 18 * 60,       // 1080 min
+                    endMinutes = 20 * 60 + 50,   // 1250 min
+                    venue = "MBG01",
+                    type = "LEC"
+                )
+            )
+        )
+        val range3 = TimetableImageExport.computeDynamicHourRange(listOf(eveningSection))
+        // Bottom must extend to 22:30 (endHour = 22) so 20:50 doesn't crash into bottom border
+        assertEquals(22, range3.endHour)
+    }
 }
+
