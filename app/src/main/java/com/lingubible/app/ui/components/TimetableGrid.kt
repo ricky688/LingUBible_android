@@ -41,6 +41,7 @@ import com.lingubible.app.domain.model.TimeConflict
 import com.lingubible.app.domain.model.TimetableMeeting
 import com.lingubible.app.domain.model.TimetableSection
 import com.lingubible.app.domain.model.TimetableTerm
+import com.lingubible.app.core.util.TimetableExportOrientation
 import com.lingubible.app.core.util.TimetableImageExport
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -110,6 +111,7 @@ fun TimetableGrid(
     val imageBackground = MaterialTheme.colorScheme.background.toArgb()
     var exportingImage by remember { mutableStateOf(false) }
     var pendingImagePath by rememberSaveable { mutableStateOf<String?>(null) }
+    var showExportPreviewDialog by remember { mutableStateOf(false) }
     val saveImage = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
         val file = pendingImagePath?.let(::File)
         pendingImagePath = null
@@ -243,29 +245,7 @@ fun TimetableGrid(
                 enabled = !exportingImage && pendingImagePath == null,
                 contentPadding = PaddingValues(horizontal = 10.dp),
                 onClick = hapticClick {
-                    exportingImage = true
-                    scope.launch {
-                        try {
-                            val file = TimetableImageExport.captureLandscape(
-                                context = context,
-                                term = term,
-                                selectedSections = selectedSections,
-                                conflicts = conflicts,
-                                isDark = isDark,
-                                creditsByCode = creditsByCode
-                            )
-                            pendingImagePath = file.absolutePath
-                            saveImage.launch("LingUBible_${term.short}_Timetable_Landscape.png")
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
-                        } catch (_: Exception) {
-                            pendingImagePath?.let { File(it).delete() }
-                            pendingImagePath = null
-                            Toast.makeText(context, "無法擷取課表圖片，請重試 / Could not capture timetable; please retry", Toast.LENGTH_LONG).show()
-                        } finally {
-                            exportingImage = false
-                        }
-                    }
+                    showExportPreviewDialog = true
                 }
             ) {
                 Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -734,6 +714,44 @@ fun TimetableGrid(
                             onClick = hapticClick { selectedMeetingForDialog = null },
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                         ) { Text("關閉 Close") }
+                    }
+                }
+            }
+        )
+    }
+
+    if (showExportPreviewDialog) {
+        TimetableExportPreviewModal(
+            term = term,
+            selectedSections = selectedSections,
+            conflicts = conflicts,
+            creditsByCode = creditsByCode,
+            onDismiss = { showExportPreviewDialog = false },
+            onConfirmSave = { orientation ->
+                showExportPreviewDialog = false
+                exportingImage = true
+                scope.launch {
+                    try {
+                        val file = TimetableImageExport.capture(
+                            context = context,
+                            orientation = orientation,
+                            term = term,
+                            selectedSections = selectedSections,
+                            conflicts = conflicts,
+                            isDark = isDark,
+                            creditsByCode = creditsByCode
+                        )
+                        pendingImagePath = file.absolutePath
+                        val suffix = if (orientation == TimetableExportOrientation.LANDSCAPE) "Landscape" else "Portrait"
+                        saveImage.launch("LingUBible_${term.short}_Timetable_${suffix}.png")
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (_: Exception) {
+                        pendingImagePath?.let { File(it).delete() }
+                        pendingImagePath = null
+                        Toast.makeText(context, "無法擷取課表圖片，請重試 / Could not capture timetable; please retry", Toast.LENGTH_LONG).show()
+                    } finally {
+                        exportingImage = false
                     }
                 }
             }

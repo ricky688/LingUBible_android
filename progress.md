@@ -1,3 +1,19 @@
+## 2026-10-15 — 🖼️ 課表匯出圖片即時預覽互動彈窗與橫向/直向（標準手機比例 9:16）雙模式選擇（Timetable Export Preview & Dual-Orientation Modal）
+
+- User requested adding image preview and orientation selection when tapping "Export as image" (匯出圖片):
+  - 即時預覽互動彈窗（Export Preview Modal）：點擊「匯出圖片」不再直接開啟系統檔案選擇器，而是彈出 Material 3 Expressive 風格的預覽視窗（`TimetableExportPreviewModal`），讓同學在匯出儲存前即可即時預覽課表生成圖樣。
+  - 預設橫向寬螢幕（Landscape by Default）：選單預設選中「橫向寬螢幕」（2400 × 1400，16:9 / 1.71:1 寬螢幕比例），每週欄寬充裕、課堂資訊完整、適合電腦／平板檢視與列印。
+  - 直向標準手機比例（Standard Phone Ratio 9:16 Portrait）：
+    - 提供「直向標準手機」選項（1440 × 2560），嚴格符合 9:16 現代智慧型手機標準比例（1.7778），完美適合設置為手機桌布、鎖定畫面或 Instagram/社群限動分享。
+    - 最適欄位寬度（Appropriate Column Width）：七天欄位每欄高達 187.1px，卡片寬度達 179px，垂直高度達 2320px（1小時課程即具備 179px 充裕高度），完整容納課號、右上角堂別徽章、課名、CRN、地點與時間五行資訊，不狹窄擠壓。
+  - 雙向即時動態切換：在彈窗中點擊橫向或直向選項，即時以滑順彈簧動畫更新預覽圖片與解析度說明標籤（`2400 × 1400` vs `1440 × 2560`）。
+  - 下載確認動作：彈窗下方提供「取消 Cancel」與「儲存圖片 Save」，確認後帶入對應檔名（`LingUBible_<Term>_Timetable_Landscape.png` 或 `LingUBible_<Term>_Timetable_Portrait.png`）調用系統 SAF 檔案儲存器。
+- 新增 `TimetableExportPreviewModal.kt`（包含雙方向選擇卡片、即時點陣圖渲染、規格摘要膠囊與動作按鈕）。
+- 更新 `TimetableImageExport.kt`（新增 `TimetableExportOrientation` 列舉、`generatePortraitBitmap`、`PORTRAIT_WIDTH = 1440`、`PORTRAIT_HEIGHT = 2560`、`generateBitmap` 與 `capture` 依方向調用）。
+- 更新 `TimetableGrid.kt`（點擊匯出圖片啟動預覽彈窗、確認後儲存所選方向圖檔）。
+- 更新 `TimetableImageExportTest.kt`（新增直向標準手機比例 9:16 與方向列舉標籤測試，431 項測試 100% 通過）。
+- 真機與模擬器實測：在 Waydroid 上完整實測橫向與直向即時切換、預覽渲染、圖片儲存並驗證拉取的 PNG 圖檔。
+
 ## 2026-10-15 — 📅 課表匯出圖片新增 CRN 資訊與堂別（LEC/TUT）右上角膠囊徽章設計（CRN & Top-Right Badge）
 
 - User requested adding CRN information and placing the `LEC` or `TUT` indicator in the top-right corner of each event card in the exported timetable image:

@@ -99,4 +99,26 @@ class TimetableImageExportTest {
         assertEquals("Section 2", formatCrn("2", ""))
         assertEquals("", formatCrn("", ""))
     }
+
+    @Test fun portraitExportDimensionsMatchStandardPhoneRatio() {
+        assertEquals(1440, TimetableImageExport.PORTRAIT_WIDTH)
+        assertEquals(2560, TimetableImageExport.PORTRAIT_HEIGHT)
+        assertTrue("Exported image must be portrait (height > width)",
+            TimetableImageExport.PORTRAIT_HEIGHT > TimetableImageExport.PORTRAIT_WIDTH)
+        val aspectRatio = TimetableImageExport.PORTRAIT_HEIGHT.toFloat() / TimetableImageExport.PORTRAIT_WIDTH.toFloat()
+        // 2560 / 1440 = 16 / 9 = 1.7777778f
+        assertEquals(16f / 9f, aspectRatio, 0.001f)
+    }
+
+    @Test fun orientationEnumProvidesCorrectLabels() {
+        val landscape = com.lingubible.app.core.util.TimetableExportOrientation.LANDSCAPE
+        assertEquals("橫向寬螢幕", landscape.titleZh)
+        assertEquals("Landscape", landscape.titleEn)
+        assertTrue(landscape.resolutionLabel.contains("2400 × 1400"))
+
+        val portrait = com.lingubible.app.core.util.TimetableExportOrientation.PORTRAIT
+        assertEquals("直向標準手機", portrait.titleZh)
+        assertEquals("Portrait", portrait.titleEn)
+        assertTrue(portrait.resolutionLabel.contains("1440 × 2560"))
+    }
 }
