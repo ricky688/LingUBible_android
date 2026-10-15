@@ -30,6 +30,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -54,6 +55,7 @@ val LocalBottomBarState = compositionLocalOf { BottomBarState() }
 fun LingUBibleBottomBar(
     navController: NavHostController,
     isVisible: Boolean = true,
+    barOffset: Dp? = null,
     onExpand: () -> Unit = {},
     modifier: Modifier = Modifier,
     settingsManager: AppSettingsManager = koinInject()
@@ -107,7 +109,7 @@ fun LingUBibleBottomBar(
     }
 
     // Spring physics for slide down / up with pure spring stiffness
-    val barTranslationY by animateDpAsState(
+    val internalTranslationY by animateDpAsState(
         targetValue = if (isVisible) 0.dp else 200.dp,
         animationSpec = if (isVisible) {
             spring(stiffness = Spring.StiffnessMediumLow)
@@ -116,11 +118,12 @@ fun LingUBibleBottomBar(
         },
         label = "bottomBarTranslationY"
     )
+    val barTranslationY = barOffset ?: internalTranslationY
 
-    // Fade animation on items
+    // Fade animation on items strictly matching spring motion
     val itemsAlpha by animateFloatAsState(
         targetValue = if (isVisible) 1f else 0f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "itemsAlpha"
     )
 

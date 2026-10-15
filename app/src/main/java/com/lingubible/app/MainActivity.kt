@@ -8,6 +8,7 @@ import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.SystemBarStyle
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -291,6 +292,22 @@ fun LingUBibleMainScreen() {
             val screenWidthPx = with(density) { maxWidth.toPx() }
             val screenHeightPx = with(density) { maxHeight.toPx() }
 
+            val systemBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            val isBottomBarTargetVisible = shouldShowBottomBar && isBottomBarVisible && !imeVisible
+            // Standard NavigationBar height is 80.dp + systemBottom. Scrim extends 48.dp above the bar.
+            // Full hide translation ensures the entire bar and its top decorative scrim are pushed below screen.
+            val hideTranslation = 80.dp + systemBottom + 48.dp
+
+            val bottomBarTranslationY by animateDpAsState(
+                targetValue = if (isBottomBarTargetVisible) 0.dp else hideTranslation,
+                animationSpec = if (isBottomBarTargetVisible) {
+                    spring(stiffness = Spring.StiffnessMediumLow)
+                } else {
+                    spring(stiffness = Spring.StiffnessMedium)
+                },
+                label = "bottomBarTranslationY"
+            )
+
             Scaffold(
                 modifier = Modifier.nestedScroll(nestedScrollConnection),
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -312,7 +329,8 @@ fun LingUBibleMainScreen() {
                     if (shouldShowBottomBar) {
                         LingUBibleBottomBar(
                             navController = navController,
-                            isVisible = isBottomBarVisible && !imeVisible,
+                            isVisible = isBottomBarTargetVisible,
+                            barOffset = bottomBarTranslationY,
                             onExpand = { isBottomBarVisible = true }
                         )
                     }
@@ -321,11 +339,14 @@ fun LingUBibleMainScreen() {
                 val topBarPadding = innerPadding.calculateTopPadding()
                 val statusBarPadding = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
                 val effectiveTopPadding = maxOf(topBarPadding, statusBarPadding)
-                val systemBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-                val bottomClearance = when {
+                val fullBarClearance = if (shouldShowBottomBar) maxOf(innerPadding.calculateBottomPadding(), systemBottom) else systemBottom
+                // The visible clearance strictly tracks the physical top edge of the rising bottom navigation bar.
+                // When the bar is off-screen, clearance is pinned at systemBottom.
+                // As the bar rises onto the screen, clearance increases in exact 1:1 frame-perfect lockstep with the bar.
+                val visibleBottomClearance = when {
                     imeVisible -> 0.dp // imePadding below owns the entire keyboard inset.
-                    shouldShowBottomBar && isBottomBarVisible -> maxOf(innerPadding.calculateBottomPadding(), systemBottom)
-                    else -> systemBottom
+                    !shouldShowBottomBar -> systemBottom
+                    else -> (fullBarClearance - bottomBarTranslationY).coerceAtLeast(systemBottom)
                 }
                 Box(
                     modifier = Modifier
@@ -335,7 +356,7 @@ fun LingUBibleMainScreen() {
                         .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
                         .imePadding()
                 ) {
-                    CompositionLocalProvider(LocalScreenBottomClearance provides bottomClearance) {
+                    CompositionLocalProvider(LocalScreenBottomClearance provides visibleBottomClearance) {
                         LingUBibleNavHost(
                             navController = navController,
                             modifier = Modifier.fillMaxSize()

@@ -150,7 +150,6 @@ fun TimetableExportPreviewModal(
                 creditsByCode = creditsByCode
             )
             withContext(Dispatchers.Main) {
-                previewBitmap?.recycle()
                 previewBitmap = bmp
                 isRendering = false
             }
@@ -159,7 +158,6 @@ fun TimetableExportPreviewModal(
 
     DisposableEffect(Unit) {
         onDispose {
-            previewBitmap?.recycle()
             previewBitmap = null
         }
     }
