@@ -180,5 +180,20 @@ class TimetableImageExportTest {
         // Bottom must extend to 22:30 (endHour = 22) so 20:50 doesn't crash into bottom border
         assertEquals(22, range3.endHour)
     }
+
+    @Test fun showGridLinesDefaultsToTrue() {
+        // Verify default showGridLines parameter is optional and present across methods
+        val defaultLandscapeSig = TimetableImageExport::generateLandscapeBitmap.parameters.find { it.name == "showGridLines" }
+        assertNotNull(defaultLandscapeSig)
+        assertTrue(defaultLandscapeSig!!.isOptional)
+
+        val defaultPortraitSig = TimetableImageExport::generatePortraitBitmap.parameters.find { it.name == "showGridLines" }
+        assertNotNull(defaultPortraitSig)
+        assertTrue(defaultPortraitSig!!.isOptional)
+
+        val defaultGenerateBitmapSig = TimetableImageExport::generateBitmap.parameters.find { it.name == "showGridLines" }
+        assertNotNull(defaultGenerateBitmapSig)
+        assertTrue(defaultGenerateBitmapSig!!.isOptional)
+    }
 }
 

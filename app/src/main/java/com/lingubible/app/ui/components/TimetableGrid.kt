@@ -727,7 +727,7 @@ fun TimetableGrid(
             conflicts = conflicts,
             creditsByCode = creditsByCode,
             onDismiss = { showExportPreviewDialog = false },
-            onConfirmSave = { orientation ->
+            onConfirmSave = { orientation, showGridLines ->
                 showExportPreviewDialog = false
                 exportingImage = true
                 scope.launch {
@@ -739,7 +739,8 @@ fun TimetableGrid(
                             selectedSections = selectedSections,
                             conflicts = conflicts,
                             isDark = isDark,
-                            creditsByCode = creditsByCode
+                            creditsByCode = creditsByCode,
+                            showGridLines = showGridLines
                         )
                         pendingImagePath = file.absolutePath
                         val suffix = if (orientation == TimetableExportOrientation.LANDSCAPE) "Landscape" else "Portrait"

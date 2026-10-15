@@ -6,12 +6,15 @@ import android.os.Build
 import android.view.WindowManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -48,6 +51,8 @@ import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.GridOff
+import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Remove
@@ -63,6 +68,8 @@ import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -75,6 +82,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,12 +102,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.lingubible.app.core.theme.isAppDarkTheme
 import com.lingubible.app.core.util.TimetableExportOrientation
 import com.lingubible.app.core.util.TimetableImageExport
@@ -108,6 +119,7 @@ import com.lingubible.app.domain.model.TimetableSection
 import com.lingubible.app.domain.model.TimetableTerm
 import com.lingubible.app.ui.common.hapticClick
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
@@ -126,7 +138,7 @@ fun TimetableExportPreviewModal(
     conflicts: List<TimeConflict>,
     creditsByCode: Map<String, Int>,
     onDismiss: () -> Unit,
-    onConfirmSave: (TimetableExportOrientation) -> Unit,
+    onConfirmSave: (TimetableExportOrientation, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isDark = isAppDarkTheme()
@@ -134,11 +146,14 @@ fun TimetableExportPreviewModal(
     // Default orientation is Landscape as specified
     var selectedOrientation by remember { mutableStateOf(TimetableExportOrientation.LANDSCAPE) }
 
+    // Calendar grid lines toggle (Default ON as requested)
+    var showGridLines by remember { mutableStateOf(true) }
+
     var previewBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isRendering by remember { mutableStateOf(true) }
     var showFullscreenViewer by remember { mutableStateOf(false) }
 
-    LaunchedEffect(selectedOrientation, term, selectedSections, conflicts, isDark) {
+    LaunchedEffect(selectedOrientation, showGridLines, term, selectedSections, conflicts, isDark) {
         isRendering = true
         withContext(Dispatchers.Default) {
             val bmp = TimetableImageExport.generateBitmap(
@@ -147,7 +162,8 @@ fun TimetableExportPreviewModal(
                 selectedSections = selectedSections,
                 conflicts = conflicts,
                 isDark = isDark,
-                creditsByCode = creditsByCode
+                creditsByCode = creditsByCode,
+                showGridLines = showGridLines
             )
             withContext(Dispatchers.Main) {
                 previewBitmap = bmp
@@ -268,6 +284,67 @@ fun TimetableExportPreviewModal(
                     )
                 }
 
+                // 2.5 Grid Lines Toggle Card (Default ON)
+                Surface(
+                    onClick = hapticClick { showGridLines = !showGridLines },
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    border = BorderStroke(
+                        1.dp,
+                        if (showGridLines) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pointerHoverIcon(PointerIcon.Hand)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = if (showGridLines) Icons.Default.GridOn else Icons.Default.GridOff,
+                                contentDescription = null,
+                                tint = if (showGridLines) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Column {
+                                Text(
+                                    text = "顯示課表格線 (預設開啟)",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Show Grid Lines (時間欄與各星期分隔線)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Switch(
+                            checked = showGridLines,
+                            onCheckedChange = { showGridLines = it },
+                            thumbContent = {
+                                Icon(
+                                    imageVector = if (showGridLines) Icons.Default.GridOn else Icons.Default.GridOff,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                        )
+                    }
+                }
+
                 // 3. Image Preview Area (Interactive Card with Shape Morphing & Fullscreen Zoom on Press)
                 val previewCardInteractionSource = remember { MutableInteractionSource() }
                 val isPreviewPressed by previewCardInteractionSource.collectIsPressedAsState()
@@ -377,49 +454,62 @@ fun TimetableExportPreviewModal(
                     }
                 }
 
-                // 4. Resolution & usage details pill
+                // 4. Resolution & usage details pill with Spring Physics word changing
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = MaterialTheme.colorScheme.surfaceContainer,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (selectedOrientation == TimetableExportOrientation.LANDSCAPE) {
-                                Icons.Default.AspectRatio
-                            } else {
-                                Icons.Default.PhoneAndroid
-                            },
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Column {
-                            Text(
-                                text = if (selectedOrientation == TimetableExportOrientation.LANDSCAPE) {
-                                    "2400 × 1400 · 寬螢幕橫向比例 (16:9)"
+                    AnimatedContent(
+                        targetState = selectedOrientation,
+                        transitionSpec = {
+                            val springSpec = spring<Float>(stiffness = Spring.StiffnessMediumLow)
+                            val intSpringSpec = spring<IntOffset>(stiffness = Spring.StiffnessMediumLow)
+                            (fadeIn(animationSpec = springSpec) + slideInVertically(animationSpec = intSpringSpec) { h -> if (targetState == TimetableExportOrientation.PORTRAIT) h / 3 else -h / 3 })
+                                .togetherWith(
+                                    fadeOut(animationSpec = springSpec) + slideOutVertically(animationSpec = intSpringSpec) { h -> if (targetState == TimetableExportOrientation.PORTRAIT) -h / 3 else h / 3 }
+                                )
+                        },
+                        label = "orientationWordsSpringChange"
+                    ) { orientation ->
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (orientation == TimetableExportOrientation.LANDSCAPE) {
+                                    Icons.Default.AspectRatio
                                 } else {
-                                    "1440 × 2560 · 標準手機比例 (9:16)"
+                                    Icons.Default.PhoneAndroid
                                 },
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
                             )
-                            Text(
-                                text = if (selectedOrientation == TimetableExportOrientation.LANDSCAPE) {
-                                    "課堂卡片寬廣清晰，適合電腦、平板與列印保存"
-                                } else {
-                                    "直向寬度自適應最適比例，完美符合手機螢幕與桌布分享"
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Column {
+                                Text(
+                                    text = if (orientation == TimetableExportOrientation.LANDSCAPE) {
+                                        "2400 × 1400 · 寬螢幕橫向比例 (16:9)"
+                                    } else {
+                                        "1440 × 2560 · 標準手機比例 (9:16)"
+                                    },
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (orientation == TimetableExportOrientation.LANDSCAPE) {
+                                        "課堂卡片寬廣清晰，適合電腦、平板與列印保存"
+                                    } else {
+                                        "直向寬度自適應最適比例，完美符合手機螢幕與桌布分享"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -449,7 +539,7 @@ fun TimetableExportPreviewModal(
 
                     // Expressive Primary Button: Save (Morphs from 16dp to 28dp pill on press)
                     ExpressiveMorphButton(
-                        onClick = { onConfirmSave(selectedOrientation) },
+                        onClick = { onConfirmSave(selectedOrientation, showGridLines) },
                         restingCorner = 16.dp,
                         pressedCorner = 28.dp,
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -481,7 +571,7 @@ fun TimetableExportPreviewModal(
             onDismiss = { showFullscreenViewer = false },
             onConfirmSave = {
                 showFullscreenViewer = false
-                onConfirmSave(selectedOrientation)
+                onConfirmSave(selectedOrientation, showGridLines)
             }
         )
     }
@@ -498,8 +588,10 @@ private fun TimetableFullscreenPreviewDialog(
     onDismiss: () -> Unit,
     onConfirmSave: () -> Unit
 ) {
-    var zoomScale by remember { mutableFloatStateOf(1f) }
-    var panOffset by remember { mutableStateOf(Offset.Zero) }
+    val zoomScaleAnimatable = remember { Animatable(1f) }
+    val panXAnimatable = remember { Animatable(0f) }
+    val panYAnimatable = remember { Animatable(0f) }
+    val coroutineScope = rememberCoroutineScope()
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -524,6 +616,13 @@ private fun TimetableFullscreenPreviewDialog(
                     window.isNavigationBarContrastEnforced = false
                 }
                 window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+
+                // Hide status bar completely in fullscreen preview to avoid black/dark clash
+                val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                insetsController.hide(WindowInsetsCompat.Type.statusBars())
+                insetsController.isAppearanceLightStatusBars = false
+                insetsController.isAppearanceLightNavigationBars = false
             }
         }
 
@@ -532,35 +631,41 @@ private fun TimetableFullscreenPreviewDialog(
                 .fillMaxSize()
                 .background(Color(0xFF090D16))
         ) {
-            // Interactive Zoom & Pan Viewport
+            // Interactive Zoom & Pan Viewport with Smooth Spring Animations
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onDoubleTap = {
-                                if (zoomScale > 1.1f) {
-                                    zoomScale = 1f
-                                    panOffset = Offset.Zero
-                                } else {
-                                    zoomScale = 2.5f
+                                coroutineScope.launch {
+                                    if (zoomScaleAnimatable.value > 1.1f) {
+                                        // Smooth spring undo zoom back to 1f and pan (0,0)
+                                        launch { zoomScaleAnimatable.animateTo(1f, spring(stiffness = Spring.StiffnessMediumLow)) }
+                                        launch { panXAnimatable.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow)) }
+                                        launch { panYAnimatable.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow)) }
+                                    } else {
+                                        // Smooth spring zoom in to 2.5f
+                                        launch { zoomScaleAnimatable.animateTo(2.5f, spring(stiffness = Spring.StiffnessMediumLow)) }
+                                    }
                                 }
                             }
                         )
                     }
                     .pointerInput(Unit) {
                         detectTransformGestures { _, pan, zoom, _ ->
-                            val newScale = (zoomScale * zoom).coerceIn(1f, 5f)
-                            zoomScale = newScale
-                            if (newScale > 1f) {
-                                val maxPanX = 1400f * (newScale - 1f)
-                                val maxPanY = 2200f * (newScale - 1f)
-                                panOffset = Offset(
-                                    x = (panOffset.x + pan.x).coerceIn(-maxPanX, maxPanX),
-                                    y = (panOffset.y + pan.y).coerceIn(-maxPanY, maxPanY)
-                                )
-                            } else {
-                                panOffset = Offset.Zero
+                            val newScale = (zoomScaleAnimatable.value * zoom).coerceIn(1f, 5f)
+                            coroutineScope.launch {
+                                zoomScaleAnimatable.snapTo(newScale)
+                                if (newScale > 1f) {
+                                    val maxPanX = 1400f * (newScale - 1f)
+                                    val maxPanY = 2200f * (newScale - 1f)
+                                    panXAnimatable.snapTo((panXAnimatable.value + pan.x).coerceIn(-maxPanX, maxPanX))
+                                    panYAnimatable.snapTo((panYAnimatable.value + pan.y).coerceIn(-maxPanY, maxPanY))
+                                } else {
+                                    panXAnimatable.snapTo(0f)
+                                    panYAnimatable.snapTo(0f)
+                                }
                             }
                         }
                     },
@@ -574,10 +679,10 @@ private fun TimetableFullscreenPreviewDialog(
                         .fillMaxSize()
                         .padding(horizontal = 12.dp, vertical = 72.dp)
                         .graphicsLayer {
-                            scaleX = zoomScale
-                            scaleY = zoomScale
-                            translationX = panOffset.x
-                            translationY = panOffset.y
+                            scaleX = zoomScaleAnimatable.value
+                            scaleY = zoomScaleAnimatable.value
+                            translationX = panXAnimatable.value
+                            translationY = panYAnimatable.value
                         }
                 )
             }
@@ -629,12 +734,16 @@ private fun TimetableFullscreenPreviewDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
-                        // Quick 1-tap reset pill when zoomed in
-                        if (zoomScale > 1.05f) {
+                        val currentScale = zoomScaleAnimatable.value
+                        // Quick 1-tap reset pill when zoomed in (smooth spring reset)
+                        if (currentScale > 1.05f) {
                             Surface(
                                 onClick = hapticClick {
-                                    zoomScale = 1f
-                                    panOffset = Offset.Zero
+                                    coroutineScope.launch {
+                                        launch { zoomScaleAnimatable.animateTo(1f, spring(stiffness = Spring.StiffnessMediumLow)) }
+                                        launch { panXAnimatable.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow)) }
+                                        launch { panYAnimatable.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow)) }
+                                    }
                                 },
                                 shape = CircleShape,
                                 color = Color.White.copy(alpha = 0.15f),
@@ -655,7 +764,7 @@ private fun TimetableFullscreenPreviewDialog(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "${(zoomScale * 100).toInt()}%",
+                                        text = "${(currentScale * 100).toInt()}%",
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White

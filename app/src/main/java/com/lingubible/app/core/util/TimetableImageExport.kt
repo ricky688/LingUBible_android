@@ -114,7 +114,8 @@ object TimetableImageExport {
         selectedSections: List<TimetableSection>,
         conflicts: List<TimeConflict> = emptyList(),
         isDark: Boolean = false,
-        creditsByCode: Map<String, Int> = emptyMap()
+        creditsByCode: Map<String, Int> = emptyMap(),
+        showGridLines: Boolean = true
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(EXPORT_WIDTH, EXPORT_HEIGHT, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -125,8 +126,8 @@ object TimetableImageExport {
         val dayHeaderBg = if (isDark) 0xFF1E293B.toInt() else 0xFFF1F5F9.toInt()
         val gridBg = if (isDark) 0xFF0B1120.toInt() else 0xFFFAFAFA.toInt()
         val timeColBg = if (isDark) 0xFF1E293B.toInt() else 0xFFF8FAFC.toInt()
-        val gridBorder = if (isDark) 0xFF334155.toInt() else 0xFFE2E8F0.toInt()
-        val hourLineColor = if (isDark) 0xFF1E293B.toInt() else 0xFFF1F5F9.toInt()
+        val gridBorder = if (isDark) 0xFF334155.toInt() else 0xFFCBD5E1.toInt()
+        val hourLineColor = if (isDark) 0xFF334155.toInt() else 0xFFCBD5E1.toInt()
         val textPrimary = if (isDark) 0xFFF8FAFC.toInt() else 0xFF0F172A.toInt()
         val textSecondary = if (isDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt()
         val lingnanRed = 0xFFDC2626.toInt()
@@ -240,7 +241,8 @@ object TimetableImageExport {
             canvas.drawText(day.en, cx, HEADER_HEIGHT + 60f, dayEnPaint)
 
             val dividerX = TIME_COL_WIDTH + (i + 1) * DAY_COL_WIDTH
-            canvas.drawLine(dividerX, HEADER_HEIGHT, dividerX, EXPORT_HEIGHT.toFloat(), borderPaint)
+            // Header divider line (always visible)
+            canvas.drawLine(dividerX, HEADER_HEIGHT, dividerX, GRID_TOP, borderPaint)
         }
 
         // 3. Grid Body (GRID_TOP to EXPORT_HEIGHT)
@@ -252,10 +254,24 @@ object TimetableImageExport {
         val gridBgPaint = Paint().apply { color = gridBg; style = Paint.Style.FILL }
         canvas.drawRect(TIME_COL_WIDTH, GRID_TOP, EXPORT_WIDTH.toFloat(), EXPORT_HEIGHT.toFloat(), gridBgPaint)
 
+        // Draw vertical day column dividers in grid body when showGridLines is enabled
+        if (showGridLines) {
+            val dayGridDividerPaint = Paint().apply {
+                color = gridBorder
+                style = Paint.Style.STROKE
+                strokeWidth = 1.2f
+                isAntiAlias = true
+            }
+            for (i in DAYS_SUN_TO_SAT.indices) {
+                val dividerX = TIME_COL_WIDTH + (i + 1) * DAY_COL_WIDTH
+                canvas.drawLine(dividerX, GRID_TOP, dividerX, EXPORT_HEIGHT.toFloat(), dayGridDividerPaint)
+            }
+        }
+
         val hourLinePaint = Paint().apply {
-            color = hourLineColor
+            color = if (showGridLines) gridBorder else hourLineColor
             style = Paint.Style.STROKE
-            strokeWidth = 1f
+            strokeWidth = if (showGridLines) 1.2f else 1f
             isAntiAlias = true
         }
         val hourTextPaint = Paint().apply {
@@ -276,7 +292,11 @@ object TimetableImageExport {
         for (h in 0..totalHours) {
             val y = GRID_TOP + h * (GRID_HEIGHT / totalHours.toFloat())
             // Horizontal hour separator
-            canvas.drawLine(0f, y, EXPORT_WIDTH.toFloat(), y, hourLinePaint)
+            if (showGridLines) {
+                canvas.drawLine(0f, y, EXPORT_WIDTH.toFloat(), y, hourLinePaint)
+            } else {
+                canvas.drawLine(0f, y, TIME_COL_WIDTH, y, hourLinePaint)
+            }
             // Time mark (avoid cutting off bottom text label)
             val textY = if (h == totalHours) (y - 8f).coerceAtMost(EXPORT_HEIGHT - 6f) else y + 22f
             canvas.drawText(String.format("%02d:30", h + startHour), TIME_COL_WIDTH / 2f, textY, hourTextPaint)
@@ -482,7 +502,8 @@ object TimetableImageExport {
         selectedSections: List<TimetableSection>,
         conflicts: List<TimeConflict> = emptyList(),
         isDark: Boolean = false,
-        creditsByCode: Map<String, Int> = emptyMap()
+        creditsByCode: Map<String, Int> = emptyMap(),
+        showGridLines: Boolean = true
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(PORTRAIT_WIDTH, PORTRAIT_HEIGHT, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -493,8 +514,8 @@ object TimetableImageExport {
         val dayHeaderBg = if (isDark) 0xFF1E293B.toInt() else 0xFFF1F5F9.toInt()
         val gridBg = if (isDark) 0xFF0B1120.toInt() else 0xFFFAFAFA.toInt()
         val timeColBg = if (isDark) 0xFF1E293B.toInt() else 0xFFF8FAFC.toInt()
-        val gridBorder = if (isDark) 0xFF334155.toInt() else 0xFFE2E8F0.toInt()
-        val hourLineColor = if (isDark) 0xFF1E293B.toInt() else 0xFFF1F5F9.toInt()
+        val gridBorder = if (isDark) 0xFF334155.toInt() else 0xFFCBD5E1.toInt()
+        val hourLineColor = if (isDark) 0xFF334155.toInt() else 0xFFCBD5E1.toInt()
         val textPrimary = if (isDark) 0xFFF8FAFC.toInt() else 0xFF0F172A.toInt()
         val textSecondary = if (isDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt()
         val lingnanRed = 0xFFDC2626.toInt()
@@ -614,7 +635,8 @@ object TimetableImageExport {
             canvas.drawText(day.en, cx, portraitHeaderHeight + 62f, dayEnPaint)
 
             val dividerX = portraitTimeColWidth + (i + 1) * portraitDayColWidth
-            canvas.drawLine(dividerX, portraitHeaderHeight, dividerX, PORTRAIT_HEIGHT.toFloat(), borderPaint)
+            // Header divider line (always visible)
+            canvas.drawLine(dividerX, portraitHeaderHeight, dividerX, portraitGridTop, borderPaint)
         }
 
         // 3. Grid Body
@@ -624,10 +646,24 @@ object TimetableImageExport {
         val gridBgPaint = Paint().apply { color = gridBg; style = Paint.Style.FILL }
         canvas.drawRect(portraitTimeColWidth, portraitGridTop, PORTRAIT_WIDTH.toFloat(), PORTRAIT_HEIGHT.toFloat(), gridBgPaint)
 
+        // Draw vertical day column dividers in grid body when showGridLines is enabled
+        if (showGridLines) {
+            val dayGridDividerPaint = Paint().apply {
+                color = gridBorder
+                style = Paint.Style.STROKE
+                strokeWidth = 1.2f
+                isAntiAlias = true
+            }
+            for (i in DAYS_SUN_TO_SAT.indices) {
+                val dividerX = portraitTimeColWidth + (i + 1) * portraitDayColWidth
+                canvas.drawLine(dividerX, portraitGridTop, dividerX, PORTRAIT_HEIGHT.toFloat(), dayGridDividerPaint)
+            }
+        }
+
         val hourLinePaint = Paint().apply {
-            color = hourLineColor
+            color = if (showGridLines) gridBorder else hourLineColor
             style = Paint.Style.STROKE
-            strokeWidth = 1f
+            strokeWidth = if (showGridLines) 1.2f else 1f
             isAntiAlias = true
         }
         val hourTextPaint = Paint().apply {
@@ -647,7 +683,11 @@ object TimetableImageExport {
 
         for (h in 0..totalHours) {
             val y = portraitGridTop + h * (portraitGridHeight / totalHours.toFloat())
-            canvas.drawLine(0f, y, PORTRAIT_WIDTH.toFloat(), y, hourLinePaint)
+            if (showGridLines) {
+                canvas.drawLine(0f, y, PORTRAIT_WIDTH.toFloat(), y, hourLinePaint)
+            } else {
+                canvas.drawLine(0f, y, portraitTimeColWidth, y, hourLinePaint)
+            }
             val textY = if (h == totalHours) (y - 8f).coerceAtMost(PORTRAIT_HEIGHT - 6f) else y + 22f
             canvas.drawText(String.format("%02d:30", h + startHour), portraitTimeColWidth / 2f, textY, hourTextPaint)
         }
@@ -833,11 +873,12 @@ object TimetableImageExport {
         selectedSections: List<TimetableSection>,
         conflicts: List<TimeConflict> = emptyList(),
         isDark: Boolean = false,
-        creditsByCode: Map<String, Int> = emptyMap()
+        creditsByCode: Map<String, Int> = emptyMap(),
+        showGridLines: Boolean = true
     ): Bitmap {
         return when (orientation) {
-            TimetableExportOrientation.LANDSCAPE -> generateLandscapeBitmap(term, selectedSections, conflicts, isDark, creditsByCode)
-            TimetableExportOrientation.PORTRAIT -> generatePortraitBitmap(term, selectedSections, conflicts, isDark, creditsByCode)
+            TimetableExportOrientation.LANDSCAPE -> generateLandscapeBitmap(term, selectedSections, conflicts, isDark, creditsByCode, showGridLines)
+            TimetableExportOrientation.PORTRAIT -> generatePortraitBitmap(term, selectedSections, conflicts, isDark, creditsByCode, showGridLines)
         }
     }
 
@@ -875,9 +916,10 @@ object TimetableImageExport {
         selectedSections: List<TimetableSection>,
         conflicts: List<TimeConflict> = emptyList(),
         isDark: Boolean = false,
-        creditsByCode: Map<String, Int> = emptyMap()
+        creditsByCode: Map<String, Int> = emptyMap(),
+        showGridLines: Boolean = true
     ): File = withContext(Dispatchers.IO) {
-        val bitmap = generateBitmap(orientation, term, selectedSections, conflicts, isDark, creditsByCode)
+        val bitmap = generateBitmap(orientation, term, selectedSections, conflicts, isDark, creditsByCode, showGridLines)
         try {
             val prefix = if (orientation == TimetableExportOrientation.LANDSCAPE) "timetable-landscape-" else "timetable-portrait-"
             val file = File.createTempFile(prefix, ".png", context.cacheDir)
@@ -901,8 +943,9 @@ object TimetableImageExport {
         selectedSections: List<TimetableSection>,
         conflicts: List<TimeConflict> = emptyList(),
         isDark: Boolean = false,
-        creditsByCode: Map<String, Int> = emptyMap()
-    ): File = capture(context, TimetableExportOrientation.LANDSCAPE, term, selectedSections, conflicts, isDark, creditsByCode)
+        creditsByCode: Map<String, Int> = emptyMap(),
+        showGridLines: Boolean = true
+    ): File = capture(context, TimetableExportOrientation.LANDSCAPE, term, selectedSections, conflicts, isDark, creditsByCode, showGridLines)
 
     suspend fun capturePortrait(
         context: Context,
@@ -910,8 +953,9 @@ object TimetableImageExport {
         selectedSections: List<TimetableSection>,
         conflicts: List<TimeConflict> = emptyList(),
         isDark: Boolean = false,
-        creditsByCode: Map<String, Int> = emptyMap()
-    ): File = capture(context, TimetableExportOrientation.PORTRAIT, term, selectedSections, conflicts, isDark, creditsByCode)
+        creditsByCode: Map<String, Int> = emptyMap(),
+        showGridLines: Boolean = true
+    ): File = capture(context, TimetableExportOrientation.PORTRAIT, term, selectedSections, conflicts, isDark, creditsByCode, showGridLines)
 
     suspend fun capture(context: Context, headerLayer: GraphicsLayer, bodyLayer: GraphicsLayer, background: Int): File {
         val header = checkNotNull(headerLayer.toImageBitmap().asAndroidBitmap().copy(Bitmap.Config.ARGB_8888, false))
