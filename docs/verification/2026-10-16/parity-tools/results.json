@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-16",
+  "status": "SOURCE_AND_LOCAL_BUILD_VERIFIED",
+  "unit_tests": {
+    "tests": 505,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "build_tasks": [
+    "testDebugUnitTest",
+    "assembleRelease",
+    "bundleRelease"
+  ],
+  "build": "PASS",
+  "release_guard": {
+    "status": "PASS",
+    "version_code": 7,
+    "version_name": "1.0.6",
+    "apk_bytes": 4279526,
+    "aab_bytes": 7623878,
+    "uncompressed_dex_bytes": 4941268,
+    "renamed_application_types_present_in_dex": 861,
+    "matching_r8_mapping_embedded": true,
+    "sha256": {
+      "app-release.apk": "8cb5153cd118909ad339785e169137f21158113bd6662ae9ce3dd9346efac038",
+      "app-release.aab": "0f628d7a7b49a693073298490cf995f851207b234b5e5ddb2c83a46cb78cd6a0"
+    },
+    "note": "Type count and size are local evidence, not Play Console coverage percentages."
+  },
+  "certificate_sha256": "9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e",
+  "minimum_sdk": 26,
+  "target_sdk": 36,
+  "archive": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/parity-tools-2026-10-16",
+  "apk": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/parity-tools-2026-10-16/app-release.apk",
+  "aab": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/parity-tools-2026-10-16/app-release.aab",
+  "waydroid": "DEFERRED_USER_REQUEST_FINISH_SOURCE_FIRST",
+  "installed": false,
+  "screenshots": [],
+  "review_publication": "PENDING_USER_CHOICE",
+  "committed": false,
+  "published": false,
+  "notes": [
+    "No device installation or data clearing in this task.",
+    "Existing Kotlin 2.0 versus dependency 2.2 metadata diagnostics remain in lint output; build completed successfully with the existing toolchain.",
+    "Incoming Android link delivery, document picker, PDF rendering and signed-in downloads still need device verification.",
+    "Automatic verified Android App Links require a server Digital Asset Links association; manual paste/import is implemented."
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "close_and_reopen": "passed",
+  "device_config_restored": {
+    "size": "Physical size: 480x1000",
+    "density": "Physical density: 180",
+    "font_scale": "1.0"
+  },
+  "installed_apk_sha256": "86a3b9437cf01be592cd5b415366488c217f805ebea9f5b5082183b58c87f1b4",
+  "installation": "same certificate, replacement, no data clear",
+  "final_screen": "Guide step 1"
+}

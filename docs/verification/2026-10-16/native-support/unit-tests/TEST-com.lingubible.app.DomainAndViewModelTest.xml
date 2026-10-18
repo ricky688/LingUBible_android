@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.DomainAndViewModelTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-16T12:00:09" hostname="Ricky" time="0.022">
+  <properties/>
+  <testcase name="past paper term sort key orders newest first with unknown last" classname="com.lingubible.app.DomainAndViewModelTest" time="0.0"/>
+  <testcase name="write review form validates word count before submission" classname="com.lingubible.app.DomainAndViewModelTest" time="0.004"/>
+  <testcase name="word count validator requires between 5 and 1000 words" classname="com.lingubible.app.DomainAndViewModelTest" time="0.001"/>
+  <testcase name="grade statistics handles empty and NA distribution" classname="com.lingubible.app.DomainAndViewModelTest" time="0.001"/>
+  <testcase name="avatar presets and custom avatar workflow" classname="com.lingubible.app.DomainAndViewModelTest" time="0.006"/>
+  <testcase name="non-lingnan emails are rejected" classname="com.lingubible.app.DomainAndViewModelTest" time="0.0"/>
+  <testcase name="past paper parses filename correctly" classname="com.lingubible.app.DomainAndViewModelTest" time="0.0"/>
+  <testcase name="word count counts whitespace correctly" classname="com.lingubible.app.DomainAndViewModelTest" time="0.0"/>
+  <testcase name="auth viewmodel validates email and performs login" classname="com.lingubible.app.DomainAndViewModelTest" time="0.002"/>
+  <testcase name="valid lingnan emails are accepted" classname="com.lingubible.app.DomainAndViewModelTest" time="0.0"/>
+  <testcase name="past paper parser rejects malformed filenames" classname="com.lingubible.app.DomainAndViewModelTest" time="0.0"/>
+  <testcase name="file utils formats file size accurately" classname="com.lingubible.app.DomainAndViewModelTest" time="0.002"/>
+  <testcase name="pareto curve produces cumulative 100 percent" classname="com.lingubible.app.DomainAndViewModelTest" time="0.001"/>
+  <testcase name="courses viewmodel filters by search and subject" classname="com.lingubible.app.DomainAndViewModelTest" time="0.002"/>
+  <testcase name="past paper parses summer terms, instructor suffixes, and expanded formats" classname="com.lingubible.app.DomainAndViewModelTest" time="0.001"/>
+  <testcase name="rating validator allows half star increments and NA" classname="com.lingubible.app.DomainAndViewModelTest" time="0.0"/>
+  <testcase name="grade statistics calculates mean and standard deviation accurately" classname="com.lingubible.app.DomainAndViewModelTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

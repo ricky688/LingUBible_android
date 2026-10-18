@@ -1,0 +1,213 @@
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index e405356..9f9a40c 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -41,6 +41,13 @@
+                 <action android:name="android.intent.action.MAIN" />
+                 <category android:name="android.intent.category.LAUNCHER" />
+             </intent-filter>
++            <intent-filter>
++                <action android:name="android.intent.action.VIEW" />
++                <category android:name="android.intent.category.DEFAULT" />
++                <category android:name="android.intent.category.BROWSABLE" />
++                <data android:scheme="https" android:host="www.lingubible.com" android:path="/planner" />
++                <data android:scheme="https" android:host="lingubible.com" android:path="/planner" />
++            </intent-filter>
+         </activity>
+ 
+         <!-- Appwrite returns the completed OAuth session to this SDK activity. -->
+diff --git a/app/src/main/java/com/lingubible/app/MainActivity.kt b/app/src/main/java/com/lingubible/app/MainActivity.kt
+index 317acec..d5cc201 100644
+--- a/app/src/main/java/com/lingubible/app/MainActivity.kt
++++ b/app/src/main/java/com/lingubible/app/MainActivity.kt
+@@ -72,6 +72,11 @@ class MainActivity : ComponentActivity() {
+         }
+     }
+ 
++    override fun onNewIntent(intent: android.content.Intent) {
++        super.onNewIntent(intent)
++        setIntent(intent)
++    }
++
+     override fun onConfigurationChanged(newConfig: Configuration) {
+         super.onConfigurationChanged(newConfig)
+         applySystemBarAppearance()
+@@ -178,6 +183,7 @@ fun LingUBibleMainScreen() {
+     val shouldShowBottomBar = BottomNavDestination.entries.any { destination ->
+         currentDestination?.hasRoute(destination.screen::class) == true
+     } || currentDestination?.hasRoute<Screen.Planner>() == true
++      || currentDestination?.hasRoute<Screen.ImportTimetable>() == true
+       || currentDestination?.hasRoute<Screen.Calendar>() == true
+       || currentDestination?.hasRoute<Screen.GpaHons>() == true
+ 
+diff --git a/app/src/main/java/com/lingubible/app/core/navigation/NavGraph.kt b/app/src/main/java/com/lingubible/app/core/navigation/NavGraph.kt
+index 099349c..ec3a1b6 100644
+--- a/app/src/main/java/com/lingubible/app/core/navigation/NavGraph.kt
++++ b/app/src/main/java/com/lingubible/app/core/navigation/NavGraph.kt
+@@ -6,12 +6,17 @@ import androidx.compose.animation.core.Spring
+ import androidx.compose.animation.core.spring
+ import androidx.compose.animation.core.tween
+ import androidx.compose.runtime.Composable
++import androidx.compose.runtime.DisposableEffect
++import androidx.core.util.Consumer
++import com.lingubible.app.LocalComponentActivity
++import com.lingubible.app.domain.model.parseTimetableShare
+ import androidx.compose.ui.Modifier
+ import androidx.navigation.NavDestination.Companion.hasRoute
+ import androidx.navigation.NavHostController
+ import androidx.navigation.compose.NavHost
+ import androidx.navigation.compose.composable
+ import androidx.navigation.toRoute
++import androidx.navigation.navDeepLink
+ import com.lingubible.app.ui.screens.*
+ 
+ @Composable
+@@ -19,6 +24,16 @@ fun LingUBibleNavHost(
+     navController: NavHostController,
+     modifier: Modifier = Modifier
+ ) {
++    val activity = LocalComponentActivity.current
++    DisposableEffect(activity, navController) {
++        val listener = Consumer<android.content.Intent> { incoming ->
++            if (incoming.action == android.content.Intent.ACTION_VIEW && parseTimetableShare(incoming.dataString.orEmpty()).isSuccess) {
++                navController.handleDeepLink(incoming)
++            }
++        }
++        activity?.addOnNewIntentListener(listener)
++        onDispose { activity?.removeOnNewIntentListener(listener) }
++    }
+     NavHost(
+         navController = navController,
+         startDestination = Screen.Home,
+@@ -94,6 +109,14 @@ fun LingUBibleNavHost(
+             AcademicToolsScreen(initialTab = 0)
+         }
+ 
++        composable<Screen.ImportTimetable>(deepLinks = listOf(
++            navDeepLink { uriPattern = "https://www.lingubible.com/planner?term={term}&sections={sections}" },
++            navDeepLink { uriPattern = "https://lingubible.com/planner?term={term}&sections={sections}" }
++        )) { entry ->
++            val share = entry.toRoute<Screen.ImportTimetable>()
++            PlannerScreen(initialShareUrl = "https://www.lingubible.com/planner?term=${android.net.Uri.encode(share.term)}&sections=${android.net.Uri.encode(share.sections)}")
++        }
++
+         composable<Screen.Calendar> {
+             AcademicToolsScreen(initialTab = 1)
+         }
+@@ -139,6 +162,14 @@ fun LingUBibleNavHost(
+             )
+         }
+ 
++        composable<Screen.Favorites> {
++            FavoritesScreen(
++                onCourse = { navController.navigate(Screen.CourseDetail(it)) },
++                onInstructor = { navController.navigate(Screen.InstructorDetail(it)) },
++                onSignIn = { navController.navigate(Screen.Auth("login")) }
++            )
++        }
++
+         composable<Screen.MyReviews> {
+             ReviewsScreen(
+                 myReviewsOnly = true,
+@@ -152,6 +183,7 @@ fun LingUBibleNavHost(
+             val route = backStackEntry.toRoute<Screen.WriteReview>()
+             WriteReviewScreen(
+                 initialCourseCode = route.courseCode ?: "",
++                onNavigateToAuth = { navController.navigate(Screen.Auth("login")) },
+                 onNavigateBack = { navController.popBackStack() }
+             )
+         }
+@@ -169,6 +201,7 @@ fun LingUBibleNavHost(
+             ProfileScreen(
+                 onNavigateToAuth = { navController.navigate(Screen.Auth("login")) },
+                 onNavigateToReviews = { navController.navigate(Screen.MyReviews) },
++                onNavigateToFavorites = { navController.navigate(Screen.Favorites) },
+                 onNavigateToSettings = { navController.navigate(Screen.Settings) }
+             )
+         }
+diff --git a/app/src/main/java/com/lingubible/app/core/navigation/Screen.kt b/app/src/main/java/com/lingubible/app/core/navigation/Screen.kt
+index 8b6c786..b7ecb73 100644
+--- a/app/src/main/java/com/lingubible/app/core/navigation/Screen.kt
++++ b/app/src/main/java/com/lingubible/app/core/navigation/Screen.kt
+@@ -4,6 +4,8 @@ import androidx.annotation.StringRes
+ import androidx.compose.material.icons.Icons
+ import androidx.compose.material.icons.automirrored.filled.MenuBook
+ import androidx.compose.material.icons.automirrored.outlined.MenuBook
++import androidx.compose.material.icons.filled.Favorite
++import androidx.compose.material.icons.outlined.FavoriteBorder
+ import androidx.compose.material.icons.filled.AccountCircle
+ import androidx.compose.material.icons.filled.Home
+ import androidx.compose.material.icons.filled.RateReview
+@@ -44,6 +46,9 @@ sealed interface Screen {
+     @Serializable
+     data object Planner : Screen
+ 
++    @Serializable
++    data class ImportTimetable(val term: String = "", val sections: String = "") : Screen
++
+     @Serializable
+     data object Calendar : Screen
+ 
+@@ -59,6 +64,9 @@ sealed interface Screen {
+     @Serializable
+     data object Reviews : Screen
+ 
++    @Serializable
++    data object Favorites : Screen
++
+     @Serializable
+     data object MyReviews : Screen
+ 
+@@ -181,6 +189,14 @@ enum class DrawerNavDestination(
+         selectedIcon = Icons.Filled.Calculate,
+         category = DrawerCategory.TOOLS
+     ),
++    FAVORITES(
++        screen = Screen.Favorites,
++        titleZh = "我的收藏",
++        titleEn = "Favourites",
++        unselectedIcon = Icons.Outlined.FavoriteBorder,
++        selectedIcon = Icons.Filled.Favorite,
++        category = DrawerCategory.ACCOUNT
++    ),
+     PROFILE(
+         screen = Screen.Profile,
+         titleZh = "用戶設定",
+diff --git a/app/src/main/java/com/lingubible/app/domain/model/TimetableShare.kt b/app/src/main/java/com/lingubible/app/domain/model/TimetableShare.kt
+new file mode 100644
+index 0000000..c279a41
+--- /dev/null
++++ b/app/src/main/java/com/lingubible/app/domain/model/TimetableShare.kt
+@@ -0,0 +1,32 @@
++package com.lingubible.app.domain.model
++
++import java.net.URI
++import java.net.URLDecoder
++
++data class TimetableShare(val term: TimetableTerm, val sectionIds: Set<String>)
++
++fun parseTimetableShare(text: String): Result<TimetableShare> = runCatching {
++    require(text.trim().length <= 4096) { "連結過長 · Link is too long" }
++    val uri = URI(text.trim())
++    require(uri.scheme.equals("https", true) && uri.host?.lowercase() in setOf("lingubible.com", "www.lingubible.com") &&
++        uri.rawUserInfo == null && uri.port in setOf(-1, 443) && uri.path == "/planner" && uri.fragment.isNullOrEmpty()) { "請貼上 LingUBible 課表連結 · Use a LingUBible timetable link" }
++    val query = uri.rawQuery.orEmpty().split('&').filter { it.isNotBlank() }.map { part ->
++        URLDecoder.decode(part.substringBefore('='), "UTF-8") to URLDecoder.decode(part.substringAfter('=', ""), "UTF-8")
++    }
++    require(query.count { it.first == "term" } == 1 && query.count { it.first == "sections" } == 1) { "連結資料不完整 · Incomplete link" }
++    val term = DEFAULT_TERMS.firstOrNull { it.id == query.first { it.first == "term" }.second }
++        ?: error("不支援此學期 · Unsupported term")
++    val ids = query.first { it.first == "sections" }.second.split('.').toSet()
++    require(ids.size in 1..60 && ids.all { it.matches(Regex("[A-Za-z0-9-]{1,32}")) }) { "課程編號無效（上限 60 個）· Invalid section IDs (maximum 60)" }
++    TimetableShare(term, ids)
++}
++
++fun timetableShareLink(term: TimetableTerm, ids: Set<String>): String {
++    require(DEFAULT_TERMS.any { it.id == term.id } && ids.size in 1..60 && ids.all { it.matches(Regex("[A-Za-z0-9-]{1,32}")) }) { "無法分享課表（上限 60 個時段）· Cannot share timetable (maximum 60 sections)" }
++    return "https://www.lingubible.com/planner?term=${term.id}&sections=${ids.sorted().joinToString(".")}"
++}
++
++data class TimetableImportPreview(
++    val term: TimetableTerm, val sections: List<TimetableSection>, val incomingIds: Set<String>,
++    val newCount: Int, val existingCount: Int, val missingIds: Set<String>, val conflictCount: Int
++)

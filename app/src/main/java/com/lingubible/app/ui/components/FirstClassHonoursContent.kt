@@ -13,10 +13,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.*
@@ -33,6 +33,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -151,11 +153,11 @@ fun FirstClassHonoursContent(listState: LazyListState) {
         }
     }
 
-    LazyColumn(
+    FadingLazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = screenContentPadding(start = 16.dp, end = 16.dp, top = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         item("overview") {
             Column(
@@ -238,9 +240,11 @@ fun FirstClassHonoursContent(listState: LazyListState) {
             }
         }
 
-        items(entries, key = { "${it.faculty}_${it.en}" }) { entry ->
+        itemsIndexed(entries, key = { _, entry -> "${entry.faculty}_${entry.en}" }) { index, entry ->
             HonoursProgrammeCard(
                 entry = entry,
+                groupIndex = index,
+                groupSize = entries.size,
                 selectedYear = selectedYear,
                 previousYear = previousYear,
                 metric = metric,
@@ -270,12 +274,14 @@ fun FirstClassHonoursContent(listState: LazyListState) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HonoursSummary(
     summary: HonoursCohort?,
     previous: HonoursCohort?,
     showChange: Boolean
 ) {
+    val stackedMetrics = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale >= 1.5f
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -289,11 +295,13 @@ private fun HonoursSummary(
             )
         )
     ) {
-        Row(
+        FlowRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            maxItemsInEachRow = if (stackedMetrics) 1 else 3
         ) {
             val total = summary?.total
             val prevTotal = previous?.total
@@ -528,7 +536,7 @@ private fun StatisticsFilterBar(
                         enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) + scaleIn(spring(stiffness = Spring.StiffnessMediumLow)),
                         exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) + scaleOut(spring(stiffness = Spring.StiffnessMedium))
                     ) {
-                        IconButton(onClick = hapticClick { onQueryChange("") }) {
+                        IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { onQueryChange("") }) {
                             Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(18.dp))
                         }
                     }
@@ -546,7 +554,7 @@ private fun StatisticsFilterBar(
 
             FilledTonalIconButton(
                 onClick = hapticClick(onFiltersExpandedToggle),
-                shape = RoundedCornerShape(18.dp),
+                shapes = AppButtonDefaults.iconShapes(shape = RoundedCornerShape(18.dp)),
                 colors = IconButtonDefaults.filledTonalIconButtonColors(
                     containerColor = if (filtersExpanded || activeFilterCount > 0)
                         MaterialTheme.colorScheme.primaryContainer
@@ -625,7 +633,7 @@ private fun StatisticsFilterBar(
                         }
 
                         if (activeFilterCount > 0) {
-                            TextButton(shapes = ButtonDefaults.shapes(),
+                            TextButton(shapes = AppButtonDefaults.shapes(),
                                 onClick = hapticClick(onResetFilters),
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                             ) {
@@ -734,15 +742,19 @@ private fun StatisticsFilterBar(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HonoursProgrammeCard(
     entry: HonoursProgramme,
+    groupIndex: Int,
+    groupSize: Int,
     selectedYear: String,
     previousYear: String?,
     metric: String,
     showChange: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val stackedHeading = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale >= 1.5f
     val cohort = entry.years[selectedYear]
     val older = entry.years[previousYear]
     val pctVal = cohort?.pct ?: 0.0
@@ -773,7 +785,7 @@ private fun HonoursProgrammeCard(
                 indication = null,
                 onClick = hapticClick {}
             ),
-        shape = RoundedCornerShape(22.dp),
+        shape = getGroupedItemShape(groupIndex, groupSize, outerRadius = 22.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         border = CardDefaults.outlinedCardBorder().copy(
             brush = Brush.verticalGradient(
@@ -788,10 +800,11 @@ private fun HonoursProgrammeCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                maxItemsInEachRow = if (stackedHeading) 1 else 2
             ) {
                 Column(
                     modifier = Modifier.weight(1f).padding(end = 8.dp),
@@ -826,10 +839,10 @@ private fun HonoursProgrammeCard(
                 }
             }
 
-            Row(
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -981,7 +994,7 @@ private fun HonoursEmptyState(
             )
             FilledTonalButton(
                 onClick = hapticClick(onResetFilters),
-                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp))
+                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp))
             ) {
                 Icon(Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))

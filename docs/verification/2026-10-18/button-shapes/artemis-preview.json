@@ -1,0 +1,12 @@
+{
+  "trace_id": "1494490f-460c-4645-8cef-7c6b97cad770",
+  "device": "192.168.240.112:5555",
+  "status": "completed",
+  "verified": [
+    "Appearance \u2192 User Settings \u2192 Academic tools \u2192 course timetable",
+    "Export PNG/PDF opens preview",
+    "Scrolled panel reveals Cancel and Save PNG"
+  ],
+  "save_not_pressed": true,
+  "log_limitation": "Daemon reported local log paths which are not present on this host; inspected stored action history instead."
+}

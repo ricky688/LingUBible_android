@@ -1,0 +1,2076 @@
+--- before/app/src/main/java/com/lingubible/app/ui/components/AvatarCustomizerModal.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/AvatarCustomizerModal.kt
+@@ -125,7 +125,7 @@
+                         )
+                     }
+ 
+-                    IconButton(
++                    IconButton(shapes = AppButtonDefaults.iconShapes(),
+                         onClick = hapticClick(onDismiss),
+                         modifier = Modifier.size(32.dp)
+                     ) {
+@@ -190,7 +190,7 @@
+                     OutlinedButton(
+                         onClick = hapticClick { randomize() },
+                         modifier = Modifier.weight(1f),
+-                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                     ) {
+                         Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(16.dp))
+@@ -204,7 +204,7 @@
+                             onDismiss()
+                         },
+                         modifier = Modifier.weight(1f),
+-                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                         colors = ButtonDefaults.buttonColors(
+                             containerColor = MaterialTheme.colorScheme.primary
+                         )
+--- before/app/src/main/java/com/lingubible/app/ui/components/PdfViewerModal.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/PdfViewerModal.kt
+@@ -308,7 +308,7 @@
+                         ) {
+                             OutlinedButton(
+                                 onClick = hapticClick(onDismiss),
+-                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
++                                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
+                             ) {
+                                 Text("關閉 Close")
+                             }
+@@ -333,7 +333,7 @@
+                                         }
+                                     }
+                                 },
+-                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
++                                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
+                             ) {
+                                 Text("重試 Retry")
+                             }
+@@ -443,7 +443,7 @@
+                         verticalAlignment = Alignment.CenterVertically,
+                         modifier = Modifier.weight(1f)
+                     ) {
+-                        IconButton(onClick = hapticClick(onDismiss)) {
++                        IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick(onDismiss)) {
+                             Icon(
+                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                 contentDescription = "Close",
+@@ -497,7 +497,7 @@
+                     ) {
+                         // Reset zoom button when zoomed in
+                         if (zoomScale > 1.05f) {
+-                            IconButton(
++                            IconButton(shapes = AppButtonDefaults.iconShapes(),
+                                 onClick = hapticClick {
+                                     zoomScale = 1f
+                                     panOffset = Offset.Zero
+@@ -513,7 +513,7 @@
+                         }
+ 
+                         // Invert colors (Night Reading mode)
+-                        IconButton(
++                        IconButton(shapes = AppButtonDefaults.iconShapes(),
+                             onClick = hapticClick { isInverted = !isInverted }
+                         ) {
+                             Icon(
+@@ -525,7 +525,7 @@
+                         }
+ 
+                         // Download Button
+-                        IconButton(
++                        IconButton(shapes = AppButtonDefaults.iconShapes(),
+                             onClick = hapticClick {
+                                 if (!isDownloading) {
+                                     scope.launch {
+@@ -561,7 +561,7 @@
+                         }
+ 
+                         // Share / Open External Button
+-                        IconButton(
++                        IconButton(shapes = AppButtonDefaults.iconShapes(),
+                             onClick = hapticClick {
+                                 cachedFile?.let { file ->
+                                     DocumentDownloadHelper.shareDocument(
+--- before/app/src/main/java/com/lingubible/app/ui/components/TimetableExportPreviewModal.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/TimetableExportPreviewModal.kt
+@@ -251,7 +251,6 @@
+                     ExpressiveMorphIconButton(
+                         onClick = onDismiss,
+                         restingCorner = 18.dp,
+-                        pressedCorner = 8.dp,
+                         containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.65f),
+                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                         size = 36.dp,
+@@ -536,11 +535,10 @@
+                     horizontalArrangement = Arrangement.spacedBy(10.dp),
+                     verticalAlignment = Alignment.CenterVertically
+                 ) {
+-                    // Expressive Outlined Button: Cancel (Morphs from 16dp to 28dp pill on press)
++                    // Cancel uses the shared press shape.
+                     ExpressiveMorphButton(
+                         onClick = onDismiss,
+                         restingCorner = 16.dp,
+-                        pressedCorner = 28.dp,
+                         containerColor = Color.Transparent,
+                         contentColor = MaterialTheme.colorScheme.onSurface,
+                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+@@ -553,11 +551,10 @@
+                         )
+                     }
+ 
+-                    // Expressive Primary Button: Save (Morphs from 16dp to 28dp pill on press)
++                    // Save uses the shared press shape.
+                     ExpressiveMorphButton(
+                         onClick = { onConfirmSave(selectedOrientation, showGridLines, format) },
+                         restingCorner = 16.dp,
+-                        pressedCorner = 28.dp,
+                         containerColor = MaterialTheme.colorScheme.primary,
+                         contentColor = MaterialTheme.colorScheme.onPrimary,
+                         modifier = Modifier.weight(1.3f)
+@@ -828,7 +825,6 @@
+     modifier: Modifier = Modifier,
+     enabled: Boolean = true,
+     restingCorner: Dp = 20.dp,
+-    pressedCorner: Dp = 10.dp,
+     size: Dp = 40.dp,
+     contentDescription: String? = null,
+     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+@@ -836,11 +832,7 @@
+ ) {
+     val isPressed by interactionSource.collectIsPressedAsState()
+ 
+-    val cornerRadius by animateDpAsState(
+-        targetValue = if (isPressed) pressedCorner else restingCorner,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-        label = "tbIconCorner"
+-    )
++    val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, restingCorner)
+     val animatedShape = RoundedCornerShape(cornerRadius)
+ 
+     val containerColor by animateColorAsState(
+@@ -884,11 +876,7 @@
+     val interactionSource = remember { MutableInteractionSource() }
+     val isPressed by interactionSource.collectIsPressedAsState()
+ 
+-    val cornerRadius by animateDpAsState(
+-        targetValue = if (isPressed) 10.dp else 20.dp,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-        label = "zoomResetCorner"
+-    )
++    val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, 20.dp)
+     val animatedShape = RoundedCornerShape(cornerRadius)
+ 
+     val containerColor by animateColorAsState(
+@@ -952,13 +940,8 @@
+     modifier: Modifier = Modifier
+ ) {
+     val interactionSource = remember { MutableInteractionSource() }
+-    val isPressed by interactionSource.collectIsPressedAsState()
+-
+-    val cornerRadius by animateDpAsState(
+-        targetValue = if (isPressed) 10.dp else 20.dp,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-        label = "saveBtnCorner"
+-    )
++
++    val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, 20.dp)
+     val animatedShape = RoundedCornerShape(cornerRadius)
+ 
+     Surface(
+@@ -970,7 +953,7 @@
+         modifier = modifier
+             .clip(animatedShape)
+             .shadow(
+-                elevation = if (isPressed) 1.dp else 4.dp,
++                elevation = 4.dp,
+                 shape = animatedShape,
+                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+@@ -1008,7 +991,6 @@
+     modifier: Modifier = Modifier,
+     enabled: Boolean = true,
+     restingCorner: Dp = 16.dp,
+-    pressedCorner: Dp = 28.dp,
+     containerColor: Color = MaterialTheme.colorScheme.primary,
+     contentColor: Color = MaterialTheme.colorScheme.onPrimary,
+     border: BorderStroke? = null,
+@@ -1016,14 +998,7 @@
+     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+     content: @Composable RowScope.() -> Unit
+ ) {
+-    val isPressed by interactionSource.collectIsPressedAsState()
+-
+-    // Smooth spring shape morph replacing traditional scale/elevation drop
+-    val cornerRadius by animateDpAsState(
+-        targetValue = if (isPressed) pressedCorner else restingCorner,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-        label = "btnCornerMorph"
+-    )
++    val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, restingCorner)
+     val animatedShape = RoundedCornerShape(cornerRadius)
+ 
+     Surface(
+@@ -1057,7 +1032,6 @@
+     modifier: Modifier = Modifier,
+     enabled: Boolean = true,
+     restingCorner: Dp = 18.dp,
+-    pressedCorner: Dp = 8.dp,
+     containerColor: Color = Color.Transparent,
+     contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+     border: BorderStroke? = null,
+@@ -1066,13 +1040,8 @@
+     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+     content: @Composable () -> Unit
+ ) {
+-    val isPressed by interactionSource.collectIsPressedAsState()
+-
+-    val cornerRadius by animateDpAsState(
+-        targetValue = if (isPressed) pressedCorner else restingCorner,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-        label = "iconBtnCornerMorph"
+-    )
++
++    val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, restingCorner)
+     val animatedShape = RoundedCornerShape(cornerRadius)
+ 
+     Surface(
+--- before/app/src/main/java/com/lingubible/app/ui/components/TimeConflictAlertCard.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/TimeConflictAlertCard.kt
+@@ -445,7 +445,7 @@
+                             if (onSelectConflict != null) {
+                                 OutlinedButton(
+                                     onClick = hapticClick { onSelectConflict(conflicts.first()) },
+-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                                 ) {
+@@ -466,7 +466,7 @@
+                                         containerColor = LingnanRed.copy(alpha = if (isDark) 0.30f else 0.15f),
+                                         contentColor = if (isDark) Color(0xFFFCA5A5) else LingnanRed
+                                     ),
+-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                                 ) {
+--- before/app/src/main/java/com/lingubible/app/ui/components/ReviewBrowserControls.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/ReviewBrowserControls.kt
+@@ -32,10 +32,10 @@
+     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+         OutlinedTextField(filters.search, { onChange(filters.copy(search = it)) }, label = { Text("搜尋評價 Search reviews") },
+             modifier = Modifier.fillMaxWidth(), singleLine = true,
+-            trailingIcon = { IconButton(onClick = hapticClick { sheet = true }) { Icon(Icons.Default.Tune, contentDescription = "篩選與排序 Filter and sort reviews") } })
++            trailingIcon = { IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { sheet = true }) { Icon(Icons.Default.Tune, contentDescription = "篩選與排序 Filter and sort reviews") } })
+         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+             Text("$count / ${reviews.size} 則評價 Reviews", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+-            if (filters != ReviewFilters()) TextButton(onClick = hapticClick { onChange(ReviewFilters()) }) { Text("重設 Reset") }
++            if (filters != ReviewFilters()) TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { onChange(ReviewFilters()) }) { Text("重設 Reset") }
+         }
+     }
+     if (sheet) {
+@@ -63,8 +63,8 @@
+                     }
+                 }
+                 FlowRow(Modifier.padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-                    TextButton(onClick = hapticClick { draft = ReviewFilters() }) { Text("重設 Reset") }
+-                    Button(onClick = hapticClick { onChange(draft); sheet = false }, shapes = ButtonDefaults.shapes()) { Text("套用 Apply") }
++                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { draft = ReviewFilters() }) { Text("重設 Reset") }
++                    Button(onClick = hapticClick { onChange(draft); sheet = false }, shapes = AppButtonDefaults.shapes()) { Text("套用 Apply") }
+                 }
+             }
+         }
+@@ -75,18 +75,18 @@
+ private fun ReviewMultiSelect(label: String, selected: Set<String>, options: List<Pair<String, String>>, onChange: (Set<String>) -> Unit) {
+     var open by remember { mutableStateOf(false) }
+     var query by rememberSaveable { mutableStateOf("") }
+-    OutlinedButton(onClick = hapticClick { query = ""; open = true }, modifier = Modifier.fillMaxWidth(), shapes = ButtonDefaults.shapes()) {
++    OutlinedButton(onClick = hapticClick { query = ""; open = true }, modifier = Modifier.fillMaxWidth(), shapes = AppButtonDefaults.shapes()) {
+         Text("$label · ${if (selected.isEmpty()) "全部 All" else "${selected.size} 已選 Selected"}")
+     }
+     if (open) AlertDialog(onDismissRequest = { open = false }, title = { Text(label) },
+         text = { Column {
+             OutlinedTextField(query, { query = it }, label = { Text("搜尋 Search") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+-            TextButton(onClick = hapticClick { onChange(emptySet()) }) { Text("全部 All") }
++            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { onChange(emptySet()) }) { Text("全部 All") }
+             FadingLazyColumn(Modifier.heightIn(max = 360.dp), bottomInset = 0.dp) {
+                 items(options.filter { it.second.contains(query.trim(), true) }, key = { it.first }) { (code, title) ->
+                     DropdownMenuItem(text = { Text(title) }, onClick = hapticClick { onChange(if (code in selected) selected - code else selected + code) },
+                         trailingIcon = { Checkbox(code in selected, null) })
+                 }
+             }
+-        } }, confirmButton = { TextButton(onClick = hapticClick { open = false }) { Text("完成 Done") } })
++        } }, confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { open = false }) { Text("完成 Done") } })
+ }
+--- before/app/src/main/java/com/lingubible/app/ui/components/ReviewEditor.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/ReviewEditor.kt
+@@ -69,11 +69,11 @@
+                         }
+                     }
+                     error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+-                    if (draft == null && !busy) TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { error = null; retry++ }) { Text("重試 Retry") }
++                    if (draft == null && !busy) TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { error = null; retry++ }) { Text("重試 Retry") }
+                 }
+                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+-                    TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onDismiss), enabled = !busy) { Text("取消 Cancel") }
+-                    Button(shapes = ButtonDefaults.shapes(), onClick = hapticClick {
++                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onDismiss), enabled = !busy) { Text("取消 Cancel") }
++                    Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick {
+                         val edit = draft ?: return@hapticClick
+                         busy = true; error = null
+                         scope.launch {
+--- before/app/src/main/java/com/lingubible/app/ui/components/Material3TermMenu.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/Material3TermMenu.kt
+@@ -87,7 +87,7 @@
+             onClick = hapticClick {
+                 expandedState.targetState = !expandedState.targetState
+             },
+-            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+             colors = ButtonDefaults.outlinedButtonColors(
+                 containerColor = triggerBg
+             ),
+--- before/app/src/main/java/com/lingubible/app/ui/components/MonthlyCalendarOverview.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/MonthlyCalendarOverview.kt
+@@ -248,7 +248,7 @@
+                                 onSelectDate(todayString)
+                             },
+                             contentPadding = PaddingValues(horizontal = 9.dp, vertical = 2.dp),
+-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(8.dp)),
++                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(8.dp)),
+                             border = BorderStroke(1.dp, if (isDark) Color(0xFF3F3F46) else Color(0xFFCBD5E1)),
+                             colors = ButtonDefaults.outlinedButtonColors(
+                                 contentColor = textPrimary
+@@ -266,7 +266,7 @@
+                         OutlinedButton(
+                             onClick = hapticClick(onJumpTermStart),
+                             contentPadding = PaddingValues(horizontal = 9.dp, vertical = 2.dp),
+-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(8.dp)),
++                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(8.dp)),
+                             border = BorderStroke(1.dp, if (isDark) Color(0xFF3F3F46) else Color(0xFFCBD5E1)),
+                             colors = ButtonDefaults.outlinedButtonColors(
+                                 contentColor = textPrimary
+@@ -281,7 +281,7 @@
+                         }
+ 
+                         // Previous Button (<)
+-                        IconButton(
++                        IconButton(shapes = AppButtonDefaults.iconShapes(),
+                             onClick = hapticClick {
+                                 when (viewMode) {
+                                     CalendarViewMode.MONTH -> {
+@@ -313,7 +313,7 @@
+                         }
+ 
+                         // Next Button (>)
+-                        IconButton(
++                        IconButton(shapes = AppButtonDefaults.iconShapes(),
+                             onClick = hapticClick {
+                                 when (viewMode) {
+                                     CalendarViewMode.MONTH -> {
+@@ -397,7 +397,7 @@
+ 
+                         Spacer(modifier = Modifier.width(2.dp))
+ 
+-                        IconButton(
++                        IconButton(shapes = AppButtonDefaults.iconShapes(),
+                             onClick = hapticClick { isExpanded = !isExpanded },
+                             modifier = Modifier
+                                 .size(48.dp)
+--- before/app/src/main/java/com/lingubible/app/ui/components/CourseSectionSelector.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/CourseSectionSelector.kt
+@@ -12,7 +12,6 @@
+ import androidx.compose.foundation.border
+ import androidx.compose.foundation.clickable
+ import androidx.compose.foundation.interaction.MutableInteractionSource
+-import androidx.compose.foundation.interaction.collectIsPressedAsState
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.lazy.itemsIndexed
+ import androidx.compose.foundation.rememberScrollState
+@@ -27,7 +26,6 @@
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.draw.clip
+ import androidx.compose.ui.draw.rotate
+-import androidx.compose.ui.draw.scale
+ import androidx.compose.ui.graphics.Brush
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.input.pointer.PointerIcon
+@@ -199,7 +197,7 @@
+                                             contentColor = MaterialTheme.colorScheme.onPrimary
+                                         )
+                                     },
+-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(18.dp)),
++                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(18.dp)),
+                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                                 ) {
+@@ -354,7 +352,7 @@
+                     },
+                     trailingIcon = {
+                         if (searchQuery.isNotBlank()) {
+-                            IconButton(onClick = hapticClick { onSearchQueryChange("") }) {
++                            IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { onSearchQueryChange("") }) {
+                                 Icon(imageVector = Icons.Default.Clear, contentDescription = "Clear")
+                             }
+                         }
+@@ -506,7 +504,7 @@
+                                 }
+                             }
+ 
+-                            TextButton(shapes = ButtonDefaults.shapes(),
++                            TextButton(shapes = AppButtonDefaults.shapes(),
+                                 onClick = hapticClick { isGridExpanded = false },
+                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                 modifier = Modifier
+@@ -599,15 +597,8 @@
+ ) {
+     val isDark = isAppDarkTheme()
+     val interactionSource = remember { MutableInteractionSource() }
+-    val isPressed by interactionSource.collectIsPressedAsState()
+-
+-    val scale by animateFloatAsState(
+-        targetValue = if (isPressed) 0.94f else 1.0f,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-        label = "chipPressScale"
+-    )
+-
+-    val chipShape = RoundedCornerShape(10.dp)
++    val corner by AppButtonDefaults.pressCorner(interactionSource, 10.dp)
++    val chipShape = RoundedCornerShape(corner)
+ 
+     Surface(
+         onClick = hapticClick(onClick),
+@@ -629,7 +620,6 @@
+         ),
+         shadowElevation = if (isSelected) 3.dp else 0.dp,
+         modifier = modifier
+-            .scale(scale)
+             .semantics {
+                 selected = isSelected
+                 role = Role.RadioButton
+--- before/app/src/main/java/com/lingubible/app/ui/components/PastPapersContent.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/PastPapersContent.kt
+@@ -34,15 +34,15 @@
+                 }
+                 Text("${filtered.size} 份試題 Past papers", style = MaterialTheme.typography.labelLarge)
+                 if (signedIn) FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-                    TextButton(shapes = ButtonDefaults.shapes(), enabled = filtered.isNotEmpty() && !export.busy, onClick = hapticClick { selected = if (filtered.all { it.fileId in selected }) emptySet() else filtered.map { it.fileId }.toSet() }) { Text("全選／取消 Select all / clear") }
+-                    Button(shapes = ButtonDefaults.shapes(), enabled = selected.isNotEmpty() && !export.busy, onClick = hapticClick { download(filtered.filter { it.fileId in selected }) }) { Text("下載所選 Download (${selected.size})") }
+-                } else Button(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onSignIn)) { Text("登入下載 Sign in to download") }
++                    TextButton(shapes = AppButtonDefaults.shapes(), enabled = filtered.isNotEmpty() && !export.busy, onClick = hapticClick { selected = if (filtered.all { it.fileId in selected }) emptySet() else filtered.map { it.fileId }.toSet() }) { Text("全選／取消 Select all / clear") }
++                    Button(shapes = AppButtonDefaults.shapes(), enabled = selected.isNotEmpty() && !export.busy, onClick = hapticClick { download(filtered.filter { it.fileId in selected }) }) { Text("下載所選 Download (${selected.size})") }
++                } else Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onSignIn)) { Text("登入下載 Sign in to download") }
+             }
+         }
+         if (loading || export.busy) item { CircularProgressIndicator() }
+         (error ?: export.error)?.let { message -> item {
+             Text(message, color = MaterialTheme.colorScheme.error)
+-            TextButton(shapes = ButtonDefaults.shapes(), enabled = !export.busy, onClick = hapticClick { export.clearError(); onRetry() }) { Text("重試 Retry") }
++            TextButton(shapes = AppButtonDefaults.shapes(), enabled = !export.busy, onClick = hapticClick { export.clearError(); onRetry() }) { Text("重試 Retry") }
+         } }
+         if (!loading && filtered.isEmpty() && error == null) item { Text("沒有符合條件的試題 · No matching past papers") }
+         filtered.groupBy { it.academicYear }.forEach { (year, group) ->
+--- before/app/src/main/java/com/lingubible/app/ui/components/SchoolCalendarView.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/SchoolCalendarView.kt
+@@ -272,7 +272,7 @@
+                                 color = if (isDark) Color(0xFFCBD5E1) else Color(0xFF475569)
+                             )
+ 
+-                            TextButton(shapes = ButtonDefaults.shapes(),
++                            TextButton(shapes = AppButtonDefaults.shapes(),
+                                 onClick = hapticClick(onShowAllCategories),
+                                 enabled = hiddenCategories.isNotEmpty(),
+                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
+@@ -472,7 +472,7 @@
+                     ) {
+                         OutlinedButton(
+                             onClick = hapticClick { onExportIcs(event) },
+-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
++                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
+                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 3.dp),
+                             modifier = Modifier
+                                 .height(30.dp)
+@@ -491,7 +491,7 @@
+ 
+                         Button(
+                             onClick = hapticClick { onAddToCalendar(event) },
+-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
++                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
+                             colors = ButtonDefaults.buttonColors(
+                                 containerColor = MaterialTheme.colorScheme.primary,
+                                 contentColor = MaterialTheme.colorScheme.onPrimary
+--- before/app/src/main/java/com/lingubible/app/ui/components/RecentSearchesButton.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/RecentSearchesButton.kt
+@@ -16,16 +16,16 @@
+ fun RecentSearchesButton(store: SearchHistoryStore, kind: String, onSearch: (String) -> Unit) {
+     var open by remember { mutableStateOf(false) }
+     var entries by remember { mutableStateOf(emptyList<String>()) }
+-    IconButton(onClick = hapticClick { entries = store.read(kind); open = true }) { Icon(Icons.Default.History, "搜尋記錄 Recent searches") }
++    IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { entries = store.read(kind); open = true }) { Icon(Icons.Default.History, "搜尋記錄 Recent searches") }
+     if (open) AlertDialog(onDismissRequest = { open = false }, title = { Text("搜尋記錄 Recent searches") },
+         text = {
+             FadingLazyColumn(Modifier.heightIn(max = 360.dp), bottomInset = 0.dp) {
+                 if (entries.isEmpty()) item { Text("尚無搜尋記錄 No recent searches") }
+                 items(entries, key = { it }) { query ->
+-                    ListItem(headlineContent = { TextButton(onClick = hapticClick { store.add(kind, query); onSearch(query); open = false }) { Text(query) } },
+-                        trailingContent = { IconButton(onClick = hapticClick { store.remove(kind, query); entries = store.read(kind) }) { Icon(Icons.Default.Close, "移除搜尋 Remove search: $query") } })
++                    ListItem(headlineContent = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { store.add(kind, query); onSearch(query); open = false }) { Text(query) } },
++                        trailingContent = { IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { store.remove(kind, query); entries = store.read(kind) }) { Icon(Icons.Default.Close, "移除搜尋 Remove search: $query") } })
+                 }
+             }
+-        }, confirmButton = { TextButton(onClick = hapticClick { open = false }) { Text("關閉 Close") } },
+-        dismissButton = { TextButton(onClick = hapticClick { store.clear(kind); entries = emptyList() }, enabled = entries.isNotEmpty()) { Text("清除全部 Clear all") } })
++        }, confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { open = false }) { Text("關閉 Close") } },
++        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { store.clear(kind); entries = emptyList() }, enabled = entries.isNotEmpty()) { Text("清除全部 Clear all") } })
+ }
+--- before/app/src/main/java/com/lingubible/app/ui/components/ReviewCard.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/ReviewCard.kt
+@@ -69,7 +69,7 @@
+                     if (instructor.serviceDescription.isNotBlank()) Text(instructor.serviceDescription)
+                 }
+             }
+-            TextButton(onClick = hapticClick { showDetails = false }, modifier = Modifier.align(Alignment.End)) { Text("關閉 Close") }
++            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showDetails = false }, modifier = Modifier.align(Alignment.End)) { Text("關閉 Close") }
+             Spacer(Modifier.height(16.dp))
+         }
+     }
+@@ -239,7 +239,7 @@
+                 Spacer(modifier = Modifier.height(12.dp))
+             }
+ 
+-            TextButton(onClick = hapticClick { showDetails = true }) { Text("完整評價 Full review · ${review.instructors.size} 講師／課節") }
++            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showDetails = true }) { Text("完整評價 Full review · ${review.instructors.size} 講師／課節") }
+             HorizontalDivider(
+                 color = borderColor.copy(alpha = 0.6f),
+                 thickness = 0.5.dp
+--- before/app/src/main/java/com/lingubible/app/ui/components/TeachingHistoryControls.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/TeachingHistoryControls.kt
+@@ -23,8 +23,8 @@
+ internal fun TeachingHistoryControls(records: List<TeachingRecord>, filters: TeachingHistoryFilters, onChange: (TeachingHistoryFilters) -> Unit) {
+     var open by remember { mutableStateOf(false) }
+     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-        OutlinedButton(onClick = hapticClick { open = true }, modifier = Modifier.weight(1f), shapes = ButtonDefaults.shapes()) { Text("任教篩選 Teaching filters") }
+-        if (filters != TeachingHistoryFilters()) TextButton(onClick = hapticClick { onChange(TeachingHistoryFilters()) }) { Text("重設 Reset") }
++        OutlinedButton(onClick = hapticClick { open = true }, modifier = Modifier.weight(1f), shapes = AppButtonDefaults.shapes()) { Text("任教篩選 Teaching filters") }
++        if (filters != TeachingHistoryFilters()) TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { onChange(TeachingHistoryFilters()) }) { Text("重設 Reset") }
+     }
+     if (open) {
+         var draft by remember { mutableStateOf(filters) }
+@@ -38,8 +38,8 @@
+                     FilterMultiSelect("課程 Courses", draft.courses, records.map { it.courseCode }.distinct().sorted().map { it to it }) { draft = draft.copy(courses = it) }
+                 }
+                 FlowRow(Modifier.padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-                    TextButton(onClick = hapticClick { draft = TeachingHistoryFilters() }) { Text("重設 Reset") }
+-                    Button(onClick = hapticClick { onChange(draft); open = false }, shapes = ButtonDefaults.shapes()) { Text("套用 Apply") }
++                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { draft = TeachingHistoryFilters() }) { Text("重設 Reset") }
++                    Button(onClick = hapticClick { onChange(draft); open = false }, shapes = AppButtonDefaults.shapes()) { Text("套用 Apply") }
+                 }
+             }
+         }
+--- before/app/src/main/java/com/lingubible/app/ui/components/DetailShareButton.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/DetailShareButton.kt
+@@ -14,7 +14,7 @@
+ @Composable
+ fun DetailShareButton(kind: String, value: String) {
+     val context = LocalContext.current
+-    IconButton(onClick = hapticClick {
++    IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick {
+         runCatching {
+             val intent = Intent(Intent.ACTION_SEND).apply {
+                 type = "text/plain"; putExtra(Intent.EXTRA_TEXT, publicDetailUrl(kind, value))
+--- before/app/src/main/java/com/lingubible/app/ui/components/CourseSyllabusButton.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/CourseSyllabusButton.kt
+@@ -3,12 +3,8 @@
+ import com.lingubible.app.ui.common.hapticClick
+ 
+ import androidx.compose.animation.AnimatedVisibility
+-import androidx.compose.animation.core.Spring
+-import androidx.compose.animation.core.animateFloatAsState
+-import androidx.compose.animation.core.spring
+ import androidx.compose.foundation.BorderStroke
+ import androidx.compose.foundation.interaction.MutableInteractionSource
+-import androidx.compose.foundation.interaction.collectIsPressedAsState
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.shape.RoundedCornerShape
+ import androidx.compose.material.icons.Icons
+@@ -20,7 +16,6 @@
+ import androidx.compose.runtime.remember
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+-import androidx.compose.ui.draw.scale
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.input.pointer.PointerIcon
+ import androidx.compose.ui.input.pointer.pointerHoverIcon
+@@ -49,13 +44,7 @@
+ ) {
+     val isEnabled = !isLoading && syllabus != null
+     val interactionSource = remember { MutableInteractionSource() }
+-    val isPressed by interactionSource.collectIsPressedAsState()
+-
+-    val cornerRadius by androidx.compose.animation.core.animateDpAsState(
+-        targetValue = if (isPressed && isEnabled) 20.dp else 12.dp,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-        label = "syllabusButtonCornerMorph"
+-    )
++    val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, 12.dp)
+ 
+     Surface(
+         onClick = hapticClick { if (isEnabled) onClick() },
+--- before/app/src/main/java/com/lingubible/app/ui/components/ImageToolboxColorSchemeSheet.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/ImageToolboxColorSchemeSheet.kt
+@@ -318,7 +318,7 @@
+             }
+         },
+         confirmButton = {
+-            TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
++            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
+                 Text("完成")
+             }
+         },
+@@ -448,13 +448,13 @@
+                     onColorSelected(currentColor)
+                     onDismiss()
+                 },
+-                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
++                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
+             ) {
+                 Text("套用")
+             }
+         },
+         dismissButton = {
+-            TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
++            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
+                 Text("取消")
+             }
+         },
+@@ -615,7 +615,7 @@
+                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                         )
+                     }
+-                    IconButton(
++                    IconButton(shapes = AppButtonDefaults.iconShapes(),
+                         onClick = hapticClick { showPaletteStyleDialog = true },
+                         colors = IconButtonDefaults.iconButtonColors(
+                             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+@@ -937,7 +937,7 @@
+                 // Close button ("關閉")
+                 Button(
+                     onClick = hapticClick(onDismiss),
+-                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(22.dp)),
++                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(22.dp)),
+                     colors = ButtonDefaults.buttonColors(
+                         containerColor = MaterialTheme.colorScheme.primary,
+                         contentColor = MaterialTheme.colorScheme.onPrimary
+--- before/app/src/main/java/com/lingubible/app/ui/components/CourseResourceListItems.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/CourseResourceListItems.kt
+@@ -81,7 +81,7 @@
+                     modifier = Modifier.semantics { contentDescription = "選取試題 Select ${paper.fileName}" })
+                 else Icon(Icons.Default.Description, null, Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+             },
+-            trailingContent = { IconButton(onClick = hapticClick(onDownload), enabled = !busy) {
++            trailingContent = { IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick(onDownload), enabled = !busy) {
+                 Icon(Icons.Default.Download, if (selectable) "下載試題 Download ${paper.fileName}" else "登入下載 Sign in to download ${paper.fileName}")
+             } },
+             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+--- before/app/src/main/java/com/lingubible/app/ui/components/ExpressiveReviewButton.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/ExpressiveReviewButton.kt
+@@ -5,8 +5,8 @@
+ import androidx.compose.animation.*
+ import androidx.compose.animation.core.*
+ import androidx.compose.foundation.interaction.MutableInteractionSource
++import androidx.compose.foundation.interaction.collectIsPressedAsState
+ import androidx.compose.foundation.interaction.collectIsHoveredAsState
+-import androidx.compose.foundation.interaction.collectIsPressedAsState
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.lazy.LazyListState
+ import androidx.compose.foundation.shape.RoundedCornerShape
+@@ -103,15 +103,10 @@
+     shape: Shape = SquircleShape(cornerRadius = 24.dp, smoothness = 0.75f)
+ ) {
+     val interactionSource = remember { MutableInteractionSource() }
+-    val isPressed by interactionSource.collectIsPressedAsState()
+     val isHovered by interactionSource.collectIsHoveredAsState()
+ 
+-    val pressCorner by animateDpAsState(
+-        targetValue = if (isPressed) 16.dp else 24.dp,
+-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+-        label = "reviewFabPressedShape"
+-    )
+-    val animatedShape = if (isPressed || pressCorner < 24.dp) RoundedCornerShape(pressCorner) else shape
++    val pressCorner by AppButtonDefaults.pressCorner(interactionSource, 24.dp)
++    val animatedShape = if (pressCorner < 24.dp) RoundedCornerShape(pressCorner) else shape
+ 
+     // Fast, snappy Google M3 collapse (StiffnessHigh)
+     // and smooth spring expand (StiffnessMedium)
+@@ -221,8 +216,8 @@
+     text: String = "搶先評價 Be First to Review"
+ ) {
+     val interactionSource = remember { MutableInteractionSource() }
++    val isHovered by interactionSource.collectIsHoveredAsState()
+     val isPressed by interactionSource.collectIsPressedAsState()
+-    val isHovered by interactionSource.collectIsHoveredAsState()
+ 
+     Button(
+         onClick = hapticClick(onClick),
+@@ -238,7 +233,7 @@
+                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isHovered) 0.45f else 0.3f),
+                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isHovered) 0.45f else 0.3f)
+             ),
+-        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(22.dp)),
++        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(22.dp)),
+         colors = ButtonDefaults.buttonColors(
+             containerColor = MaterialTheme.colorScheme.primary,
+             contentColor = MaterialTheme.colorScheme.onPrimary
+--- before/app/src/main/java/com/lingubible/app/ui/components/CourseResourcesContent.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/CourseResourcesContent.kt
+@@ -34,7 +34,7 @@
+                         Text(reading.title)
+                         if (reading.source.isNotBlank() && reading.source != reading.title) Text(reading.source, style = MaterialTheme.typography.bodySmall)
+                         reading.url?.let { url ->
+-                            TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick {
++                            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick {
+                                 try { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                                 catch (_: Exception) { android.widget.Toast.makeText(context, "無法開啟連結 · Could not open link", android.widget.Toast.LENGTH_LONG).show() }
+                             }) { Text("開啟資源 Open resource") }
+@@ -69,12 +69,12 @@
+     FadingLazyColumn(contentPadding = screenContentPadding(start = 16.dp, end = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+         if (!signedIn) item {
+             Text("登入後查看學習資料 · Sign in to view study materials")
+-            Button(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onSignIn)) { Text("登入 Sign in") }
++            Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onSignIn)) { Text("登入 Sign in") }
+         } else {
+             item {
+                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-                    TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { selected = if (selected.size == files.size) emptySet() else files.map { it.id }.toSet() }, enabled = !exporting && files.isNotEmpty()) { Text("全選／取消 Select all / clear") }
+-                    Button(shapes = ButtonDefaults.shapes(), onClick = hapticClick {
++                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { selected = if (selected.size == files.size) emptySet() else files.map { it.id }.toSet() }, enabled = !exporting && files.isNotEmpty()) { Text("全選／取消 Select all / clear") }
++                    Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick {
+                         export.download(files.filter { it.id in selected })
+                     }, enabled = selected.isNotEmpty() && !exporting) { Text("下載所選 Download (${selected.size})") }
+                 }
+@@ -82,7 +82,7 @@
+             if (loading || exporting) item { CircularProgressIndicator() }
+             (error ?: export.error)?.let { message -> item {
+                 Text(message, color = MaterialTheme.colorScheme.error)
+-                TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { export.clearError(); retry++ }, enabled = !exporting) { Text("重試 Retry") }
++                TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { export.clearError(); retry++ }, enabled = !exporting) { Text("重試 Retry") }
+             } }
+             if (!loading && files.isEmpty() && error == null) item { Text("暫無學習資料 · No study materials available") }
+             itemsIndexed(files, key = { _, file -> file.id }) { index, file ->
+@@ -96,8 +96,8 @@
+                             }
+                         }
+                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-                            if (file.isPdf) TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { onPdf(file) }, enabled = !exporting) { Text("檢視 PDF View") }
+-                            TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick {
++                            if (file.isPdf) TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { onPdf(file) }, enabled = !exporting) { Text("檢視 PDF View") }
++                            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick {
+                                 export.download(listOf(file))
+                             }, enabled = !exporting) { Text("下載 Download") }
+                         }
+--- before/app/src/main/java/com/lingubible/app/ui/components/InstructorFilterSheet.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/InstructorFilterSheet.kt
+@@ -35,8 +35,8 @@
+                 }
+             }
+             FlowRow(Modifier.padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-                TextButton(onClick = hapticClick { draft = InstructorFilters() }) { Text("重設 Reset") }
+-                Button(onClick = hapticClick { onApply(draft); onDismiss() }, shapes = ButtonDefaults.shapes()) { Text("套用 Apply") }
++                TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { draft = InstructorFilters() }) { Text("重設 Reset") }
++                Button(onClick = hapticClick { onApply(draft); onDismiss() }, shapes = AppButtonDefaults.shapes()) { Text("套用 Apply") }
+             }
+         }
+     }
+--- before/app/src/main/java/com/lingubible/app/ui/components/GpaGodFortuneModal.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/GpaGodFortuneModal.kt
+@@ -174,7 +174,7 @@
+                             )
+                         }
+                     }
+-                    IconButton(
++                    IconButton(shapes = AppButtonDefaults.iconShapes(),
+                         onClick = hapticClick(onDismiss),
+                         modifier = Modifier.size(32.dp)
+                     ) {
+@@ -426,7 +426,7 @@
+                         },
+                         modifier = Modifier.weight(1f),
+                         enabled = !isShaking,
+-                        shape = RoundedCornerShape(14.dp)
++                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp))
+                     ) {
+                         Icon(Icons.Default.Casino, contentDescription = null, modifier = Modifier.size(16.dp))
+                         Spacer(Modifier.width(4.dp))
+@@ -436,7 +436,7 @@
+                     Button(
+                         onClick = hapticClick(onDismiss),
+                         modifier = Modifier.weight(1f),
+-                        shape = RoundedCornerShape(14.dp),
++                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
+                         colors = ButtonDefaults.buttonColors(
+                             containerColor = Color(0xFFDC2626) // Auspicious Red
+                         )
+--- before/app/src/main/java/com/lingubible/app/ui/components/FavoriteButton.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/FavoriteButton.kt
+@@ -47,7 +47,7 @@
+         label = "favoriteScale"
+     )
+ 
+-    IconButton(
++    IconButton(shapes = AppButtonDefaults.iconShapes(),
+         onClick = hapticClick {
+             busy = true
+             scope.launch {
+--- before/app/src/main/java/com/lingubible/app/ui/components/TimetableGrid.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/TimetableGrid.kt
+@@ -182,7 +182,7 @@
+                         containerColor = MaterialTheme.colorScheme.primary,
+                         contentColor = MaterialTheme.colorScheme.onPrimary
+                     ),
+-                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(20.dp)),
++                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(20.dp)),
+                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                 ) {
+                     Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+@@ -243,7 +243,7 @@
+                 }
+             }
+             FilledTonalButton(
+-                shapes = ButtonDefaults.shapes(),
++                shapes = AppButtonDefaults.shapes(),
+                 enabled = !exportingImage && pendingImagePath == null,
+                 contentPadding = PaddingValues(horizontal = 10.dp),
+                 onClick = hapticClick {
+@@ -592,7 +592,7 @@
+             confirmButton = {
+                 Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                     Button(
+-                        shapes = ButtonDefaults.shapes(),
++                        shapes = AppButtonDefaults.shapes(),
+                         modifier = Modifier.fillMaxWidth(),
+                         onClick = hapticClick { onAddMeetingToCalendar(section, meeting) }
+                     ) {
+@@ -601,7 +601,7 @@
+                         Text("加至日曆 Add to calendar", textAlign = TextAlign.Center)
+                     }
+                     OutlinedButton(
+-                        shapes = ButtonDefaults.shapes(),
++                        shapes = AppButtonDefaults.shapes(),
+                         modifier = Modifier.fillMaxWidth(),
+                         onClick = hapticClick { onExportMeetingIcs(section, meeting) }
+                     ) { Text("匯出此時段 Export meeting (.ics)", textAlign = TextAlign.Center) }
+@@ -611,7 +611,7 @@
+                         verticalArrangement = Arrangement.spacedBy(4.dp)
+                     ) {
+                         TextButton(
+-                            shapes = ButtonDefaults.shapes(),
++                            shapes = AppButtonDefaults.shapes(),
+                             onClick = hapticClick {
+                                 onRemoveSection(section.id)
+                                 selectedMeetingForDialog = null
+@@ -624,7 +624,7 @@
+                             Text("移除 Remove")
+                         }
+                         TextButton(
+-                            shapes = ButtonDefaults.shapes(),
++                            shapes = AppButtonDefaults.shapes(),
+                             onClick = hapticClick { selectedMeetingForDialog = null },
+                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                         ) { Text("關閉 Close") }
+--- before/app/src/main/java/com/lingubible/app/ui/components/AppButtonDefaults.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/AppButtonDefaults.kt
+@@ -0,0 +1,42 @@
++package com.lingubible.app.ui.components
++
++import androidx.compose.animation.core.animateDpAsState
++import androidx.compose.foundation.interaction.InteractionSource
++import androidx.compose.foundation.interaction.collectIsPressedAsState
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.material3.ButtonDefaults
++import androidx.compose.material3.IconButtonDefaults
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.State
++import androidx.compose.runtime.getValue
++import androidx.compose.ui.graphics.Shape
++import androidx.compose.ui.unit.Dp
++import androidx.compose.ui.unit.dp
++import com.lingubible.app.core.theme.TactileMotionTokens
++
++/** Shared press feedback: morph the outline without shrinking the button or its content. */
++object AppButtonDefaults {
++    val PressedCornerRadius = 8.dp
++
++    @Composable
++    fun shapes(shape: Shape = ButtonDefaults.shape) = ButtonDefaults.shapes(
++        shape = shape,
++        pressedShape = RoundedCornerShape(PressedCornerRadius)
++    )
++
++    @Composable
++    fun iconShapes(shape: Shape = IconButtonDefaults.standardShape) = IconButtonDefaults.shapes(
++        shape = shape,
++        pressedShape = RoundedCornerShape(PressedCornerRadius)
++    )
++
++    @Composable
++    fun pressCorner(source: InteractionSource, restingCorner: Dp): State<Dp> {
++        val pressed by source.collectIsPressedAsState()
++        return animateDpAsState(
++            targetValue = if (pressed) PressedCornerRadius else restingCorner,
++            animationSpec = TactileMotionTokens.gentleSpring(),
++            label = "buttonPressCorner"
++        )
++    }
++}
+--- before/app/src/main/java/com/lingubible/app/ui/components/TimetableAppearanceSheet.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/TimetableAppearanceSheet.kt
+@@ -61,10 +61,10 @@
+                 if (sections.isEmpty()) Text("加入課程後可選擇色彩 Add courses to choose colors")
+                 sections.distinctBy { it.courseCode }.forEach { section ->
+                     Row(Modifier.fillMaxWidth()) {
+-                        FilledTonalButton(onClick = hapticClick { colorCourse = section.courseCode }, modifier = Modifier.weight(1f), shapes = ButtonDefaults.shapes()) {
++                        FilledTonalButton(onClick = hapticClick { colorCourse = section.courseCode }, modifier = Modifier.weight(1f), shapes = AppButtonDefaults.shapes()) {
+                             Text("${section.courseCode} · ${draft.colors[section.courseCode] ?: section.colorHex}")
+                         }
+-                        if (section.courseCode in draft.colors) TextButton(onClick = hapticClick { draft = draft.copy(colors = draft.colors - section.courseCode) }) { Text("重設 Reset") }
++                        if (section.courseCode in draft.colors) TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { draft = draft.copy(colors = draft.colors - section.courseCode) }) { Text("重設 Reset") }
+                     }
+                 }
+                 Text("匯出解像度 Export resolution", style = MaterialTheme.typography.titleMedium)
+@@ -76,8 +76,8 @@
+             }
+             if (attempted && error != null) Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Assertive })
+             Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-                TextButton(onClick = hapticClick { draft = TimetableAppearance(); start = "08:30"; end = "21:30"; attempted = false }) { Text("重設 Reset") }
+-                Button(onClick = hapticClick { attempted = true; if (error == null && onApply(candidate)) onDismiss() }, shapes = ButtonDefaults.shapes()) { Text("套用 Apply") }
++                TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { draft = TimetableAppearance(); start = "08:30"; end = "21:30"; attempted = false }) { Text("重設 Reset") }
++                Button(onClick = hapticClick { attempted = true; if (error == null && onApply(candidate)) onDismiss() }, shapes = AppButtonDefaults.shapes()) { Text("套用 Apply") }
+             }
+         }
+     }
+--- before/app/src/main/java/com/lingubible/app/ui/components/CourseFilterSheet.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/CourseFilterSheet.kt
+@@ -25,7 +25,7 @@
+                 FilterMultiSelect("教學語言 Teaching language", draft.languages, listOf("E" to "英語 English", "C" to "粵語 Cantonese", "P" to "普通話 Putonghua", "1" to "英語／粵語 E/C", "2" to "英語／普通話 E/P", "3" to "粵語／普通話 C/P", "4" to "英語／粵語／普通話 E/C/P", "5" to "其他 Others")) { draft = draft.copy(languages = it) }
+                 FilterMultiSelect("服務學習 Service learning", draft.serviceLearning, listOf("compulsory" to "必修 Compulsory", "optional" to "選修 Optional", "none" to "無 None")) { draft = draft.copy(serviceLearning = it) }
+                 FilterMultiSelect("開設學期 Offered term", draft.terms, terms.map { it.code to it.label }) { draft = draft.copy(terms = it) }
+-                if (terms.isEmpty()) TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onRetry)) { Text(optionsError ?: "載入學期 Load terms") }
++                if (terms.isEmpty()) TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onRetry)) { Text(optionsError ?: "載入學期 Load terms") }
+                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                     Text(if (signedIn) "僅顯示有學習資料的課程\nHas study materials" else "登入後可篩選學習資料\nSign in to filter materials", modifier = Modifier.weight(1f))
+                     Switch(draft.hasMaterials, hapticChange { draft = draft.copy(hasMaterials = it) }, enabled = signedIn, modifier = Modifier.semantics { contentDescription = "僅顯示有學習資料 Has study materials" })
+@@ -40,8 +40,8 @@
+                 }
+             }
+             FlowRow(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-                TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { draft = CourseFilters() }) { Text("重設 Reset") }
+-                Button(shapes = ButtonDefaults.shapes(), onClick = hapticClick { onApply(draft); onDismiss() }) { Text("套用 Apply") }
++                TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { draft = CourseFilters() }) { Text("重設 Reset") }
++                Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { onApply(draft); onDismiss() }) { Text("套用 Apply") }
+             }
+         }
+     }
+--- before/app/src/main/java/com/lingubible/app/ui/components/FirstClassHonoursContent.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/FirstClassHonoursContent.kt
+@@ -536,7 +536,7 @@
+                         enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) + scaleIn(spring(stiffness = Spring.StiffnessMediumLow)),
+                         exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) + scaleOut(spring(stiffness = Spring.StiffnessMedium))
+                     ) {
+-                        IconButton(onClick = hapticClick { onQueryChange("") }) {
++                        IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { onQueryChange("") }) {
+                             Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(18.dp))
+                         }
+                     }
+@@ -554,7 +554,7 @@
+ 
+             FilledTonalIconButton(
+                 onClick = hapticClick(onFiltersExpandedToggle),
+-                shape = RoundedCornerShape(18.dp),
++                shapes = AppButtonDefaults.iconShapes(shape = RoundedCornerShape(18.dp)),
+                 colors = IconButtonDefaults.filledTonalIconButtonColors(
+                     containerColor = if (filtersExpanded || activeFilterCount > 0)
+                         MaterialTheme.colorScheme.primaryContainer
+@@ -633,7 +633,7 @@
+                         }
+ 
+                         if (activeFilterCount > 0) {
+-                            TextButton(shapes = ButtonDefaults.shapes(),
++                            TextButton(shapes = AppButtonDefaults.shapes(),
+                                 onClick = hapticClick(onResetFilters),
+                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                             ) {
+@@ -994,7 +994,7 @@
+             )
+             FilledTonalButton(
+                 onClick = hapticClick(onResetFilters),
+-                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp))
++                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp))
+             ) {
+                 Icon(Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(16.dp))
+                 Spacer(Modifier.width(6.dp))
+--- before/app/src/main/java/com/lingubible/app/ui/components/GettingStartedGuide.kt
++++ after/app/src/main/java/com/lingubible/app/ui/components/GettingStartedGuide.kt
+@@ -56,7 +56,7 @@
+             Column(Modifier.fillMaxWidth().fillMaxHeight(.94f)) {
+                 Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                     Text(if (language == AppLanguage.ZH_TW) "入門指南 Getting started" else "Getting started", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+-                    IconButton(onClick = hapticClick(onDismiss)) { Icon(Icons.Default.Close, "關閉指南 Close guide") }
++                    IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick(onDismiss)) { Icon(Icons.Default.Close, "關閉指南 Close guide") }
+                 }
+                 GettingStartedGuide(onClose = onDismiss, onNavigate = onNavigate, modifier = Modifier.weight(1f))
+             }
+@@ -86,7 +86,7 @@
+                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                         Text(if (isZh) "步驟 ${current + 1} / ${steps.size}" else "Step ${current + 1} of ${steps.size}", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+-                        TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { current = 0 }) {
++                        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { current = 0 }) {
+                             Icon(Icons.Default.Refresh, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
+                             Text(if (isZh) "重看 Replay" else "Replay")
+                         }
+@@ -134,7 +134,7 @@
+                         }
+                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                             topic.links.forEach { link ->
+-                                FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { onNavigate(link.destination) }) { Text(link.label.primary(isZh)) }
++                                FilledTonalButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { onNavigate(link.destination) }) { Text(link.label.primary(isZh)) }
+                             }
+                         }
+                     }
+@@ -147,11 +147,11 @@
+         }
+         HorizontalDivider()
+         FlowRow(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-            OutlinedButton(shapes = ButtonDefaults.shapes(), enabled = current > 0, onClick = hapticClick { current-- }) { Text(if (isZh) "上一步 Previous" else "Previous") }
+-            Button(shapes = ButtonDefaults.shapes(), onClick = hapticClick { if (current == steps.lastIndex) onClose() else current++ }) {
++            OutlinedButton(shapes = AppButtonDefaults.shapes(), enabled = current > 0, onClick = hapticClick { current-- }) { Text(if (isZh) "上一步 Previous" else "Previous") }
++            Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { if (current == steps.lastIndex) onClose() else current++ }) {
+                 Text(if (current == steps.lastIndex) { if (isZh) "完成 Done" else "Done" } else { if (isZh) "下一步 Next" else "Next" })
+             }
+-            TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onClose)) { Text(if (isZh) "關閉指南 Close" else "Close guide") }
++            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onClose)) { Text(if (isZh) "關閉指南 Close" else "Close guide") }
+         }
+     }
+ }
+--- before/app/src/main/java/com/lingubible/app/ui/screens/CourseDetailScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/CourseDetailScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.common.hapticClick
+ 
+ import com.lingubible.app.core.navigation.screenContentPadding
+@@ -93,6 +94,8 @@
+     val reviewsListState = rememberLazyListState()
+     val density = LocalDensity.current
+     var fabHeight by remember { mutableStateOf(0.dp) }
++    val reviewFabSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
++    val reviewFabCorner by AppButtonDefaults.pressCorner(reviewFabSource, 16.dp)
+     val bottomClearance = LocalScreenBottomClearance.current
+     val isScrollingUp by rememberIsScrollingUp(reviewsListState)
+ 
+@@ -105,6 +108,8 @@
+         floatingActionButton = {
+             if (selectedTab == 0 && !uiState.isLoading && uiState.course != null) {
+                 ExtendedFloatingActionButton(
++                    interactionSource = reviewFabSource,
++                    shape = androidx.compose.foundation.shape.RoundedCornerShape(reviewFabCorner),
+                     onClick = hapticClick(onNavigateToWriteReview),
+                     expanded = isScrollingUp,
+                     icon = {
+@@ -333,7 +338,7 @@
+                             if (uiState.reviewsError != null) {
+                                 Column(Modifier.padding(24.dp)) {
+                                     Text("無法載入評價 · Could not load reviews", color = MaterialTheme.colorScheme.error)
+-                                    TextButton(onClick = hapticClick { viewModel.loadCourseDetail(courseCode) }) { Text("重試 Retry") }
++                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.loadCourseDetail(courseCode) }) { Text("重試 Retry") }
+                                 }
+                             } else if (uiState.reviews.isEmpty()) {
+                                 EmptyState(
+@@ -362,7 +367,7 @@
+                                             }
+                                         )
+                                     }
+-                                    if (reviewLimit < filteredReviews.size) item { OutlinedButton(onClick = hapticClick { reviewLimit += 30 }) { Text("載入更多 Load more") } }
++                                    if (reviewLimit < filteredReviews.size) item { OutlinedButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { reviewLimit += 30 }) { Text("載入更多 Load more") } }
+                                 }
+                             }
+                         }
+@@ -478,7 +483,7 @@
+             Spacer(modifier = Modifier.height(20.dp))
+             Button(
+                 onClick = hapticClick(onNavigateToAuth),
+-                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                 colors = ButtonDefaults.buttonColors(
+                     containerColor = MaterialTheme.colorScheme.primary
+                 ),
+--- before/app/src/main/java/com/lingubible/app/ui/screens/InformationScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/InformationScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import android.content.Context
+ import android.content.Intent
+ import android.net.Uri
+@@ -97,7 +98,7 @@
+                         Text("Android 補充說明 · Android notes", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+                         BilingualParagraph(InformationText("App 會在裝置保存外觀設定、首次指南狀態、課表、手動 GPA 資料及帳戶專屬評價草稿（七天）。匯出的檔案由您選擇儲存位置；解除安裝不會刪除您另行匯出的檔案。", "The app stores appearance settings, guide status, timetable selections, manual GPA data and account-specific review drafts (seven days) on the device. You choose where exports are saved; uninstalling does not remove files you exported separately."), isZh)
+                         BilingualParagraph(InformationText("密碼重設連結和新密碼不會寫入 App 偏好設定或備份。安全驗證會連接 Google reCAPTCHA；平台政策中的 Cookie 說明適用於網頁及嵌入的驗證內容。", "Reset links and new passwords are not written to app preferences or backups. Security verification connects to Google reCAPTCHA. The platform's cookie information applies to web pages and embedded verification content."), isZh)
+-                        if (page == InformationPage.TERMS) TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { onNavigate(InformationPage.PRIVACY) }) { Text("閱讀隱私政策 Privacy Policy") }
++                        if (page == InformationPage.TERMS) TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { onNavigate(InformationPage.PRIVACY) }) { Text("閱讀隱私政策 Privacy Policy") }
+                     }
+                 }
+             }
+@@ -107,13 +108,13 @@
+                 HorizontalDivider()
+                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                     InformationPage.entries.filter { it != page }.forEach { target ->
+-                        TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { onNavigate(target) }) { Text(target.title(isZh)) }
++                        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { onNavigate(target) }) { Text(target.title(isZh)) }
+                     }
+                 }
+                 Text(if (isZh) "安全驗證受 Google 隱私政策及服務條款約束。" else "Security verification is subject to Google's Privacy Policy and Terms of Service.", style = MaterialTheme.typography.bodySmall)
+                 FlowRow {
+-                    TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { openSupportLink(context, "https://policies.google.com/privacy") }) { Text("Google Privacy") }
+-                    TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { openSupportLink(context, "https://policies.google.com/terms") }) { Text("Google Terms") }
++                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { openSupportLink(context, "https://policies.google.com/privacy") }) { Text("Google Privacy") }
++                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { openSupportLink(context, "https://policies.google.com/terms") }) { Text("Google Terms") }
+                 }
+             }
+         }
+@@ -145,11 +146,11 @@
+     LaunchedEffect(state.sent) { if (state.sent) { name = ""; email = ""; message = ""; type = "general" } }
+     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+         Text(if (isZh) "請勿提交密碼、重設連結或其他敏感資料。" else "Do not send passwords, reset links or other sensitive information.")
+-        TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { openSupportLink(context, "mailto:support@lingubible.com") }) { Text("support@lingubible.com") }
+-        TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { openSupportLink(context, "https://github.com/ricky688/LingUBible_android/issues") }) { Text("Android 問題回報 · GitHub issues") }
++        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { openSupportLink(context, "mailto:support@lingubible.com") }) { Text("support@lingubible.com") }
++        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { openSupportLink(context, "https://github.com/ricky688/LingUBible_android/issues") }) { Text("Android 問題回報 · GitHub issues") }
+         if (state.sent) {
+             Text("訊息已成功寄出。感謝您的回饋！\nYour message was sent. Thank you for your feedback.", color = MaterialTheme.colorScheme.primary)
+-            TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(viewModel::reset)) { Text("另一則訊息 New message") }
++            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::reset)) { Text("另一則訊息 New message") }
+         } else {
+             OutlinedTextField(name, { if (it.length <= 200) name = it }, enabled = !busy, label = { Text("姓名 Name · ≤10 words") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+             OutlinedTextField(email, { if (it.length <= 254) email = it }, enabled = !busy, label = { Text("回覆電郵 Reply email") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth(), singleLine = true)
+@@ -162,10 +163,10 @@
+             when {
+                 state.verifying -> {
+                     SecurityVerification("contact", isZh, { viewModel.send(it, if (isZh) "zh-TW" else "en", dark) }, viewModel::verificationFailed)
+-                    TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(viewModel::cancelVerification)) { Text("取消 Cancel") }
++                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::cancelVerification)) { Text("取消 Cancel") }
+                 }
+                 state.sending -> LinearProgressIndicator(Modifier.fillMaxWidth())
+-                else -> Button(shapes = ButtonDefaults.shapes(), onClick = hapticClick { viewModel.begin(ContactDraft(name, email, type, message)) }) { Text("傳送訊息 Send message") }
++                else -> Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.begin(ContactDraft(name, email, type, message)) }) { Text("傳送訊息 Send message") }
+             }
+         }
+     }
+--- before/app/src/main/java/com/lingubible/app/ui/screens/ReviewsScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/ReviewsScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.components.FadingLazyColumn
+ import com.lingubible.app.ui.common.hapticClick
+ 
+@@ -72,7 +73,7 @@
+             onDismissRequest = { if (!mutationBusy) deleting = null },
+             title = { Text("刪除此評價？ Delete review?") },
+             text = { Text(mutationError ?: "${review.courseCode} · 刪除後無法復原。 This cannot be undone.") },
+-            confirmButton = { TextButton(onClick = hapticClick {
++            confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick {
+                 mutationBusy = true; mutationError = null
+                 scope.launch {
+                     repository.deleteReview(review.id).onSuccess { deleting = null; viewModel.loadReviews() }
+@@ -80,7 +81,7 @@
+                     mutationBusy = false
+                 }
+             }, enabled = !mutationBusy) { Text("刪除 Delete", color = MaterialTheme.colorScheme.error) } },
+-            dismissButton = { TextButton(onClick = hapticClick { deleting = null }, enabled = !mutationBusy) { Text("取消 Cancel") } }
++            dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { deleting = null }, enabled = !mutationBusy) { Text("取消 Cancel") } }
+         )
+     }
+ 
+@@ -121,7 +122,7 @@
+             ) {
+                 Text("登入以查看我的評價 · Sign in to view your reviews")
+                 Spacer(Modifier.height(16.dp))
+-                Button(onClick = hapticClick(onNavigateToAuth), shapes = ButtonDefaults.shapes()) {
++                Button(onClick = hapticClick(onNavigateToAuth), shapes = AppButtonDefaults.shapes()) {
+                     Text("登入 · Sign in")
+                 }
+             }
+@@ -183,13 +184,13 @@
+                             )
+                             if (myReviewsOnly) {
+                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+-                                    TextButton(onClick = hapticClick { editingId = review.id }) { Text("修改 Edit") }
+-                                    TextButton(onClick = hapticClick { mutationError = null; deleting = review }) { Text("刪除 Delete", color = MaterialTheme.colorScheme.error) }
++                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { editingId = review.id }) { Text("修改 Edit") }
++                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { mutationError = null; deleting = review }) { Text("刪除 Delete", color = MaterialTheme.colorScheme.error) }
+                                 }
+                             }
+                         }
+                         if (visibleCount < filtered.size) item(key = "more-reviews") {
+-                            OutlinedButton(onClick = hapticClick { visibleCount += 30 }, modifier = Modifier.fillMaxWidth(), shapes = ButtonDefaults.shapes()) {
++                            OutlinedButton(onClick = hapticClick { visibleCount += 30 }, modifier = Modifier.fillMaxWidth(), shapes = AppButtonDefaults.shapes()) {
+                                 Text("載入更多 Load more · ${minOf(visibleCount, filtered.size)}/${filtered.size}")
+                             }
+                         }
+--- before/app/src/main/java/com/lingubible/app/ui/screens/WriteReviewScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/WriteReviewScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import androidx.compose.animation.AnimatedContent
+ import androidx.compose.animation.fadeIn
+ import androidx.compose.animation.fadeOut
+@@ -50,19 +51,19 @@
+     if (pendingCourse != null || pendingTerm != null || discard) AlertDialog(onDismissRequest = { pendingCourse = null; pendingTerm = null; discard = false },
+         title = { Text(if (discard) "捨棄草稿？ Discard draft?" else if (pendingTerm != null) "更改學期？ Change term?" else "更改課程？ Change course?") },
+         text = { Text(if (pendingTerm != null) "更改學期會清除講師評價。 Changing term clears instructor evaluations." else "此草稿的答案將會清除。 Answers in this draft will be cleared.") },
+-        confirmButton = { TextButton(onClick = hapticClick {
++        confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick {
+             if (discard) { viewModel.discard(); step = 0 }
+             else if (pendingTerm != null) pendingTerm?.let(viewModel::selectTerm)
+             else pendingCourse?.let(viewModel::selectCourse)
+             pendingCourse = null; pendingTerm = null; discard = false
+         }) { Text("確認 Confirm") } },
+-        dismissButton = { TextButton(onClick = hapticClick { pendingCourse = null; pendingTerm = null; discard = false }) { Text("取消 Cancel") } })
++        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { pendingCourse = null; pendingTerm = null; discard = false }) { Text("取消 Cancel") } })
+ 
+     if (s.userId == null) {
+         Column(Modifier.fillMaxSize().screenBottomPadding().padding(24.dp), verticalArrangement = Arrangement.Center,
+             horizontalAlignment = Alignment.CenterHorizontally) {
+             Text("登入後撰寫評價 · Sign in to write a review", style = MaterialTheme.typography.titleMedium)
+-            Button(onClick = hapticClick(onNavigateToAuth), shapes = ButtonDefaults.shapes()) { Text("登入 Sign in") }
++            Button(onClick = hapticClick(onNavigateToAuth), shapes = AppButtonDefaults.shapes()) { Text("登入 Sign in") }
+         }
+         return
+     }
+@@ -86,11 +87,11 @@
+                         ReviewFormCard("課程與學期 Course and term") {
+                             if (s.loadingOptions) LinearProgressIndicator(Modifier.fillMaxWidth())
+                             val course = s.courses.firstOrNull { it.code == f.courseCode }
+-                            OutlinedButton(onClick = hapticClick { choosingCourse = true }, modifier = Modifier.fillMaxWidth(), enabled = !s.isLoading && s.courses.isNotEmpty(), shapes = ButtonDefaults.shapes()) {
++                            OutlinedButton(onClick = hapticClick { choosingCourse = true }, modifier = Modifier.fillMaxWidth(), enabled = !s.isLoading && s.courses.isNotEmpty(), shapes = AppButtonDefaults.shapes()) {
+                                 Text(if (f.courseCode.isBlank()) "選擇課程 Select course" else "${f.courseCode} · ${course?.titleEn.orEmpty()}")
+                             }
+                             s.optionsError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+-                            if (s.optionsError != null) TextButton(onClick = hapticClick(viewModel::loadOptions)) { Text("重新載入課程／學期 Retry catalogue") }
++                            if (s.optionsError != null) TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::loadOptions)) { Text("重新載入課程／學期 Retry catalogue") }
+                             if (s.loadingRecords) LinearProgressIndicator(Modifier.fillMaxWidth())
+                             val termCodes = s.records.map { it.term }.distinct().sortedDescending()
+                             ReviewChoice("學期 Term", s.terms.firstOrNull { it.code == f.term }?.label ?: f.term,
+@@ -102,7 +103,7 @@
+                             }
+                             if (f.courseCode.isNotBlank() && s.records.isEmpty() && !s.loadingRecords) {
+                                 Text("未能找到授課紀錄 · No teaching records available")
+-                                TextButton(onClick = hapticClick(viewModel::loadRecords)) { Text("重試 Retry") }
++                                TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::loadRecords)) { Text("重試 Retry") }
+                             }
+                             Text("選擇你曾上課的講師／課節 · Select the instructors and sessions you attended", style = MaterialTheme.typography.bodyMedium)
+                             s.records.filter { it.term == f.term && it.instructorName.isNotBlank() && it.section.isNotBlank() }
+@@ -164,14 +165,14 @@
+                 }
+                 if (s.isLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
+                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-                    if (page > 0) OutlinedButton(onClick = hapticClick { step-- }, enabled = !s.isLoading, shapes = ButtonDefaults.shapes()) { Text("上一步 Back") }
++                    if (page > 0) OutlinedButton(onClick = hapticClick { step-- }, enabled = !s.isLoading, shapes = AppButtonDefaults.shapes()) { Text("上一步 Back") }
+                     Button(onClick = hapticClick {
+                         if (page == 2) viewModel.submitReview(onNavigateBack)
+                         else if (page == 0 || viewModel.validate()) step++
+-                    }, enabled = !s.isLoading && !s.loadingRecords && (page != 0 || (f.term.isNotBlank() && f.instructors.isNotEmpty())), shapes = ButtonDefaults.shapes()) {
++                    }, enabled = !s.isLoading && !s.loadingRecords && (page != 0 || (f.term.isNotBlank() && f.instructors.isNotEmpty())), shapes = AppButtonDefaults.shapes()) {
+                         Text(if (page == 2) "提交評價 Submit review" else "下一步 Next")
+                     }
+-                    TextButton(onClick = hapticClick { discard = true }, enabled = !s.isLoading) { Text("捨棄草稿 Discard draft") }
++                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { discard = true }, enabled = !s.isLoading) { Text("捨棄草稿 Discard draft") }
+                 }
+             }
+         }
+@@ -224,8 +225,8 @@
+             OutlinedTextField(query, { query = it }, label = { Text("課程代碼／名稱 Search course") }, modifier = Modifier.fillMaxWidth())
+             FadingLazyColumn(Modifier.heightIn(max = 400.dp), bottomInset = 0.dp) {
+                 items(courses.filter { query.isBlank() || "${it.code} ${it.titleEn} ${it.titleZh}".contains(query.trim(), true) }, key = { it.code }) { course ->
+-                    TextButton(onClick = hapticClick { onSelect(course.code) }, modifier = Modifier.fillMaxWidth()) { Text("${course.code}\n${course.titleZh.ifBlank { course.titleEn }}") }
++                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { onSelect(course.code) }, modifier = Modifier.fillMaxWidth()) { Text("${course.code}\n${course.titleZh.ifBlank { course.titleEn }}") }
+                 }
+             }
+-        } }, confirmButton = { TextButton(onClick = hapticClick(onDismiss)) { Text("關閉 Close") } })
+-}
++        } }, confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) { Text("關閉 Close") } })
++}
+--- before/app/src/main/java/com/lingubible/app/ui/screens/ProfileScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/ProfileScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.components.fadingVerticalScroll
+ import com.lingubible.app.ui.common.hapticChange
+ import com.lingubible.app.ui.common.hapticClick
+@@ -207,7 +208,7 @@
+ 
+                                 OutlinedButton(
+                                     onClick = hapticClick { showAvatarModal = true },
+-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                                 ) {
+@@ -341,7 +342,7 @@
+                                             editUsernameValue = user.name
+                                             isEditingUsername = true
+                                         },
+-                                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                                     ) {
+@@ -388,7 +389,7 @@
+                                         horizontalArrangement = Arrangement.End,
+                                         verticalAlignment = Alignment.CenterVertically
+                                     ) {
+-                                        TextButton(shapes = ButtonDefaults.shapes(),
++                                        TextButton(shapes = AppButtonDefaults.shapes(),
+                                             onClick = hapticClick { isEditingUsername = false },
+                                             enabled = !uiState.isUpdatingUsername
+                                         ) {
+@@ -410,7 +411,7 @@
+                                                     }
+                                                 )
+                                             },
+-                                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                             enabled = !uiState.isUpdatingUsername && editUsernameValue.isNotBlank()
+                                         ) {
+                                             if (uiState.isUpdatingUsername) {
+@@ -460,7 +461,7 @@
+                                             confirmPasswordValue = ""
+                                             isEditingPassword = true
+                                         },
+-                                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                                     ) {
+@@ -527,7 +528,7 @@
+                                         }
+ 
+                                         Row {
+-                                            TextButton(shapes = ButtonDefaults.shapes(),
++                                            TextButton(shapes = AppButtonDefaults.shapes(),
+                                                 onClick = hapticClick { isEditingPassword = false },
+                                                 enabled = !uiState.isUpdatingPassword
+                                             ) {
+@@ -559,7 +560,7 @@
+                                                         }
+                                                     )
+                                                 },
+-                                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                                                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                                 enabled = !uiState.isUpdatingPassword && currentPasswordValue.isNotBlank() && newPasswordValue.isNotBlank()
+                                             ) {
+                                                 if (uiState.isUpdatingPassword) {
+@@ -694,7 +695,7 @@
+                                     )
+                                 },
+                                 modifier = Modifier.fillMaxWidth(),
+-                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                 enabled = !uiState.isGoogleLoading
+                             ) {
+                                 if (uiState.isGoogleLoading) {
+@@ -722,7 +723,7 @@
+                                     }
+                                 },
+                                 modifier = Modifier.fillMaxWidth(),
+-                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                 enabled = !uiState.isGoogleLoading
+                             ) {
+                                 if (uiState.isGoogleLoading) {
+@@ -770,7 +771,7 @@
+ 
+                         OutlinedButton(
+                             onClick = hapticClick { showAvatarModal = true },
+-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
++                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
+                         ) {
+                             Icon(Icons.Default.Palette, contentDescription = null, modifier = Modifier.size(16.dp))
+                             Spacer(modifier = Modifier.width(6.dp))
+@@ -792,7 +793,7 @@
+ 
+                         Button(
+                             onClick = hapticClick(onNavigateToAuth),
+-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
++                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
+                             modifier = Modifier.fillMaxWidth()
+                         ) {
+                             Icon(Icons.Default.Login, contentDescription = null)
+@@ -979,7 +980,7 @@
+                 OutlinedButton(
+                     onClick = hapticClick { viewModel.logout {} },
+                     modifier = Modifier.fillMaxWidth(),
+-                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
++                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
+                     colors = ButtonDefaults.outlinedButtonColors(
+                         contentColor = MaterialTheme.colorScheme.error
+                     ),
+--- before/app/src/main/java/com/lingubible/app/ui/screens/HomeScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/HomeScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.common.hapticClick
+ 
+ import com.lingubible.app.core.navigation.screenContentPadding
+@@ -38,7 +39,6 @@
+ import androidx.compose.animation.core.Spring
+ import androidx.compose.foundation.interaction.MutableInteractionSource
+ import androidx.compose.foundation.interaction.collectIsHoveredAsState
+-import androidx.compose.foundation.interaction.collectIsPressedAsState
+ import androidx.compose.foundation.lazy.rememberLazyListState
+ import androidx.compose.runtime.*
+ import androidx.compose.ui.Alignment
+@@ -208,19 +208,14 @@
+ 
+                         Spacer(modifier = Modifier.height(20.dp))
+ 
+-                        // CTA Button with Expressive Spring Elevation and Haptics
++                        // CTA Button with shared shape feedback and haptics
+                         val ctaInteractionSource = remember { MutableInteractionSource() }
+-                        val isCtaPressed by ctaInteractionSource.collectIsPressedAsState()
+-                        val ctaCorner by androidx.compose.animation.core.animateDpAsState(
+-                            targetValue = if (isCtaPressed) 16.dp else 30.dp,
+-                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-                            label = "ctaPressedShape"
+-                        )
++                        val ctaCorner by AppButtonDefaults.pressCorner(ctaInteractionSource, 30.dp)
+ 
+                         Surface(
+                             modifier = Modifier
+                                 .shadow(
+-                                    elevation = if (isCtaPressed) 4.dp else 12.dp,
++                                    elevation = 12.dp,
+                                     shape = RoundedCornerShape(ctaCorner),
+                                     ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                                     spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
+@@ -700,7 +695,7 @@
+                                 color = MaterialTheme.colorScheme.onSurfaceVariant
+                             )
+                         }
+-                        TextButton(shapes = ButtonDefaults.shapes(),
++                        TextButton(shapes = AppButtonDefaults.shapes(),
+                             onClick = hapticClick { onNavigateToReviews() },
+                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+@@ -784,7 +779,7 @@
+                                 Spacer(modifier = Modifier.height(18.dp))
+                                 Button(
+                                     onClick = hapticClick { onNavigateToWriteReview("") },
+-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
++                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
+                                     colors = ButtonDefaults.buttonColors(
+                                         containerColor = MaterialTheme.colorScheme.primary,
+                                         contentColor = MaterialTheme.colorScheme.onPrimary
+--- before/app/src/main/java/com/lingubible/app/ui/screens/CoursesScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/CoursesScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.components.FadingLazyColumn
+ import com.lingubible.app.data.repository.SearchHistoryStore
+ import com.lingubible.app.ui.components.RecentSearchesButton
+@@ -20,7 +21,6 @@
+ import androidx.compose.animation.core.spring
+ import androidx.compose.foundation.BorderStroke
+ import androidx.compose.foundation.interaction.MutableInteractionSource
+-import androidx.compose.foundation.interaction.collectIsPressedAsState
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.lazy.itemsIndexed
+ import androidx.compose.foundation.lazy.rememberLazyListState
+@@ -112,11 +112,11 @@
+             trailingIcon = {
+                 Row {
+                     RecentSearchesButton(searchHistory, "courses", viewModel::search)
+-                    IconButton(onClick = hapticClick { viewModel.loadFilterOptions(); showFilters = true }) {
++                    IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { viewModel.loadFilterOptions(); showFilters = true }) {
+                         Icon(Icons.Filled.Tune, contentDescription = "篩選與排序 Filter and sort", tint = if (uiState.filters != com.lingubible.app.domain.model.CourseFilters()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                     }
+                 if (searchInput.isNotEmpty()) {
+-                    IconButton(
++                    IconButton(shapes = AppButtonDefaults.iconShapes(),
+                         onClick = hapticClick {
+                             viewModel.search("")
+                         },
+@@ -283,7 +283,7 @@
+                         }
+                     }
+ 
+-                    TextButton(shapes = ButtonDefaults.shapes(),
++                    TextButton(shapes = AppButtonDefaults.shapes(),
+                         onClick = hapticClick { isGridExpanded = false },
+                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                         modifier = Modifier
+@@ -400,7 +400,7 @@
+             )
+ 
+             if (uiState.selectedSubject != null && !uiState.selectedSubject.equals("ALL", ignoreCase = true)) {
+-                TextButton(shapes = ButtonDefaults.shapes(),
++                TextButton(shapes = AppButtonDefaults.shapes(),
+                     onClick = hapticClick { viewModel.filterSubject(null) },
+                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                     modifier = Modifier.height(26.dp)
+@@ -418,7 +418,7 @@
+ 
+         if (uiState.errorMessage != null) {
+             Text(uiState.errorMessage.orEmpty(), color = MaterialTheme.colorScheme.error)
+-            TextButton(onClick = hapticClick(viewModel::loadCourses)) { Text("重試 Retry") }
++            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::loadCourses)) { Text("重試 Retry") }
+         }
+ 
+         // Courses List
+@@ -482,13 +482,7 @@
+ ) {
+     val isDark = isAppDarkTheme()
+     val interactionSource = remember { MutableInteractionSource() }
+-    val isPressed by interactionSource.collectIsPressedAsState()
+-
+-    val corner by androidx.compose.animation.core.animateDpAsState(
+-        targetValue = if (isPressed) 18.dp else 10.dp,
+-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+-        label = "categoryPressedShape"
+-    )
++    val corner by AppButtonDefaults.pressCorner(interactionSource, 10.dp)
+     val chipShape = RoundedCornerShape(corner)
+ 
+     Surface(
+--- before/app/src/main/java/com/lingubible/app/ui/screens/InstructorsScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/InstructorsScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.components.FadingLazyColumn
+ import com.lingubible.app.data.repository.SearchHistoryStore
+ import com.lingubible.app.ui.components.RecentSearchesButton
+@@ -86,9 +87,9 @@
+                 trailingIcon = {
+                     Row {
+                     RecentSearchesButton(searchHistory, "instructors", viewModel::search)
+-                    IconButton(onClick = hapticClick { showFilters = true }) { Icon(Icons.Default.Tune, "篩選與排序 Filter and sort instructors") }
++                    IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { showFilters = true }) { Icon(Icons.Default.Tune, "篩選與排序 Filter and sort instructors") }
+                     if (searchInput.isNotEmpty()) {
+-                        IconButton(onClick = hapticClick {
++                        IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick {
+                             viewModel.search("")
+                         }) {
+                             Icon(
+@@ -118,7 +119,7 @@
+             Text("${uiState.instructors.size} / ${uiState.allInstructors.size} 位講師 Instructors", style = MaterialTheme.typography.labelLarge)
+             (uiState.errorMessage ?: uiState.optionsError)?.let { message ->
+                 Text(message, color = MaterialTheme.colorScheme.error)
+-                TextButton(onClick = hapticClick(viewModel::loadInstructors)) { Text("重試 Retry") }
++                TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::loadInstructors)) { Text("重試 Retry") }
+             }
+             Spacer(Modifier.height(8.dp))
+ 
+--- before/app/src/main/java/com/lingubible/app/ui/screens/FavoritesScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/FavoritesScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.components.FadingLazyColumn
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.lazy.itemsIndexed
+@@ -52,9 +53,9 @@
+         item {
+             if (state.userId == null) {
+                 Text("登入後即可儲存與同步收藏 · Sign in to save and sync favourites")
+-                Button(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onSignIn)) { Text("登入 Sign in") }
++                Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onSignIn)) { Text("登入 Sign in") }
+             } else {
+-                TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { scope.launch { repository.refresh(); refresh++ } }, enabled = !state.loading && !loading) {
++                TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { scope.launch { repository.refresh(); refresh++ } }, enabled = !state.loading && !loading) {
+                     Text("重新整理 Refresh")
+                 }
+             }
+@@ -68,7 +69,7 @@
+             Card(shape = com.lingubible.app.ui.components.getGroupedItemShape(index, unavailable.size)) {
+                 Column(Modifier.padding(12.dp)) {
+                     Text("${key.itemId} · 暫時無法載入 Unavailable")
+-                    TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { scope.launch {
++                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { scope.launch {
+                         repository.toggle(key.type, key.itemId).onFailure { error = it.localizedMessage }
+                     } }) { Text("移除收藏 Remove favourite") }
+                 }
+--- before/app/src/main/java/com/lingubible/app/ui/screens/SettingsScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/SettingsScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ 
+ import com.lingubible.app.ui.components.fadingVerticalScroll
+ import com.lingubible.app.ui.common.hapticChange
+@@ -307,7 +308,7 @@
+                             }
+                         }
+ 
+-                        IconButton(
++                        IconButton(shapes = AppButtonDefaults.iconShapes(),
+                             onClick = hapticClick {
+ 
+                                 android.util.Log.d("ImageToolbox", "Pencil button clicked, showColorSchemeSheet = true")
+@@ -454,7 +455,7 @@
+ 
+                             showColorSchemeSheet = true
+                         },
+-                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
++                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
+                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                         colors = ButtonDefaults.outlinedButtonColors(
+                             containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+@@ -512,7 +513,7 @@
+                             ) {
+                                 Button(
+                                     onClick = hapticClick {},
+-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                     colors = ButtonDefaults.buttonColors(
+                                         containerColor = MaterialTheme.colorScheme.primary
+                                     ),
+@@ -525,7 +526,7 @@
+ 
+                                 OutlinedButton(
+                                     onClick = hapticClick {},
+-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
++                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                                     modifier = Modifier.weight(1f)
+                                 ) {
+@@ -782,7 +783,7 @@
+                     settingsManager.setHighContrast(false)
+                     settingsManager.setHapticsEnabled(true)
+                 },
+-                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(18.dp)),
++                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(18.dp)),
+                 border = BorderStroke(1.dp, cardBorderColor),
+                 modifier = Modifier.fillMaxWidth()
+             ) {
+--- before/app/src/main/java/com/lingubible/app/ui/screens/PlannerScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/PlannerScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.components.fadingVerticalScroll
+ import com.lingubible.app.ui.common.hapticClick
+ 
+@@ -107,16 +108,16 @@
+                 }
+             }
+         },
+-        confirmButton = { Button(shapes = ButtonDefaults.shapes(), enabled = importLink.isNotBlank() && !timetableState.importLoading, onClick = hapticClick {
++        confirmButton = { Button(shapes = AppButtonDefaults.shapes(), enabled = importLink.isNotBlank() && !timetableState.importLoading, onClick = hapticClick {
+             if (timetableState.importPreview == null) timetableViewModel.prepareImport(importLink)
+             else { timetableViewModel.confirmImport(); activeSubView = TimetableSubView.GRID; showImport = false }
+         }) { Text(if (timetableState.importPreview == null) "預覽 Preview" else "確認匯入 Import") } },
+-        dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { showImport = false; timetableViewModel.cancelImport() }) { Text("取消 Cancel") } }
++        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showImport = false; timetableViewModel.cancelImport() }) { Text("取消 Cancel") } }
+     )
+     if (showClear) AlertDialog(onDismissRequest = { showClear = false }, title = { Text("清空此學期？ Clear this term?") },
+         text = { Text("清空後可按復原。其他學期不受影響。\nYou can undo this. Other terms are unchanged.") },
+-        confirmButton = { TextButton(onClick = hapticClick { timetableViewModel.clearAll(); showClear = false }) { Text("清空 Clear") } },
+-        dismissButton = { TextButton(onClick = hapticClick { showClear = false }) { Text("取消 Cancel") } })
++        confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { timetableViewModel.clearAll(); showClear = false }) { Text("清空 Clear") } },
++        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showClear = false }) { Text("取消 Cancel") } })
+ 
+     val containerBg = MaterialTheme.colorScheme.background
+     val cardBg = MaterialTheme.colorScheme.surfaceContainer
+@@ -229,7 +230,7 @@
+                 }
+ 
+                 // ICS Export Button
+-                FilledTonalButton(shapes = ButtonDefaults.shapes(),
++                FilledTonalButton(shapes = AppButtonDefaults.shapes(),
+                     onClick = hapticClick { timetableViewModel.exportTimetableIcs(context) },
+                     enabled = timetableState.selectedSections.isNotEmpty(),
+                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+@@ -253,12 +254,12 @@
+ }
+ 
+         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+-            IconButton(enabled = timetableState.canUndo && !timetableState.isLoading, onClick = hapticClick { timetableViewModel.undo() }) { Icon(Icons.AutoMirrored.Filled.Undo, "復原 Undo") }
+-            IconButton(enabled = timetableState.canRedo && !timetableState.isLoading, onClick = hapticClick { timetableViewModel.redo() }) { Icon(Icons.AutoMirrored.Filled.Redo, "重做 Redo") }
++            IconButton(shapes = AppButtonDefaults.iconShapes(), enabled = timetableState.canUndo && !timetableState.isLoading, onClick = hapticClick { timetableViewModel.undo() }) { Icon(Icons.AutoMirrored.Filled.Undo, "復原 Undo") }
++            IconButton(shapes = AppButtonDefaults.iconShapes(), enabled = timetableState.canRedo && !timetableState.isLoading, onClick = hapticClick { timetableViewModel.redo() }) { Icon(Icons.AutoMirrored.Filled.Redo, "重做 Redo") }
+             Spacer(Modifier.weight(1f))
+             if (timetableState.isLoading) CircularProgressIndicator(Modifier.size(24.dp))
+             Box {
+-                IconButton(onClick = hapticClick { menuOpen = true }) { Icon(Icons.Default.MoreVert, "課表工具 Timetable tools") }
++                IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { menuOpen = true }) { Icon(Icons.Default.MoreVert, "課表工具 Timetable tools") }
+                 DropdownMenu(menuOpen, { menuOpen = false }) {
+                     DropdownMenuItem(text = { Text("課表自訂 Customize timetable") }, enabled = !timetableState.isLoading, onClick = hapticClick { menuOpen = false; showAppearance = true })
+                     DropdownMenuItem(text = { Text("分享課表 Share link") }, enabled = timetableState.selectedSections.isNotEmpty() && !timetableState.isLoading, onClick = hapticClick {
+@@ -277,7 +278,7 @@
+         }
+         timetableState.errorMessage?.let { message ->
+             Text(message, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 16.dp))
+-            TextButton(onClick = hapticClick { timetableViewModel.retry() }) { Text("重試 Retry") }
++            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { timetableViewModel.retry() }) { Text("重試 Retry") }
+         }
+ 
+         // Material 3 Expressive Collision Warning Alert Card
+--- before/app/src/main/java/com/lingubible/app/ui/screens/CalendarScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/CalendarScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.common.hapticClick
+ 
+ import android.content.Context
+@@ -108,7 +109,7 @@
+                         }
+ 
+                         // Batch Export Button
+-                        FilledTonalButton(shapes = ButtonDefaults.shapes(),
++                        FilledTonalButton(shapes = AppButtonDefaults.shapes(),
+                             onClick = hapticClick { calendarViewModel.exportAllEventsToIcs(context) },
+                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                             colors = ButtonDefaults.filledTonalButtonColors(
+--- before/app/src/main/java/com/lingubible/app/ui/screens/GpaHonsScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/GpaHonsScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.common.hapticClick
+ 
+ import com.lingubible.app.core.navigation.screenContentPadding
+@@ -153,15 +154,15 @@
+                                 Text("JSON 可還原完整資料；CSV 可用於試算表。\nRestore with JSON; view CSV in a spreadsheet.",
+                                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+-                                    FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { jsonExport.launch(exportName("json")) }, enabled = !state.backupBusy) {
++                                    FilledTonalButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { jsonExport.launch(exportName("json")) }, enabled = !state.backupBusy) {
+                                         Icon(Icons.Outlined.SaveAlt, contentDescription = null, modifier = Modifier.size(18.dp))
+                                         Spacer(Modifier.width(6.dp))
+                                         Text("備份 Backup")
+                                     }
+-                                    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { csvExport.launch(exportName("csv")) }, enabled = !state.backupBusy) {
++                                    OutlinedButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { csvExport.launch(exportName("csv")) }, enabled = !state.backupBusy) {
+                                         Text("匯出 CSV")
+                                     }
+-                                    TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { importBackup.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }, enabled = !state.backupBusy) {
++                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { importBackup.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }, enabled = !state.backupBusy) {
+                                         Text("還原 Restore")
+                                     }
+                                 }
+@@ -197,7 +198,7 @@
+                                     verticalAlignment = Alignment.CenterVertically,
+                                     horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                 ) {
+-                                    IconButton(
++                                    IconButton(shapes = AppButtonDefaults.iconShapes(),
+                                         onClick = hapticClick(viewModel::undo),
+                                         enabled = state.canUndo,
+                                         modifier = Modifier.size(36.dp)
+@@ -209,7 +210,7 @@
+                                             modifier = Modifier.size(18.dp)
+                                         )
+                                     }
+-                                    IconButton(
++                                    IconButton(shapes = AppButtonDefaults.iconShapes(),
+                                         onClick = hapticClick(viewModel::redo),
+                                         enabled = state.canRedo,
+                                         modifier = Modifier.size(36.dp)
+@@ -225,7 +226,7 @@
+                                         modifier = Modifier.height(18.dp).padding(horizontal = 2.dp),
+                                         color = MaterialTheme.colorScheme.outlineVariant
+                                     )
+-                                    IconButton(
++                                    IconButton(shapes = AppButtonDefaults.iconShapes(),
+                                         onClick = hapticClick { showResetDialog = true },
+                                         modifier = Modifier.size(36.dp)
+                                     ) {
+@@ -324,16 +325,16 @@
+             onDismissRequest = viewModel::dismissCalculatorRestore,
+             title = { Text("還原計算器備份？\nRestore calculator backup?") },
+             text = { Text("備份包含 $terms 個學期、$courses 個課程。將取代目前的計算器資料及目標設定，可按「復原 Undo」還原。\n$terms terms and $courses courses will replace the current entries and goals. You can Undo this change.") },
+-            confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(viewModel::confirmCalculatorRestore)) { Text("還原 Restore") } },
+-            dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(viewModel::dismissCalculatorRestore)) { Text("取消 Cancel") } }
++            confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::confirmCalculatorRestore)) { Text("還原 Restore") } },
++            dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::dismissCalculatorRestore)) { Text("取消 Cancel") } }
+         )
+     }
+     if (showResetDialog) AlertDialog(
+         onDismissRequest = { showResetDialog = false },
+         title = { Text("重設所有成績？ Reset planner?") },
+         text = { Text("學期、課程和成績將回復初始狀態。可按「復原 Undo」還原。") },
+-        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { viewModel.resetAll(); showResetDialog = false }) { Text("重設 Reset") } },
+-        dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { showResetDialog = false }) { Text("取消 Cancel") } }
++        confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.resetAll(); showResetDialog = false }) { Text("重設 Reset") } },
++        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showResetDialog = false }) { Text("取消 Cancel") } }
+     )
+     if (showGpaGodModal) {
+         GpaGodFortuneModal(
+@@ -593,7 +594,7 @@
+                 }
+ 
+                 if (canRemoveYear) {
+-                    IconButton(
++                    IconButton(shapes = AppButtonDefaults.iconShapes(),
+                         onClick = hapticClick(onRemoveYear),
+                         modifier = Modifier
+                             .size(36.dp)
+@@ -722,7 +723,7 @@
+             }
+ 
+             if (canRemoveTerm) {
+-                IconButton(
++                IconButton(shapes = AppButtonDefaults.iconShapes(),
+                     onClick = hapticClick(onRemoveTerm),
+                     modifier = Modifier
+                         .size(36.dp)
+@@ -856,7 +857,7 @@
+                 shape = RoundedCornerShape(14.dp),
+                 trailingIcon = if (canRemove) {
+                     {
+-                        IconButton(
++                        IconButton(shapes = AppButtonDefaults.iconShapes(),
+                             onClick = hapticClick(onRemove),
+                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                         ) {
+--- before/app/src/main/java/com/lingubible/app/ui/screens/InstructorDetailScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/InstructorDetailScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.components.FadingLazyColumn
+ import com.lingubible.app.ui.common.hapticClick
+ 
+@@ -213,11 +214,11 @@
+                     if (tab != 1) {
+                         item(key = "history-filters") {
+                             TeachingHistoryControls(teachingRecords, historyFilters) { historyFilters = it }
+-                            historyError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
++                            historyError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
+                         }
+                         if (tab == 2) {
+                             item(key = "grades") {
+-                                reviewError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
++                                reviewError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
+                                 if (distribution.isEmpty()) Text("沒有符合篩選的成績 · No matching grades")
+                                 else GradeDistributionChart(distribution)
+                             }
+@@ -249,7 +250,7 @@
+ 
+                     item(key = "review-filters") {
+                         com.lingubible.app.ui.components.ReviewBrowserControls(reviews, reviewFilters, { reviewFilters = it }, filteredReviews.size)
+-                        reviewError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
++                        reviewError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
+                     }
+                     if (filteredReviews.isEmpty()) {
+                         item {
+@@ -285,7 +286,7 @@
+                             )
+                         }
+                     }
+-                    if (reviewLimit < filteredReviews.size) item { OutlinedButton(onClick = hapticClick { reviewLimit += 30 }) { Text("載入更多 Load more") } }
++                    if (reviewLimit < filteredReviews.size) item { OutlinedButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { reviewLimit += 30 }) { Text("載入更多 Load more") } }
+                     }
+             }
+         }
+--- before/app/src/main/java/com/lingubible/app/ui/screens/PasswordRecoveryScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/PasswordRecoveryScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import androidx.compose.animation.*
+ import androidx.compose.animation.core.spring
+ import androidx.compose.foundation.layout.*
+@@ -59,15 +60,15 @@
+                         if (stage == RecoveryStage.SENT) Text(if (isZh) "如該電郵已註冊，您將收到重設連結。請查看垃圾郵件；連結一小時後失效且只能使用一次。" else "If an account exists, a reset link will arrive by email. Check spam too. The link expires in one hour and can be used once.", color = MaterialTheme.colorScheme.primary)
+                         OutlinedTextField(email, { email = it }, label = { Text("嶺南電郵 Lingnan email") }, singleLine = true,
+                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
+-                        Button(shapes = ButtonDefaults.shapes(), onClick = hapticClick { viewModel.beginRequest(email) }) { Text(if (stage == RecoveryStage.SENT) "重新寄送 Resend link" else "寄送重設連結 Send reset link") }
++                        Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.beginRequest(email) }) { Text(if (stage == RecoveryStage.SENT) "重新寄送 Resend link" else "寄送重設連結 Send reset link") }
+                         HorizontalDivider()
+                         Text(if (isZh) "已有連結？貼上電郵中的完整重設連結。" else "Already have a link? Paste the full reset link from your email.")
+                         OutlinedTextField(link, { if (it.length <= 2048) link = it }, label = { Text("重設連結 Reset link") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
+-                        FilledTonalButton(shapes = ButtonDefaults.shapes(), enabled = link.isNotBlank(), onClick = hapticClick { viewModel.openLink(link); link = "" }) { Text("開啟連結 Open link") }
++                        FilledTonalButton(shapes = AppButtonDefaults.shapes(), enabled = link.isNotBlank(), onClick = hapticClick { viewModel.openLink(link); link = "" }) { Text("開啟連結 Open link") }
+                     }
+                     RecoveryStage.VERIFYING -> {
+                         key(verificationId) { SecurityVerification("forgotPassword", isZh, { viewModel.send(it, if (isZh) "zh-TW" else "en", dark) }, viewModel::verificationFailed) }
+-                        TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(viewModel::newRequest)) { Text("取消 Cancel") }
++                        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::newRequest)) { Text("取消 Cancel") }
+                     }
+                     RecoveryStage.SENDING, RecoveryStage.VALIDATING -> {
+                         LinearProgressIndicator(Modifier.fillMaxWidth())
+@@ -77,8 +78,8 @@
+                         Text("12–40 字元，包含大寫、小寫、數字及符號；避免常見密碼。\n12–40 characters, with upper/lowercase letters, a number and a symbol. Avoid common passwords.", style = MaterialTheme.typography.bodyMedium)
+                         OutlinedTextField(password, { password = it }, label = { Text("新密碼 New password") }, singleLine = true, visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
+                         OutlinedTextField(confirmation, { confirmation = it }, label = { Text("再次輸入密碼 Confirm password") }, singleLine = true, isError = confirmation.isNotEmpty() && confirmation != password, visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
+-                        TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { showPassword = !showPassword }) { Text(if (showPassword) "隱藏密碼 Hide passwords" else "顯示密碼 Show passwords") }
+-                        Button(shapes = ButtonDefaults.shapes(), onClick = hapticClick { viewModel.complete(password, confirmation) }) { Text("重設密碼 Reset password") }
++                        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showPassword = !showPassword }) { Text(if (showPassword) "隱藏密碼 Hide passwords" else "顯示密碼 Show passwords") }
++                        Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.complete(password, confirmation) }) { Text("重設密碼 Reset password") }
+                     }
+                     RecoveryStage.COMPLETE -> {
+                         Text("密碼已重設，請使用新密碼登入。\nPassword reset. Sign in with your new password.", color = MaterialTheme.colorScheme.primary)
+@@ -87,10 +88,10 @@
+             }
+         }
+         state.error?.let { SupportErrorText(it) }
+-        TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { viewModel.newRequest(); onSignIn() }) { Text("返回登入 Back to sign in") }
++        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.newRequest(); onSignIn() }) { Text("返回登入 Back to sign in") }
+         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+             listOf(InformationPage.FAQ, InformationPage.CONTACT, InformationPage.TERMS, InformationPage.PRIVACY).forEach { page ->
+-                TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { onInfo(page) }) { Text(page.title(isZh)) }
++                TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { onInfo(page) }) { Text(page.title(isZh)) }
+             }
+         }
+     }
+--- before/app/src/main/java/com/lingubible/app/ui/screens/AuthScreen.kt
++++ after/app/src/main/java/com/lingubible/app/ui/screens/AuthScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.components.fadingVerticalScroll
+ import com.lingubible.app.ui.common.hapticClick
+ 
+@@ -142,7 +143,7 @@
+                         .fillMaxWidth()
+                         .height(52.dp),
+                     enabled = !uiState.isLoading && activity != null,
+-                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(26.dp))
++                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(26.dp))
+                 ) {
+                     Surface(
+                         modifier = Modifier.size(24.dp),
+@@ -249,7 +250,7 @@
+                     TextButton(
+                         onClick = hapticClick(onForgotPassword),
+                         enabled = !uiState.isLoading,
+-                        shapes = ButtonDefaults.shapes(),
++                        shapes = AppButtonDefaults.shapes(),
+                         modifier = Modifier.align(Alignment.End)
+                     ) { Text("忘記密碼？ Forgot password?") }
+                 }
+@@ -277,7 +278,7 @@
+                     modifier = Modifier
+                         .fillMaxWidth()
+                         .height(52.dp),
+-                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(26.dp)),
++                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(26.dp)),
+                     colors = ButtonDefaults.buttonColors(
+                         containerColor = MaterialTheme.colorScheme.primary,
+                         contentColor = MaterialTheme.colorScheme.onPrimary
+--- before/app/src/main/java/com/lingubible/app/ui/common/MouseModifiers.kt
++++ after/app/src/main/java/com/lingubible/app/ui/common/MouseModifiers.kt
+@@ -6,7 +6,6 @@
+ import androidx.compose.foundation.clickable
+ import androidx.compose.foundation.interaction.MutableInteractionSource
+ import androidx.compose.foundation.interaction.collectIsHoveredAsState
+-import androidx.compose.foundation.interaction.collectIsPressedAsState
+ import androidx.compose.foundation.lazy.LazyListState
+ import androidx.compose.runtime.Composable
+ import androidx.compose.runtime.getValue
+@@ -61,20 +60,17 @@
+ }
+ 
+ /**
+- * Hover spring elevation and scale feedback for interactive cards and buttons.
++ * Hover feedback; press outlines are owned by the shared button/card styles.
+  */
+ fun Modifier.mouseHoverSpring(
+     hoverScale: Float = 1.015f,
+-    pressScale: Float = 0.98f,
+     interactionSource: MutableInteractionSource? = null
+ ): Modifier = composed {
+     val source = interactionSource ?: remember { MutableInteractionSource() }
+     val isHovered by source.collectIsHoveredAsState()
+-    val isPressed by source.collectIsPressedAsState()
+ 
+     val scale by animateFloatAsState(
+         targetValue = when {
+-            isPressed -> pressScale
+             isHovered -> hoverScale
+             else -> 1.0f
+         },
+--- before/app/src/main/java/com/lingubible/app/core/navigation/LingUBibleTopBar.kt
++++ after/app/src/main/java/com/lingubible/app/core/navigation/LingUBibleTopBar.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.core.navigation
+ 
++import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.common.hapticClick
+ 
+ import androidx.compose.animation.*
+@@ -372,7 +373,7 @@
+                 ),
+                 navigationIcon = {
+                     if (canNavigateBack) {
+-                        IconButton(
++                        IconButton(shapes = AppButtonDefaults.iconShapes(),
+                             onClick = hapticClick { navController.popBackStack() },
+                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                         ) {
+@@ -532,7 +533,7 @@
+                         ) { (home, reviewable) ->
+                             Row(verticalAlignment = Alignment.CenterVertically) {
+                                 if (home) {
+-                                    IconButton(
++                                    IconButton(shapes = AppButtonDefaults.iconShapes(),
+                                         onClick = hapticClick { navController.navigate(Screen.Courses) },
+                                         modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                                     ) {
+@@ -543,7 +544,7 @@
+                                         )
+                                     }
+                                 } else if (reviewable) {
+-                                    IconButton(
++                                    IconButton(shapes = AppButtonDefaults.iconShapes(),
+                                         onClick = hapticClick {
+                                             val courseCode = try {
+                                                 navBackStackEntry?.toRoute<Screen.CourseDetail>()?.courseCode
+--- before/app/src/main/java/com/lingubible/app/core/theme/TactileMotionTokens.kt
++++ after/app/src/main/java/com/lingubible/app/core/theme/TactileMotionTokens.kt
+@@ -8,18 +8,9 @@
+  * Motion Tokens and Bouncy Physics for Material 3 Expressive UI.
+  *
+  * Sourced from pixelthing ExpressiveLab (TactileMotionTokens).
+- * Standardizes press scales, bouncy springs, and tactile haptic feedback.
++ * Standardizes spring motion and tactile haptic feedback.
+  */
+ object TactileMotionTokens {
+-    /** Standard press scale reduction factor for regular buttons */
+-    const val PRESS_SCALE_STANDARD = 0.92f
+-
+-    /** Pronounced scale reduction factor for Floating Action Buttons (FAB) */
+-    const val PRESS_SCALE_FAB = 0.88f
+-
+-    /** Subtle scale reduction factor for cards and interactive tiles */
+-    const val PRESS_SCALE_CARD = 0.96f
+-
+     /** Standard haptic feedback for button taps */
+     val hapticTap = HapticFeedbackType.VirtualKey
+ 

@@ -15,7 +15,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -88,7 +87,7 @@ fun Material3TermSelector(
             onClick = hapticClick {
                 expandedState.targetState = !expandedState.targetState
             },
-            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = triggerBg
             ),
@@ -167,7 +166,7 @@ fun Material3TermSelector(
                             modifier = Modifier
                                 .padding(vertical = 4.dp)
                                 .heightIn(max = 420.dp)
-                                .verticalScroll(rememberScrollState())
+                                .fadingVerticalScroll(rememberScrollState())
                         ) {
                             val yearList = termsByYear.keys.toList()
                             yearList.forEachIndexed { index, year ->

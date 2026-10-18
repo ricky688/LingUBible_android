@@ -46,6 +46,8 @@ import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.settings.ThemeMode
 import com.lingubible.app.ui.components.CatFootstepsOverlay
 import com.lingubible.app.ui.components.DiscoverTopBarGlass
+import com.lingubible.app.ui.components.GettingStartedGuideSheet
+import com.lingubible.app.ui.components.shouldShowGettingStarted
 import com.lingubible.app.ui.components.rememberCatWalkState
 import com.lingubible.app.core.theme.LingUBibleTheme
 import org.koin.android.ext.android.inject
@@ -70,6 +72,11 @@ class MainActivity : ComponentActivity() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -160,6 +167,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun LingUBibleMainScreen() {
+    val settings = org.koin.compose.koinInject<AppSettingsManager>()
+    val hasSeenGuide by settings.hasSeenGuide.collectAsStateWithLifecycle()
     val density = LocalDensity.current
     val imeVisible = WindowInsets.ime.getBottom(density) > 0
     val collapseThreshold = with(density) { 24.dp.toPx() }
@@ -172,12 +181,14 @@ fun LingUBibleMainScreen() {
     var isBottomBarVisible by remember { mutableStateOf(true) }
     var isTopBarVisible by remember { mutableStateOf(true) }
     var isTopBarExpanded by remember { mutableStateOf(true) }
+    val effectiveTopBarExpanded = isTopBarExpanded && !imeVisible && LocalConfiguration.current.screenHeightDp >= 480
     var isSubBarVisible by remember { mutableStateOf(true) }
     var academicSubTab by remember { mutableIntStateOf(0) }
 
     val shouldShowBottomBar = BottomNavDestination.entries.any { destination ->
         currentDestination?.hasRoute(destination.screen::class) == true
     } || currentDestination?.hasRoute<Screen.Planner>() == true
+      || currentDestination?.hasRoute<Screen.ImportTimetable>() == true
       || currentDestination?.hasRoute<Screen.Calendar>() == true
       || currentDestination?.hasRoute<Screen.GpaHons>() == true
 
@@ -267,10 +278,10 @@ fun LingUBibleMainScreen() {
         )
     }
 
-    val topBarState = remember(isTopBarVisible, isTopBarExpanded, isSubBarVisible, academicSubTab) {
+    val topBarState = remember(isTopBarVisible, effectiveTopBarExpanded, isSubBarVisible, academicSubTab) {
         TopBarState(
             isVisible = isTopBarVisible,
-            isExpanded = isTopBarExpanded,
+            isExpanded = effectiveTopBarExpanded,
             isSubBarVisible = isSubBarVisible,
             academicSubTab = academicSubTab,
             setVisible = { isTopBarVisible = it },
@@ -294,9 +305,8 @@ fun LingUBibleMainScreen() {
 
             val systemBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             val isBottomBarTargetVisible = shouldShowBottomBar && isBottomBarVisible && !imeVisible
-            // Standard NavigationBar height is 80.dp + systemBottom. Scrim extends 48.dp above the bar.
-            // Full hide translation ensures the entire bar and its top decorative scrim are pushed below screen.
-            val hideTranslation = 80.dp + systemBottom + 48.dp
+            // Scroll viewports own their fades; navigation has no permanent scrim above it.
+            val hideTranslation = 80.dp + systemBottom
 
             val bottomBarTranslationY by animateDpAsState(
                 targetValue = if (isBottomBarTargetVisible) 0.dp else hideTranslation,
@@ -316,7 +326,7 @@ fun LingUBibleMainScreen() {
                     LingUBibleTopBar(
                         navController = navController,
                         isVisible = isTopBarVisible,
-                        isExpanded = isTopBarExpanded,
+                        isExpanded = effectiveTopBarExpanded,
                         academicSubTab = academicSubTab,
                         onLogoClick = {
                             catWalkState.onLogoTap(screenWidthPx, screenHeightPx) { hapticType ->
@@ -368,6 +378,13 @@ fun LingUBibleMainScreen() {
                         }
                     }
                 }
+            }
+
+            if (shouldShowGettingStarted(hasSeenGuide, currentDestination?.hasRoute<Screen.Home>() == true, imeVisible)) {
+                GettingStartedGuideSheet(
+                    onDismiss = settings::markGuideSeen,
+                    onNavigate = { destination -> settings.markGuideSeen(); navController.navigate(destination) }
+                )
             }
 
             // 🐱 嶺南「校園貓咪 / 屯門特產」文化彩蛋覆蓋層

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ReviewRepositoryParityTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:22:26" hostname="Ricky" time="0.72">
+  <properties/>
+  <testcase name="course browsing pages past SDK default while preserving the course constraint" classname="com.lingubible.app.ReviewRepositoryParityTest" time="0.092"/>
+  <testcase name="vote totals include every page and selected account vote" classname="com.lingubible.app.ReviewRepositoryParityTest" time="0.072"/>
+  <testcase name="instructor browsing includes secondary instructors beyond old 200 review cutoff" classname="com.lingubible.app.ReviewRepositoryParityTest" time="0.234"/>
+  <testcase name="submission rechecks membership and limits before writing web compatible payload" classname="com.lingubible.app.ReviewRepositoryParityTest" time="0.119"/>
+  <testcase name="stale account cannot create a review" classname="com.lingubible.app.ReviewRepositoryParityTest" time="0.083"/>
+  <testcase name="unknown session or term limit refuses write" classname="com.lingubible.app.ReviewRepositoryParityTest" time="0.063"/>
+  <testcase name="eligibility cannot fail open on timeout" classname="com.lingubible.app.ReviewRepositoryParityTest" time="0.056"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,6 +1,7 @@
 package com.lingubible.app
 
 import com.lingubible.app.data.repository.TimetableRepository
+import com.lingubible.app.domain.model.TimetableAppearance
 import com.lingubible.app.domain.model.Course
 import com.lingubible.app.domain.model.DEFAULT_TERMS
 import com.lingubible.app.domain.model.TimetableSection
@@ -36,6 +37,7 @@ class TimetableCreditsViewModelTest {
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         coEvery { timetable.getSectionsForTerm(any()) } returns sections
+        every { timetable.getAppearance(any()) } returns TimetableAppearance()
         every { timetable.getSelectedSectionIds(any()) } returns setOf("1", "2", "3")
         every { timetable.findConflicts(any()) } returns emptyList()
         coEvery { catalog.getCourses(any(), any(), any()) } returns Result.success(listOf(
@@ -81,5 +83,26 @@ class TimetableCreditsViewModelTest {
         assertEquals(DEFAULT_TERMS[1], viewModel.uiState.value.selectedTerm)
         assertEquals(8, viewModel.uiState.value.totalCredits)
         coVerify(exactly = 1) { catalog.getCourses(any(), any(), any()) }
+    }
+
+    @Test
+    fun multiSectionCourseDoesNotDoubleCountCreditsOrCourses() = runTest {
+        val multiSections = listOf(
+            TimetableSection("10", "405", "CLE9008", "Course LEC", section = "1"),
+            TimetableSection("11", "406", "CLE9008", "Course TUT", section = "2"),
+            TimetableSection("12", "234", "CDS3004", "Another Course", section = "1")
+        )
+        coEvery { timetable.getSectionsForTerm(any()) } returns multiSections
+        every { timetable.getSelectedSectionIds(any()) } returns setOf("10", "11", "12")
+        coEvery { catalog.getCourses(any(), any(), any()) } returns Result.success(listOf(
+            Course("10", "CLE9008", "Course", credits = 3),
+            Course("12", "CDS3004", "Another Course", credits = 3)
+        ))
+        val viewModel = TimetableViewModel(timetable, catalog)
+        testScheduler.advanceUntilIdle()
+        val state = viewModel.uiState.value
+        assertEquals(2, state.distinctCourseCount)
+        assertEquals(6, state.totalCredits)
+        assertEquals(3, state.selectedSections.size)
     }
 }

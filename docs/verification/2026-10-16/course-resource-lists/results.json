@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-16",
+  "status": "SOURCE_AND_LOCAL_BUILD_VERIFIED",
+  "unit_tests": {
+    "tests": 510,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "build": "PASS",
+  "release_guard": {
+    "status": "PASS",
+    "version_code": 7,
+    "version_name": "1.0.6",
+    "apk_bytes": 4295908,
+    "aab_bytes": 7631013,
+    "uncompressed_dex_bytes": 4947408,
+    "renamed_application_types_present_in_dex": 873,
+    "matching_r8_mapping_embedded": true,
+    "sha256": {
+      "app-release.apk": "b07c33e96a73e1d82996e2919118915efbe6062b5dfc6febfebd5d68f8e613f5",
+      "app-release.aab": "139430ae21452b281cf0ba8657bcc8436d896fc0b867fa117985d77f6280865b"
+    },
+    "note": "Type count and size are local evidence, not Play Console coverage percentages."
+  },
+  "certificate_sha256": "9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e",
+  "archive": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/course-resource-lists-2026-10-16",
+  "installed": false,
+  "waydroid": "DEFERRED_EXPLICIT_USER_CHOICE",
+  "screenshots": [],
+  "published": false,
+  "committed": false,
+  "checks": [
+    "Course term/session labels",
+    "Direct instructor review header position",
+    "Existing full unit suite",
+    "Release optimization guard",
+    "Unchanged release certificate"
+  ],
+  "pending": [
+    "Teacher navigation, Back and restoration on device",
+    "Long bilingual rows/font scale/themes on device",
+    "Paper row/checkbox/download touch separation on device"
+  ]
+}

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/tools/verify-play-release.py", line 90, in <module>
+    main()
+    ~~~~^^
+  File "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/tools/verify-play-release.py", line 82, in main
+    result = json.dumps(verify(args.root, args.minimum_version_code), indent=2) + "\n"
+                        ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/tools/verify-play-release.py", line 48, in verify
+    raise ValueError(f"Navigation enum {name} was renamed or removed; keep its runtime class name")
+ValueError: Navigation enum com.lingubible.app.domain.model.InformationPage was renamed or removed; keep its runtime class name

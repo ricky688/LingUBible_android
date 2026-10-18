@@ -99,11 +99,24 @@ class MyReviewsViewModelTest {
         coVerify(exactly = 0) { reviews.getLatestReviews(any()) }
     }
 
-    @Test fun `public reviews still load latest reviews`() = runTest(dispatcher) {
-        coEvery { reviews.getLatestReviews(30) } returns Result.success(listOf(review("a"), review("b")))
+    @Test fun `public browsing loads full history without querying a personal feed`() = runTest(dispatcher) {
+        coEvery { reviews.getAllReviewsForBrowsing() } returns Result.success(listOf(review("a"), review("b")))
         val vm = model(false)
         advanceUntilIdle()
         assertEquals(2, vm.uiState.value.reviews.size)
+        coVerify(exactly = 1) { reviews.getAllReviewsForBrowsing() }
         coVerify(exactly = 0) { reviews.getReviewsForUser(any()) }
     }
+    @Test fun `public feed reloads account vote state after signing in or out`() = runTest(dispatcher) {
+        coEvery { reviews.getAllReviewsForBrowsing() } returnsMany listOf(
+            Result.success(listOf(review("a").copy(userVote = "up"))),
+            Result.success(listOf(review("a").copy(userVote = null))))
+        user.value = User("a", "A", "a@ln.hk")
+        val vm = model(false); advanceUntilIdle()
+        assertEquals("up", vm.uiState.value.reviews.single().userVote)
+        user.value = null; advanceUntilIdle()
+        assertNull(vm.uiState.value.reviews.single().userVote)
+        coVerify(exactly = 2) { reviews.getAllReviewsForBrowsing() }
+    }
+
 }

@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.ViewWeek
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -131,6 +132,7 @@ fun layoutStrip(
 /**
  * Overview Monthly Calendar with Google Calendar Multi-Day Spanning Bars and Frosted Glass Effect.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MonthlyCalendarOverview(
     events: List<AcademicEvent>,
@@ -143,8 +145,8 @@ fun MonthlyCalendarOverview(
     modifier: Modifier = Modifier
 ) {
     val isDark = com.lingubible.app.core.theme.isAppDarkTheme()
-    var isExpanded by remember { mutableStateOf(true) }
-    var viewMode by remember { mutableStateOf(CalendarViewMode.MONTH) }
+    var isExpanded by rememberSaveable { mutableStateOf(true) }
+    var viewMode by rememberSaveable { mutableStateOf(CalendarViewMode.MONTH) }
 
     // Resolve current YearMonth (defaults to today's month, e.g. 2026-09)
     val currentYearMonth = remember(selectedMonthKey, selectedDate) {
@@ -227,11 +229,11 @@ fun MonthlyCalendarOverview(
                     .fillMaxWidth()
                     .padding(14.dp)
             ) {
-                // 1. Navigation Action Buttons & Month Title Header Row (matching web app)
-                Row(
+                // Paging controls wrap without compressing their touch targets.
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // Left: "今天", "學期開始", and navigation arrows (< >)
                     Row(
@@ -246,12 +248,12 @@ fun MonthlyCalendarOverview(
                                 onSelectDate(todayString)
                             },
                             contentPadding = PaddingValues(horizontal = 9.dp, vertical = 2.dp),
-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(8.dp)),
+                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(8.dp)),
                             border = BorderStroke(1.dp, if (isDark) Color(0xFF3F3F46) else Color(0xFFCBD5E1)),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = textPrimary
                             ),
-                            modifier = Modifier.height(30.dp)
+                            modifier = Modifier.heightIn(min = 48.dp)
                         ) {
                             Text(
                                 text = "今天",
@@ -264,12 +266,12 @@ fun MonthlyCalendarOverview(
                         OutlinedButton(
                             onClick = hapticClick(onJumpTermStart),
                             contentPadding = PaddingValues(horizontal = 9.dp, vertical = 2.dp),
-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(8.dp)),
+                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(8.dp)),
                             border = BorderStroke(1.dp, if (isDark) Color(0xFF3F3F46) else Color(0xFFCBD5E1)),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = textPrimary
                             ),
-                            modifier = Modifier.height(30.dp)
+                            modifier = Modifier.heightIn(min = 48.dp)
                         ) {
                             Text(
                                 text = "學期開始",
@@ -279,7 +281,7 @@ fun MonthlyCalendarOverview(
                         }
 
                         // Previous Button (<)
-                        IconButton(
+                        IconButton(shapes = AppButtonDefaults.iconShapes(),
                             onClick = hapticClick {
                                 when (viewMode) {
                                     CalendarViewMode.MONTH -> {
@@ -299,7 +301,7 @@ fun MonthlyCalendarOverview(
                                 }
                             },
                             modifier = Modifier
-                                .size(28.dp)
+                                .size(48.dp)
                                 .pointerHoverIcon(PointerIcon.Hand)
                         ) {
                             Icon(
@@ -311,7 +313,7 @@ fun MonthlyCalendarOverview(
                         }
 
                         // Next Button (>)
-                        IconButton(
+                        IconButton(shapes = AppButtonDefaults.iconShapes(),
                             onClick = hapticClick {
                                 when (viewMode) {
                                     CalendarViewMode.MONTH -> {
@@ -331,7 +333,7 @@ fun MonthlyCalendarOverview(
                                 }
                             },
                             modifier = Modifier
-                                .size(28.dp)
+                                .size(48.dp)
                                 .pointerHoverIcon(PointerIcon.Hand)
                         ) {
                             Icon(
@@ -395,10 +397,10 @@ fun MonthlyCalendarOverview(
 
                         Spacer(modifier = Modifier.width(2.dp))
 
-                        IconButton(
+                        IconButton(shapes = AppButtonDefaults.iconShapes(),
                             onClick = hapticClick { isExpanded = !isExpanded },
                             modifier = Modifier
-                                .size(28.dp)
+                                .size(48.dp)
                                 .pointerHoverIcon(PointerIcon.Hand)
                         ) {
                             Icon(
@@ -415,13 +417,11 @@ fun MonthlyCalendarOverview(
 
                 // 2. Material 3 Expressive Connected Button Group (三天 | 週 | 月)
                 val viewModeModes = remember { listOf(CalendarViewMode.DAY3, CalendarViewMode.WEEK, CalendarViewMode.MONTH) }
-                val viewModeItems = remember {
-                    listOf(
-                        M3ButtonGroupItem("三天", Icons.Outlined.ViewWeek) { viewMode = CalendarViewMode.DAY3 },
-                        M3ButtonGroupItem("週", Icons.Outlined.DateRange) { viewMode = CalendarViewMode.WEEK },
-                        M3ButtonGroupItem("月", Icons.Outlined.CalendarMonth) { viewMode = CalendarViewMode.MONTH }
-                    )
-                }
+                val viewModeItems = listOf(
+                    M3ButtonGroupItem("三天 3 days", Icons.Outlined.ViewWeek) { viewMode = CalendarViewMode.DAY3 },
+                    M3ButtonGroupItem("週 Week", Icons.Outlined.DateRange) { viewMode = CalendarViewMode.WEEK },
+                    M3ButtonGroupItem("月 Month", Icons.Outlined.CalendarMonth) { viewMode = CalendarViewMode.MONTH }
+                )
                 val selectedModeIndex = viewModeModes.indexOf(viewMode)
 
                 Box(
@@ -431,7 +431,7 @@ fun MonthlyCalendarOverview(
                     M3ButtonGroup(
                         selectedIndex = selectedModeIndex,
                         items = viewModeItems,
-                        height = 36.dp,
+                        height = 48.dp,
                         spacing = 6.dp,
                         showCheckmarkOnSelected = false
                     )

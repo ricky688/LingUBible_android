@@ -40,6 +40,12 @@ def verify(root, minimum_version_code=4):
     # Match renamed application descriptors against the shipped bytecode, rather
     # than merely trusting that minification was requested in the Gradle file.
     descriptors = set(re.findall(rb"L[A-Za-z0-9_$/]+;", b"".join(dex_files.values())))
+    # Navigation resolves enum arguments from their serializer's original class name.
+    navigation_enums = ["com.lingubible.app.domain.model.InformationPage"]
+    for name in navigation_enums:
+        descriptor = ("L" + name.replace(".", "/") + ";").encode()
+        if f"{name} -> {name}:" not in mapping.decode().splitlines() or descriptor not in descriptors:
+            raise ValueError(f"Navigation enum {name} was renamed or removed; keep its runtime class name")
     renamed = []
     for original, compiled in re.findall(r"^(\S+) -> (\S+):$", mapping.decode(), re.M):
         descriptor = ("L" + compiled.replace(".", "/") + ";").encode()
@@ -61,6 +67,7 @@ def verify(root, minimum_version_code=4):
         "uncompressed_dex_bytes": sum(map(len, dex_files.values())),
         "renamed_application_types_present_in_dex": len(renamed),
         "matching_r8_mapping_embedded": True,
+        "preserved_navigation_enums": navigation_enums,
         "sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (apk, bundle)},
         "note": "Type count and size are local evidence, not Play Console coverage percentages.",
     }

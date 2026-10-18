@@ -1,5 +1,7 @@
 package com.lingubible.app.data.repository
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import android.content.Context
 import android.content.SharedPreferences
 import com.lingubible.app.domain.model.*
@@ -28,7 +30,7 @@ class TimetableRepository(
 
         try {
             val inputStream = context.assets.open(term.assetPath)
-            val reader = BufferedReader(InputStreamReader(inputStream))
+            BufferedReader(InputStreamReader(inputStream)).use { reader ->
             val headerLine = reader.readLine() // Header line
             val headerCols = if (headerLine != null) {
                 parseCsvLine(headerLine).map { it.trim().lowercase().removePrefix("\ufeff") }
@@ -122,9 +124,9 @@ class TimetableRepository(
                     )
                 }
             }
-            reader.close()
+            }
         } catch (e: Exception) {
-            e.printStackTrace()
+            throw e
         }
 
         val result = sections.values.sortedWith(compareBy({ it.courseCode }, { it.section }))
@@ -144,6 +146,17 @@ class TimetableRepository(
      */
     fun saveSelectedSectionIds(termId: String, ids: Set<String>) {
         prefs.edit().putStringSet("selected_$termId", ids).apply()
+    }
+
+    fun getAppearance(termId: String): TimetableAppearance = runCatching {
+        Json.decodeFromString<TimetableAppearance>(prefs.getString("appearance_$termId", "{}").orEmpty()).let { value ->
+            val term = DEFAULT_TERMS.firstOrNull { it.id == termId } ?: DEFAULT_TERMS.first()
+            value.takeIf { timetableAppearanceError(it, term) == null } ?: TimetableAppearance()
+        }
+    }.getOrDefault(TimetableAppearance())
+
+    fun saveAppearance(termId: String, appearance: TimetableAppearance) {
+        prefs.edit().putString("appearance_$termId", Json.encodeToString(appearance)).apply()
     }
 
     /**

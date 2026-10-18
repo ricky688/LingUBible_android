@@ -16,7 +16,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -72,7 +71,7 @@ fun SchoolCalendarView(
     val cardBorder = if (isDark) md_theme_dark_outlineVariant else Color(0xFFE2E8F0)
     val textMuted = if (isDark) md_theme_dark_onSurfaceVariant else Color(0xFF64748B)
 
-    LazyColumn(
+    FadingLazyColumn(
         contentPadding = screenContentPadding(top = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
         modifier = modifier.fillMaxSize()
@@ -219,12 +218,14 @@ fun SchoolCalendarView(
                             )
                         } else {
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                selectedDayEvents.forEach { event ->
+                                selectedDayEvents.forEachIndexed { index, event ->
                                     WebCalendarEventItem(
                                         event = event,
+                                        groupIndex = index,
+                                        groupSize = selectedDayEvents.size,
                                         isDark = isDark,
                                         textMuted = textMuted,
                                         onExportIcs = onExportIcs,
@@ -271,7 +272,7 @@ fun SchoolCalendarView(
                                 color = if (isDark) Color(0xFFCBD5E1) else Color(0xFF475569)
                             )
 
-                            TextButton(shapes = ButtonDefaults.shapes(),
+                            TextButton(shapes = AppButtonDefaults.shapes(),
                                 onClick = hapticClick(onShowAllCategories),
                                 enabled = hiddenCategories.isNotEmpty(),
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
@@ -356,6 +357,8 @@ fun SchoolCalendarView(
 @Composable
 private fun WebCalendarEventItem(
     event: AcademicEvent,
+    groupIndex: Int,
+    groupSize: Int,
     isDark: Boolean,
     textMuted: Color,
     onExportIcs: (AcademicEvent) -> Unit,
@@ -368,7 +371,7 @@ private fun WebCalendarEventItem(
 
     Surface(
         color = itemBg,
-        shape = RoundedCornerShape(10.dp),
+        shape = getGroupedItemShape(groupIndex, groupSize, outerRadius = 10.dp),
         border = BorderStroke(0.8.dp, itemBorder),
         modifier = modifier
             .fillMaxWidth()
@@ -469,7 +472,7 @@ private fun WebCalendarEventItem(
                     ) {
                         OutlinedButton(
                             onClick = hapticClick { onExportIcs(event) },
-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
+                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 3.dp),
                             modifier = Modifier
                                 .height(30.dp)
@@ -488,7 +491,7 @@ private fun WebCalendarEventItem(
 
                         Button(
                             onClick = hapticClick { onAddToCalendar(event) },
-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
+                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.onPrimary

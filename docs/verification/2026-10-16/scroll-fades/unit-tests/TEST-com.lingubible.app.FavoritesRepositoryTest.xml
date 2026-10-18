@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.FavoritesRepositoryTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:22:23" hostname="Ricky" time="0.793">
+  <properties/>
+  <testcase name="remoteAlreadySavedItemIsNotAccidentallyRemoved" classname="com.lingubible.app.FavoritesRepositoryTest" time="0.741"/>
+  <testcase name="failedSaveDoesNotPretendItemWasSaved" classname="com.lingubible.app.FavoritesRepositoryTest" time="0.019"/>
+  <testcase name="accountChangeCannotMutateUsingPreviousAccountsState" classname="com.lingubible.app.FavoritesRepositoryTest" time="0.013"/>
+  <testcase name="successfulSavePersistsAndLogoutClearsAccountData" classname="com.lingubible.app.FavoritesRepositoryTest" time="0.014"/>
+  <testcase name="guestCannotWriteFavorites" classname="com.lingubible.app.FavoritesRepositoryTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,12 @@
+[
+  {
+    "host": "lingubible.com",
+    "status": 301,
+    "location": "https://www.lingubible.com/.well-known/assetlinks.json"
+  },
+  {
+    "host": "www.lingubible.com",
+    "status": 200,
+    "location": null
+  }
+]

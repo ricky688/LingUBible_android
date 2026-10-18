@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.ui.common.hapticClick
 
 import com.lingubible.app.core.navigation.screenContentPadding
@@ -24,8 +25,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -58,6 +58,7 @@ import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.runtime.rememberCoroutineScope
 import com.lingubible.app.domain.util.DocumentDownloadHelper
 import kotlinx.coroutines.launch
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 data class ActivePdf(
     val title: String,
@@ -71,23 +72,30 @@ data class ActivePdf(
 @Composable
 fun CourseDetailScreen(
     courseCode: String,
+    initialTab: Int = 0,
     onNavigateBack: () -> Unit,
     onNavigateToWriteReview: () -> Unit,
     onNavigateToAuth: () -> Unit = {},
+    onNavigateToInstructor: (String) -> Unit = {},
     viewModel: CourseDetailViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val isDark = isAppDarkTheme()
-    val uiState by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var isFavorited by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var selectedTab by androidx.compose.runtime.saveable.rememberSaveable(courseCode, initialTab) { mutableIntStateOf(initialTab.coerceIn(0, 5)) }
     var activePdf by remember { mutableStateOf<ActivePdf?>(null) }
-    val tabs = listOf("課程評價", "成績分佈", "歷屆試題", "任教記錄")
+    LaunchedEffect(uiState.currentUser?.id) { activePdf = null }
+    val tabs = listOf("課程評價", "成績分佈", "歷屆試題", "任教記錄", "閱讀書目", "學習資料")
 
+    var reviewFilters by com.lingubible.app.ui.components.rememberReviewFilters(courseCode)
+    val filteredReviews = remember(uiState.reviews, reviewFilters) { com.lingubible.app.domain.model.filterReviews(uiState.reviews, reviewFilters) }
+    var reviewLimit by androidx.compose.runtime.saveable.rememberSaveable(reviewFilters) { mutableIntStateOf(30) }
     val reviewsListState = rememberLazyListState()
     val density = LocalDensity.current
     var fabHeight by remember { mutableStateOf(0.dp) }
+    val reviewFabSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val reviewFabCorner by AppButtonDefaults.pressCorner(reviewFabSource, 16.dp)
     val bottomClearance = LocalScreenBottomClearance.current
     val isScrollingUp by rememberIsScrollingUp(reviewsListState)
 
@@ -100,6 +108,8 @@ fun CourseDetailScreen(
         floatingActionButton = {
             if (selectedTab == 0 && !uiState.isLoading && uiState.course != null) {
                 ExtendedFloatingActionButton(
+                    interactionSource = reviewFabSource,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(reviewFabCorner),
                     onClick = hapticClick(onNavigateToWriteReview),
                     expanded = isScrollingUp,
                     icon = {
@@ -190,8 +200,7 @@ fun CourseDetailScreen(
 
                                 // Favorite Button
                                 FavoriteButton(
-                                    isFavorited = isFavorited,
-                                    onToggle = { isFavorited = !isFavorited },
+                                    type = "course", itemId = courseCode,
                                     size = 22.dp
                                 )
                             }
@@ -290,13 +299,12 @@ fun CourseDetailScreen(
                     }
                 }
 
-                M3ButtonGroup(
+                com.lingubible.app.ui.components.ScrollableM3ButtonGroup(
                     selectedIndex = selectedTab,
                     items = sectionItems,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 6.dp),
-                    equalWeight = true,
                     height = 38.dp,
                     spacing = 5.dp
                 )
@@ -327,12 +335,17 @@ fun CourseDetailScreen(
                     when (tabIndex) {
                         0 -> {
                             // Reviews Tab
-                            if (uiState.reviews.isEmpty()) {
+                            if (uiState.reviewsError != null) {
+                                Column(Modifier.padding(24.dp)) {
+                                    Text("無法載入評價 · Could not load reviews", color = MaterialTheme.colorScheme.error)
+                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.loadCourseDetail(courseCode) }) { Text("重試 Retry") }
+                                }
+                            } else if (uiState.reviews.isEmpty()) {
                                 EmptyState(
                                     message = "此課程尚無評價，快來搶先分享吧！"
                                 )
                             } else {
-                                LazyColumn(
+                                FadingLazyColumn(
                                     state = reviewsListState,
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -340,22 +353,27 @@ fun CourseDetailScreen(
                                     contentPadding = screenContentPadding(
                                         start = 16.dp, top = 16.dp, end = 16.dp, bottom = fabHeight + 32.dp
                                     ),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
-                                    items(uiState.reviews, key = { it.id }) { review ->
+                                    item(key = "filters") { com.lingubible.app.ui.components.ReviewBrowserControls(uiState.reviews, reviewFilters, { reviewFilters = it }, filteredReviews.size) }
+                                    if (filteredReviews.isEmpty()) item { Text("沒有符合篩選的評價 · No matching reviews") }
+                                    itemsIndexed(filteredReviews.take(reviewLimit), key = { _, it -> it.id }) { index, review ->
                                         ReviewCard(
                                             review = review,
+                                            groupIndex = index,
+                                            groupSize = minOf(reviewLimit, filteredReviews.size),
                                             onVote = { voteType ->
                                                 viewModel.voteReview(review.id, voteType)
                                             }
                                         )
                                     }
+                                    if (reviewLimit < filteredReviews.size) item { OutlinedButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { reviewLimit += 30 }) { Text("載入更多 Load more") } }
                                 }
                             }
                         }
                         1 -> {
                             // Grades Tab
-                            LazyColumn(
+                            FadingLazyColumn(
                                 modifier = Modifier.fillMaxSize(),
                                 contentPadding = screenContentPadding(start = 16.dp, top = 16.dp, end = 16.dp)
                             ) {
@@ -365,116 +383,25 @@ fun CourseDetailScreen(
                             }
                         }
                         2 -> {
-                            // Past Papers Tab
-                            val isLoggedIn = uiState.currentUser != null
-                            if (!isLoggedIn && uiState.pastPapers.isEmpty()) {
-                                AuthRequiredPastPapersCard(
-                                    onNavigateToAuth = onNavigateToAuth
-                                )
-                            } else if (uiState.pastPapers.isEmpty()) {
-                                EmptyState(message = "此課程暫無歷屆試題\nNo past papers available")
-                            } else {
-                                LazyColumn(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentPadding = screenContentPadding(start = 16.dp, top = 16.dp, end = 16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    items(uiState.pastPapers) { paper ->
-                                        PastPaperCard(
-                                            paper = paper,
-                                            onView = { p ->
-                                                activePdf = ActivePdf(
-                                                    title = "${p.courseCode} 歷屆試題 (${p.academicYear} ${p.term})",
-                                                    fileName = p.fileName,
-                                                    url = p.viewUrl,
-                                                    bucketId = "past_exam_papers",
-                                                    fileId = p.fileId
-                                                )
-                                            },
-                                            onDownload = { p ->
-                                                coroutineScope.launch {
-                                                    DocumentDownloadHelper.downloadDocument(
-                                                        context = context,
-                                                        fileName = p.fileName,
-                                                        url = p.downloadUrl,
-                                                        bucketId = "past_exam_papers",
-                                                        fileId = p.fileId,
-                                                        clientProvider = viewModel.clientProvider
-                                                    )
-                                                }
-                                            }
-                                        )
-                                    }
-                                }
-                            }
+                            LaunchedEffect(courseCode, uiState.currentUser?.id) { viewModel.loadPastPapers(courseCode) }
+                            com.lingubible.app.ui.components.PastPapersContent(
+                                courseCode, uiState.pastPapers, uiState.teachingRecords, uiState.currentUser != null,
+                                uiState.isPapersLoading, uiState.papersError,
+                                onRetry = { viewModel.loadPastPapers(courseCode) }, onSignIn = onNavigateToAuth,
+                                onView = { p -> activePdf = ActivePdf("${p.courseCode} 歷屆試題 (${p.academicYear} ${p.term})", p.fileName, p.viewUrl, "past_exam_papers", p.fileId) }
+                            )
                         }
-                        3 -> {
-                            // Teaching Records Tab
-                            if (uiState.teachingRecords.isEmpty()) {
-                                EmptyState(message = "暫無任教記錄\nNo teaching records available")
-                            } else {
-                                LazyColumn(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentPadding = screenContentPadding(start = 16.dp, top = 16.dp, end = 16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    items(uiState.teachingRecords) { record ->
-                                        Card(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            shape = RoundedCornerShape(12.dp),
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = MaterialTheme.colorScheme.surfaceContainer
-                                            ),
-                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f))
-                                        ) {
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(14.dp),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Column {
-                                                    val instText = if (record.instructorNameZh.isNotBlank()) {
-                                                        "${record.instructorName} (${record.instructorNameZh})"
-                                                    } else {
-                                                        record.instructorName
-                                                    }
-                                                    Text(
-                                                        text = instText,
-                                                        style = MaterialTheme.typography.titleMedium,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = MaterialTheme.colorScheme.onSurface
-                                                    )
-                                                    Text(
-                                                        text = "${record.term} (${record.academicYear})",
-                                                        style = MaterialTheme.typography.bodySmall,
-                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                    )
-                                                }
-                                                if (record.section.isNotBlank()) {
-                                                    Box(
-                                                        modifier = Modifier
-                                                          .background(
-                                                              color = BadgeTheme.DepartmentBgLight,
-                                                              shape = RoundedCornerShape(4.dp)
-                                                          )
-                                                          .padding(horizontal = 8.dp, vertical = 3.dp)
-                                                    ) {
-                                                        Text(
-                                                            text = "Sec: ${record.section}",
-                                                            style = MaterialTheme.typography.labelSmall,
-                                                            color = BadgeTheme.DepartmentTextLight,
-                                                            fontWeight = FontWeight.Medium
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                        4 -> com.lingubible.app.ui.components.CourseReadingsContent(uiState.course?.readings.orEmpty())
+                        5 -> com.lingubible.app.ui.components.StudyMaterialsContent(
+                            courseCode, uiState.currentUser != null, onNavigateToAuth,
+                            onPdf = { file ->
+                                val config = requireNotNull(viewModel.clientProvider).appConfig
+                                activePdf = ActivePdf(file.displayName, file.name,
+                                    "${config.endpoint}/storage/buckets/study_materials/files/${file.id}/view?project=${config.projectId}",
+                                    "study_materials", file.id)
                             }
-                        }
+                        )
+                        3 -> TeachingRecordsContent(uiState.teachingRecords, onNavigateToInstructor)
                     }
                 }
             }
@@ -556,7 +483,7 @@ private fun AuthRequiredPastPapersCard(
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = hapticClick(onNavigateToAuth),
-                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 ),

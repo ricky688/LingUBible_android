@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.MyReviewsRepositoryTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:32:26" hostname="Ricky" time="0.121">
+  <properties/>
+  <testcase name="personal query keeps account filter on every page and retrieves older reviews" classname="com.lingubible.app.MyReviewsRepositoryTest" time="0.083"/>
+  <testcase name="blank user cannot request an unfiltered review list" classname="com.lingubible.app.MyReviewsRepositoryTest" time="0.038"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

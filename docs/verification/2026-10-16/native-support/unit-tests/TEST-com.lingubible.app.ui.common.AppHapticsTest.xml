@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ui.common.AppHapticsTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-16T12:00:12" hostname="Ricky" time="0.002">
+  <properties/>
+  <testcase name="nativeFeedbackTypeIsPreserved" classname="com.lingubible.app.ui.common.AppHapticsTest" time="0.002"/>
+  <testcase name="settingChangesApplyWithoutRecreatingTheFeedbackProvider" classname="com.lingubible.app.ui.common.AppHapticsTest" time="0.0"/>
+  <testcase name="enabledTapForwardsExactlyOnePulse" classname="com.lingubible.app.ui.common.AppHapticsTest" time="0.0"/>
+  <testcase name="disabledSettingSuppressesTapAndNativeLongPressFeedback" classname="com.lingubible.app.ui.common.AppHapticsTest" time="0.0"/>
+  <testcase name="tapsUseTheButtonEffectRatherThanTextSelectionFeedback" classname="com.lingubible.app.ui.common.AppHapticsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

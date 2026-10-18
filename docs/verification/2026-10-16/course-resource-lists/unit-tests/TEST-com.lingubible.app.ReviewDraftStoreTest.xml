@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ReviewDraftStoreTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:32:26" hostname="Ricky" time="0.028">
+  <properties/>
+  <testcase name="drafts survive store recreation and remain scoped to their owner" classname="com.lingubible.app.ReviewDraftStoreTest" time="0.024"/>
+  <testcase name="expired malformed or unsupported drafts are cleared" classname="com.lingubible.app.ReviewDraftStoreTest" time="0.001"/>
+  <testcase name="storage errors are reported and blank accounts cannot store drafts" classname="com.lingubible.app.ReviewDraftStoreTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

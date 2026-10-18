@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.CourseCategoryAndGlassTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:32:24" hostname="Ricky" time="0.029">
+  <properties/>
+  <testcase name="fading blur edges calculates correct dynamic heights and alpha targets during scroll" classname="com.lingubible.app.CourseCategoryAndGlassTest" time="0.001"/>
+  <testcase name="combined department filter and search query work together" classname="com.lingubible.app.CourseCategoryAndGlassTest" time="0.002"/>
+  <testcase name="material 3 expressive pure spring motion physics invariant" classname="com.lingubible.app.CourseCategoryAndGlassTest" time="0.007"/>
+  <testcase name="frosted mist opacity stops form a monotonic dissipative gradient curve" classname="com.lingubible.app.CourseCategoryAndGlassTest" time="0.0"/>
+  <testcase name="light mode connected button group container follows expressive soft tonal container" classname="com.lingubible.app.CourseCategoryAndGlassTest" time="0.017"/>
+  <testcase name="category codes are distinct" classname="com.lingubible.app.CourseCategoryAndGlassTest" time="0.001"/>
+  <testcase name="responsive max grid height respects landscape and portrait viewports" classname="com.lingubible.app.CourseCategoryAndGlassTest" time="0.0"/>
+  <testcase name="department filtering matches section department case-insensitively" classname="com.lingubible.app.CourseCategoryAndGlassTest" time="0.0"/>
+  <testcase name="course categories list contains all required departments with bilingual names" classname="com.lingubible.app.CourseCategoryAndGlassTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

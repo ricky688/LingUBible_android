@@ -1,0 +1,15 @@
+Producer:        Skia/PDF m100
+Custom Metadata: no
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           1
+Encrypted:       no
+Page size:       842 x 595 pts (A4)
+Page rot:        0
+File size:       160991 bytes
+Optimized:       no
+PDF version:     1.4

@@ -28,7 +28,12 @@ data class Course(
     val avgRating: Double = 0.0,
     val avgWorkload: Double = 0.0,
     val avgDifficulty: Double = 0.0,
-    val avgGrade: String = "N/A"
+    val avgGrade: String = "N/A",
+    val avgGpa: Double = -1.0,
+    val avgUsefulness: Double = 0.0,
+    val teachingLanguages: List<String> = emptyList(),
+    val serviceLearningTypes: List<String> = emptyList(),
+    val readings: String = ""
 )
 
 data class Instructor(
@@ -39,7 +44,10 @@ data class Instructor(
     val title: String = "",
     val reviewCount: Int = 0,
     val avgRating: Double = 0.0,
-    val teachingSession: String = "Lecture"
+    val teachingSession: String = "Lecture",
+    val avgGrading: Double = -1.0, val avgGpa: Double = -1.0,
+    val teachingLanguages: List<String> = emptyList(), val isCurrentStaff: Boolean = true,
+    val nickname: String = ""
 ) {
     val displayName: String
         get() {
@@ -81,7 +89,9 @@ data class TeachingRecord(
     val instructorNameZh: String = "",
     val term: String = "",
     val academicYear: String = "",
-    val section: String = ""
+    val section: String = "",
+    val serviceLearning: String? = null,
+    val teachingLanguage: String = ""
 )
 
 data class Review(
@@ -104,23 +114,12 @@ data class Review(
     val userVote: String? = null,
     val createdAt: String = "",
     val userId: String = "",
-    val isAnonymous: Boolean = true
+    val isAnonymous: Boolean = true,
+    val usefulnessRating: Double = -1.0,
+    val language: String = "",
+    val instructors: List<InstructorEvaluation> = emptyList()
 )
 
-data class ReviewSubmission(
-    val courseCode: String,
-    val courseTitle: String,
-    val instructorName: String,
-    val term: String,
-    val academicYear: String,
-    val grade: String,
-    val workloadRating: Double,
-    val difficultyRating: Double,
-    val gradingRating: Double,
-    val teachingRating: Double,
-    val comment: String,
-    val isAnonymous: Boolean = true
-)
 
 data class VoteState(
     val upvotes: Int,

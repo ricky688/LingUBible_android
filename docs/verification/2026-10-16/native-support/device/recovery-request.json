@@ -1,0 +1,31 @@
+{
+  "attempts": 1,
+  "result": "BACKEND_ACCEPTED_EMAIL_REQUEST",
+  "observed_stages": [
+    "VERIFYING",
+    "SENDING"
+  ],
+  "password_changed": false,
+  "receipt_confirmed_by_user": true,
+  "final_labels": [
+    "找回您的帳戶",
+    "輸入嶺南電郵接收重設連結，或開啟收到的連結以設定新密碼。",
+    "如該電郵已註冊，您將收到重設連結。請查看垃圾郵件；連結一小時後失效且只能使用一次。",
+    "[account email]",
+    "嶺南電郵 Lingnan email",
+    "重新寄送 Resend link",
+    "已有連結？貼上電郵中的完整重設連結。",
+    "重設連結 Reset link",
+    "開啟連結 Open link",
+    "返回登入 Back to sign in",
+    "常見問題",
+    "聯絡我們",
+    "服務條款",
+    "隱私政策",
+    "Back",
+    "🐢",
+    "找回密碼",
+    "電郵驗證與安全重設"
+  ],
+  "emails_received_confirmed_by_user": 1
+}

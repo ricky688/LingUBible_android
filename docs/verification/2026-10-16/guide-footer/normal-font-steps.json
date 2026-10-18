@@ -1,0 +1,36 @@
+{
+  "advanced_all_steps_without_scrolling": true,
+  "steps": [
+    {
+      "step": 1,
+      "next_or_done_bounds": "[197,894][280,917]"
+    },
+    {
+      "step": 2,
+      "next_or_done_bounds": "[197,894][280,917]"
+    },
+    {
+      "step": 3,
+      "next_or_done_bounds": "[197,894][280,917]"
+    },
+    {
+      "step": 4,
+      "next_or_done_bounds": "[197,894][280,917]"
+    },
+    {
+      "step": 5,
+      "next_or_done_bounds": "[197,894][280,917]"
+    },
+    {
+      "step": 6,
+      "next_or_done_bounds": "[197,894][280,917]"
+    },
+    {
+      "step": 7,
+      "next_or_done_bounds": "[197,894][268,917]"
+    }
+  ],
+  "previous": "7 to 6 passed",
+  "replay": "6 to 1 passed",
+  "footer_next_bounds_unchanged_after_body_scroll": true
+}

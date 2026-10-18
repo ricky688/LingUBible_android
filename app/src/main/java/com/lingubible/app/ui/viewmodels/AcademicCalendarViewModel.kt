@@ -38,7 +38,7 @@ data class AcademicCalendarUiState(
 
     val selectedDayEvents: List<AcademicEvent>
         get() {
-            val date = selectedDate ?: "2026-09-10"
+            val date = selectedDate ?: java.time.LocalDate.now().toString()
             return visibleEvents.filter { event ->
                 val end = event.end ?: event.start
                 event.start <= date && end >= date

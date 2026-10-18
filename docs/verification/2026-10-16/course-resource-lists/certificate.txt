@@ -1,0 +1,4 @@
+Signer #1 certificate DN: CN=LingUBible, OU=Mobile, O=Lingnan University Community, L=Tuen Mun, ST=Hong Kong, C=HK
+Signer #1 certificate SHA-256 digest: 9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e
+Signer #1 certificate SHA-1 digest: a03831e4d2304b8947311da24499c31a8de47f38
+Signer #1 certificate MD5 digest: dd5afd605c102d87e53514517a45fce1

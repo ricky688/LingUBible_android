@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.TimetableImageExportTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:02:43" hostname="Ricky" time="0.069">
+  <properties/>
+  <testcase name="portraitExportDimensionsMatchStandardPhoneRatio" classname="com.lingubible.app.TimetableImageExportTest" time="0.001"/>
+  <testcase name="unavailableOrFailingDocumentProviderReportsFailureWithoutChangingSource" classname="com.lingubible.app.TimetableImageExportTest" time="0.003"/>
+  <testcase name="computeSummaryTextDeduplicatesMultiSectionCourses" classname="com.lingubible.app.TimetableImageExportTest" time="0.0"/>
+  <testcase name="showGridLinesDefaultsToTrue" classname="com.lingubible.app.TimetableImageExportTest" time="0.004"/>
+  <testcase name="textTruncationHandlesShortAndLongStringsSafely" classname="com.lingubible.app.TimetableImageExportTest" time="0.052"/>
+  <testcase name="documentExportCopiesAllBytesClosesOutputAndKeepsSource" classname="com.lingubible.app.TimetableImageExportTest" time="0.005"/>
+  <testcase name="writeFailureClosesTheProviderStreamAndKeepsTheImage" classname="com.lingubible.app.TimetableImageExportTest" time="0.001"/>
+  <testcase name="dynamicHourRangeLeavesBreathingRoomAtTopAndBottom" classname="com.lingubible.app.TimetableImageExportTest" time="0.001"/>
+  <testcase name="orientationEnumProvidesCorrectLabels" classname="com.lingubible.app.TimetableImageExportTest" time="0.0"/>
+  <testcase name="landscapeExportDimensionsAreInWidescreenLandscapeMode" classname="com.lingubible.app.TimetableImageExportTest" time="0.0"/>
+  <testcase name="crnAndSectionFormattingVerification" classname="com.lingubible.app.TimetableImageExportTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

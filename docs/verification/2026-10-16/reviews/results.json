@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-16",
+  "device": "192.168.240.112:5555",
+  "android": 13,
+  "account": "User signed in locally; authenticated form and restoration checked in follow-up",
+  "installed_apk_sha256": "822cf1b4831a326efcf5314371c34c281aa276a126aafbbeadda52b47797b746",
+  "installed_hash_matches_final_build": true,
+  "unit_tests": {
+    "tests": 487,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "release_guard": "PASS",
+  "final_release_checks": [
+    "All 1323 reviews loaded through paginated reads",
+    "Course title metadata and all instructor/session evaluations retained",
+    "Search FVA4005 returns 1 of 1323; Android Back dismisses keyboard and retains search",
+    "Full review sheet shows lecturer comment, ratings, requirements; final Close button reachable by scrolling",
+    "Write review requires sign-in; CTA opens native authentication",
+    "No observed fatal exception in final app process"
+  ],
+  "intermediate_release_checks": [
+    "Grade A filter returned 82 reviews; workload sort changed displayed order",
+    "CHI2114 full review showed Lecture and Tutorial evaluations",
+    "Load more expanded 30 to 60 of 82 filtered reviews and retained scroll continuity"
+  ],
+  "intermediate_note": "These labelled screenshots preceded final legacy-JSON repair, same-selection draft safeguards and account-vote refresh; final browsing/search/sheet/guest entry were repeated on the final APK.",
+  "pending": [
+    "Actual successful server submission intentionally not exercised; no synthetic review was published",
+    "Service-learning description branches, account switching and extended font/orientation/TalkBack matrix have JVM coverage or remain device checks as applicable",
+    "Physical Samsung/Pixel checks remain pending"
+  ],
+  "no_public_reviews_or_votes_written": true,
+  "no_account_created": true,
+  "no_device_configuration_changed": true,
+  "previous_verified_apk_sha256": "db7805a3fcb5763a81553e91274cb5334cc25b07fc2f9556cfdaedce0bcbdd10",
+  "signedin_followup": "signedin-results.json",
+  "screenshot_versions": {
+    "original *-final.png and initial signed-in screenshots": "db7805a3fcb5763a81553e91274cb5334cc25b07fc2f9556cfdaedce0bcbdd10",
+    "submission-preview-language-fixed-final.png and test-draft-cleaned-final.png": "822cf1b4831a326efcf5314371c34c281aa276a126aafbbeadda52b47797b746"
+  }
+}

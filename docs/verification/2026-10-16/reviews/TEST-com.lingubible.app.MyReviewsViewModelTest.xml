@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.MyReviewsViewModelTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-15T18:36:42" hostname="Ricky" time="0.063">
+  <properties/>
+  <testcase name="failed personal query and retry never fall back to latest" classname="com.lingubible.app.MyReviewsViewModelTest" time="0.036"/>
+  <testcase name="public feed reloads account vote state after signing in or out" classname="com.lingubible.app.MyReviewsViewModelTest" time="0.003"/>
+  <testcase name="public browsing loads full history without querying a personal feed" classname="com.lingubible.app.MyReviewsViewModelTest" time="0.004"/>
+  <testcase name="logout clears reviews and ignores an old in flight response" classname="com.lingubible.app.MyReviewsViewModelTest" time="0.006"/>
+  <testcase name="my reviews queries the account and excludes another owner" classname="com.lingubible.app.MyReviewsViewModelTest" time="0.003"/>
+  <testcase name="account switch discards late results from the previous account" classname="com.lingubible.app.MyReviewsViewModelTest" time="0.006"/>
+  <testcase name="guest never loads the public feed from my reviews" classname="com.lingubible.app.MyReviewsViewModelTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -23,13 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -96,19 +97,6 @@ fun LingUBibleBottomBar(
         Color(0xFFCBD5E1).copy(alpha = 0.70f)
     }
 
-    val frostedScrimColors = remember(frostedBaseColor, frostedSurfaceColor) {
-        listOf(
-            Color.Transparent,
-            frostedBaseColor.copy(alpha = 0.04f),
-            frostedBaseColor.copy(alpha = 0.15f),
-            frostedBaseColor.copy(alpha = 0.32f),
-            frostedBaseColor.copy(alpha = 0.58f),
-            frostedBaseColor.copy(alpha = 0.82f),
-            frostedSurfaceColor
-        )
-    }
-
-    // Spring physics for slide down / up with pure spring stiffness
     val internalTranslationY by animateDpAsState(
         targetValue = if (isVisible) 0.dp else 200.dp,
         animationSpec = if (isVisible) {
@@ -171,18 +159,6 @@ fun LingUBibleBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .drawBehind {
-                    // Decorative fade must not add to Scaffold's measured navigation clearance.
-                    val scrimHeight = 48.dp.toPx()
-                    drawRect(
-                        brush = Brush.verticalGradient(
-                            frostedScrimColors,
-                            startY = -scrimHeight,
-                            endY = 0f
-                        ),
-                        topLeft = Offset(0f, -scrimHeight),
-                        size = Size(size.width, scrimHeight)
-                    )
-
                     // Translucent frosted glass base surface
                     drawRect(color = frostedSurfaceColor)
 
@@ -209,6 +185,7 @@ fun LingUBibleBottomBar(
                         BottomNavDestination.EXPLORE -> currentDestination?.hasRoute<Screen.Home>() == true
                         BottomNavDestination.ACADEMIC_TOOLS -> currentDestination?.hasRoute<Screen.AcademicTools>() == true ||
                             currentDestination?.hasRoute<Screen.Planner>() == true ||
+                            currentDestination?.hasRoute<Screen.ImportTimetable>() == true ||
                             currentDestination?.hasRoute<Screen.Calendar>() == true ||
                             currentDestination?.hasRoute<Screen.GpaHons>() == true
                         BottomNavDestination.ACCOUNT -> currentDestination?.hasRoute<Screen.Profile>() == true
@@ -271,6 +248,8 @@ fun LingUBibleBottomBar(
                                     translationY = iconTranslationY * 0.4f
                                 },
                                 maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Center,
                                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                             )
                         },

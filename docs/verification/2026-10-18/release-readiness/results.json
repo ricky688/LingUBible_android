@@ -1,0 +1,53 @@
+{
+  "completed_on": "2026-10-18",
+  "local_validation": "passed available cases after four UI fixes",
+  "release_signoff": "pending external checks",
+  "installed": {
+    "sha256": "509ad1b6eb65ea7e20f164ca4a2454518f11d3d75b95563546c2a9538c7c6946",
+    "certificate": "9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e",
+    "replacement_install": "passed; no clear/uninstall"
+  },
+  "tests": {
+    "tests": 546,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "source_files_changed": [
+    "app/src/main/java/com/lingubible/app/MainActivity.kt",
+    "app/src/main/java/com/lingubible/app/core/navigation/LingUBibleBottomBar.kt",
+    "app/src/main/java/com/lingubible/app/ui/screens/GpaHonsScreen.kt",
+    "app/src/main/java/com/lingubible/app/ui/components/FirstClassHonoursContent.kt"
+  ],
+  "final_keyboard_assertions": {
+    "visible_input_bounds": [
+      18,
+      119,
+      928,
+      203
+    ],
+    "query_survives_rotation_and_back": true
+  },
+  "final_summary_assertions": {
+    "summary_percentage_single_line_bounds": [
+      57,
+      684,
+      201,
+      746
+    ],
+    "programme_title_widths": [
+      372,
+      372
+    ]
+  },
+  "preservation": "Original device settings match; Dark/OLED/red/Tonal Spot and wallpaper-off retained; same3courses/9credits; no account/GPA/favourites edits",
+  "remaining": {
+    "android_15_16": "No system images or AVDs installed; pending",
+    "physical_samsung_pixel": "No physical devices connected; pending",
+    "app_links": "Live www JSON lacks native package; apex URL301redirect; pm verifier1024 for both; local matching JSON prepared, publication/routing/Play cert confirmation pending",
+    "favourites": "Empty state checked; no remote items created",
+    "study_materials": "ACT2201 empty state checked; populated file list not exercised",
+    "matrix": "Sampled light/dark/OLED,100/150/200 fonts,320dp narrow window and landscape; not every cross-product or OS navigation mode",
+    "outbound": "No review publication, downloads, recovery email, calendar insertion or messages"
+  }
+}

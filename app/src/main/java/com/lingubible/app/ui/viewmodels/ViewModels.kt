@@ -7,12 +7,15 @@ import com.lingubible.app.domain.model.*
 import com.lingubible.app.domain.repository.*
 import com.lingubible.app.domain.util.EmailValidator
 import com.lingubible.app.domain.util.WordCountValidator
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 // ==========================================
@@ -260,47 +263,73 @@ data class CoursesUiState(
     val courses: List<Course> = emptyList(),
     val searchQuery: String = "",
     val selectedSubject: String? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val filters: CourseFilters = CourseFilters(),
+    val availableTerms: List<CourseTerm> = emptyList(),
+    val optionsError: String? = null,
+    val isSignedIn: Boolean = false
 )
 
 class CoursesViewModel(
-    private val courseRepository: CourseRepository
+    private val courseRepository: CourseRepository,
+    private val materialRepository: MaterialRepository? = null,
+    private val authRepository: AuthRepository? = null
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CoursesUiState())
     val uiState: StateFlow<CoursesUiState> = _uiState.asStateFlow()
+    private var loadJob: kotlinx.coroutines.Job? = null
+    private val termCache = mutableMapOf<Set<String>, Set<String>>()
+    private var materials: Set<String>? = null
+    private var accountId: String? = null
 
     init {
         loadCourses()
-    }
-
-    fun search(query: String) {
-        _uiState.update { it.copy(searchQuery = query) }
-        loadCourses()
-    }
-
-    fun filterSubject(subject: String?) {
-        _uiState.update { it.copy(selectedSubject = if (it.selectedSubject == subject) null else subject) }
-        loadCourses()
-    }
-
-    fun loadCourses() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = courseRepository.getCourses(
-                search = _uiState.value.searchQuery.ifBlank { null },
-                subject = _uiState.value.selectedSubject,
-                page = 1
-            )
-            if (result.isSuccess) {
-                _uiState.update { it.copy(isLoading = false, courses = result.getOrDefault(emptyList())) }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = result.exceptionOrNull()?.localizedMessage ?: "Failed to load courses"
-                    )
+        if (authRepository != null) viewModelScope.launch {
+            authRepository.currentUser.collect { user ->
+                if (accountId != user?.id) {
+                    accountId = user?.id; materials = null
+                    _uiState.update { it.copy(isSignedIn = user != null, filters = it.filters.copy(hasMaterials = false)) }
+                    loadCourses()
                 }
             }
+        }
+    }
+
+    fun search(query: String) { _uiState.update { it.copy(searchQuery = query) }; loadCourses() }
+    fun filterSubject(subject: String?) {
+        val selected = subject?.takeUnless { it == _uiState.value.selectedSubject }
+        applyFilters(_uiState.value.filters.copy(subjects = selected?.let { setOf(it) }.orEmpty()))
+    }
+    fun applyFilters(filters: CourseFilters) {
+        _uiState.update { it.copy(filters = filters, selectedSubject = filters.subjects.singleOrNull()) }
+        loadCourses()
+    }
+    fun loadFilterOptions() {
+        if (_uiState.value.availableTerms.isNotEmpty()) return
+        viewModelScope.launch {
+            courseRepository.getTerms().onSuccess { terms -> _uiState.update { it.copy(availableTerms = terms, optionsError = null) } }
+                .onFailure { error -> _uiState.update { it.copy(optionsError = error.localizedMessage ?: "無法載入學期 · Could not load terms") } }
+        }
+    }
+    fun loadCourses() {
+        loadJob?.cancel()
+        val request = _uiState.value
+        val userId = accountId
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        loadJob = viewModelScope.launch {
+            try {
+                val courses = courseRepository.getCourses(request.searchQuery.ifBlank { null }, null, 1).getOrThrow()
+                val termCodes = if (request.filters.terms.isEmpty()) null else termCache[request.filters.terms]
+                    ?: courseRepository.getCourseCodesForTerms(request.filters.terms).getOrThrow().also { termCache[request.filters.terms] = it }
+                val materialCodes = if (!request.filters.hasMaterials) null else {
+                    check(userId != null) { "請登入以篩選學習資料 · Sign in to filter study materials" }
+                    materials ?: requireNotNull(materialRepository).getStudyMaterialCourseCodes().getOrThrow().also { materials = it }
+                }
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                if (userId != accountId) return@launch
+                _uiState.update { it.copy(isLoading = false, courses = filterCourses(courses, request.filters, termCodes, materialCodes)) }
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e
+            } catch (e: Exception) { _uiState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Could not load courses") } }
         }
     }
 }
@@ -315,8 +344,11 @@ data class CourseDetailUiState(
     val reviews: List<Review> = emptyList(),
     val gradeDistribution: Map<String, Int> = emptyMap(),
     val pastPapers: List<PastPaper> = emptyList(),
+    val isPapersLoading: Boolean = false,
+    val papersError: String? = null,
     val syllabus: CourseSyllabus? = null,
     val isSyllabusLoading: Boolean = false,
+    val reviewsError: String? = null,
     val errorMessage: String? = null,
     val currentUser: com.lingubible.app.domain.model.User? = null
 )
@@ -331,17 +363,22 @@ class CourseDetailViewModel(
     private val _uiState = MutableStateFlow(CourseDetailUiState())
     val uiState: StateFlow<CourseDetailUiState> = _uiState.asStateFlow()
 
+    private var papersJob: kotlinx.coroutines.Job? = null
+    private var papersGeneration = 0
     init {
         authRepository?.let { auth ->
             viewModelScope.launch {
                 auth.currentUser.collect { user ->
-                    _uiState.update { it.copy(currentUser = user) }
+                    val changed = _uiState.value.currentUser?.id != user?.id
+                    if (changed) { papersJob?.cancel(); ++papersGeneration }
+                    _uiState.update { if (changed) it.copy(currentUser = user, pastPapers = emptyList(), isPapersLoading = false, papersError = null) else it.copy(currentUser = user) }
                 }
             }
         }
     }
 
     fun loadCourseDetail(courseCode: String) {
+        val paperOwner = authRepository?.currentUser?.value?.id
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, isSyllabusLoading = true, errorMessage = null) }
 
@@ -368,8 +405,10 @@ class CourseDetailViewModel(
                             course = courseRes.getOrNull(),
                             teachingRecords = recordsRes.getOrDefault(emptyList()),
                             reviews = reviewsRes.getOrDefault(emptyList()),
+                            reviewsError = reviewsRes.exceptionOrNull()?.localizedMessage,
                             gradeDistribution = gradesRes.getOrDefault(emptyMap()),
-                            pastPapers = papersRes.getOrDefault(emptyList()),
+                            pastPapers = if (authRepository?.currentUser?.value?.id == paperOwner) papersRes.getOrDefault(emptyList()) else emptyList(),
+                            papersError = papersRes.exceptionOrNull()?.localizedMessage,
                             syllabus = syllabusRes.getOrNull(),
                             errorMessage = courseRes.exceptionOrNull()?.localizedMessage
                         )
@@ -385,6 +424,20 @@ class CourseDetailViewModel(
                     )
                 }
             }
+        }
+    }
+
+    fun loadPastPapers(courseCode: String) {
+        papersJob?.cancel()
+        val run = ++papersGeneration
+        val owner = authRepository?.currentUser?.value?.id
+        _uiState.update { it.copy(isPapersLoading = true, pastPapers = emptyList(), papersError = null) }
+        papersJob = viewModelScope.launch {
+            val result = try { materialRepository.getPastPapers(courseCode) }
+                catch (e: kotlinx.coroutines.CancellationException) { throw e }
+                catch (e: Exception) { Result.failure(e) }
+            if (run == papersGeneration && authRepository?.currentUser?.value?.id == owner) _uiState.update { it.copy(isPapersLoading = false,
+                pastPapers = result.getOrDefault(emptyList()), papersError = result.exceptionOrNull()?.localizedMessage) }
         }
     }
 
@@ -449,51 +502,46 @@ class CourseDetailViewModel(
 // Instructors ViewModel
 // ==========================================
 data class InstructorsUiState(
-    val isLoading: Boolean = false,
-    val instructors: List<Instructor> = emptyList(),
-    val searchQuery: String = "",
-    val selectedDepartment: String? = null,
-    val errorMessage: String? = null
+    val isLoading: Boolean = false, val instructors: List<Instructor> = emptyList(),
+    val allInstructors: List<Instructor> = emptyList(), val searchQuery: String = "",
+    val filters: InstructorFilters = InstructorFilters(), val terms: List<CourseTerm> = emptyList(),
+    val errorMessage: String? = null, val optionsError: String? = null
 )
-
 class InstructorsViewModel(
-    private val instructorRepository: InstructorRepository
+    private val instructorRepository: InstructorRepository,
+    private val courseRepository: CourseRepository? = null
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(InstructorsUiState())
-    val uiState: StateFlow<InstructorsUiState> = _uiState.asStateFlow()
-
+    val uiState = _uiState.asStateFlow()
+    private var job: kotlinx.coroutines.Job? = null
+    private var generation = 0
+    private val termCache = mutableMapOf<Set<String>, Set<String>>()
     init {
         loadInstructors()
     }
-
-    fun search(query: String) {
-        _uiState.update { it.copy(searchQuery = query) }
-        loadInstructors()
+    private fun loadOptions() {
+        viewModelScope.launch { courseRepository?.getTerms()?.onSuccess { terms -> _uiState.update { it.copy(terms = terms, optionsError = null) } }
+            ?.onFailure { e -> _uiState.update { it.copy(optionsError = e.localizedMessage) } } }
     }
-
-    fun filterDepartment(department: String?) {
-        _uiState.update { it.copy(selectedDepartment = if (it.selectedDepartment == department) null else department) }
-        loadInstructors()
+    fun search(query: String) { _uiState.update { it.copy(searchQuery = query) }; applyFilters(uiState.value.filters) }
+    fun applyFilters(filters: InstructorFilters) {
+        _uiState.update { it.copy(filters = filters) }
+        load(refresh = false)
     }
-
-    fun loadInstructors() {
-        viewModelScope.launch {
+    fun loadInstructors() { termCache.clear(); loadOptions(); load(refresh = true) }
+    private fun load(refresh: Boolean) {
+        job?.cancel(); val run = ++generation
+        job = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = instructorRepository.getInstructors(
-                search = _uiState.value.searchQuery.ifBlank { null },
-                department = _uiState.value.selectedDepartment,
-                page = 1
-            )
-            if (result.isSuccess) {
-                _uiState.update { it.copy(isLoading = false, instructors = result.getOrDefault(emptyList())) }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = result.exceptionOrNull()?.localizedMessage ?: "Failed to load instructors"
-                    )
-                }
-            }
+            try {
+                val all = if (refresh || uiState.value.allInstructors.isEmpty()) instructorRepository.getAllInstructors().getOrThrow() else uiState.value.allInstructors
+                val filters = uiState.value.filters
+                val names = if (filters.terms.isEmpty()) emptySet() else termCache[filters.terms]
+                    ?: instructorRepository.getInstructorNamesForTerms(filters.terms).getOrThrow().also { termCache[filters.terms] = it }
+                if (run == generation) _uiState.update { it.copy(isLoading = false, allInstructors = all,
+                    instructors = filterInstructors(all, it.searchQuery, filters, names)) }
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e
+            } catch (e: Exception) { if (run == generation) _uiState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage) } }
         }
     }
 }
@@ -511,7 +559,8 @@ data class ReviewsUiState(
 class ReviewsViewModel(
     private val reviewRepository: ReviewRepository,
     private val authRepository: AuthRepository,
-    private val myReviewsOnly: Boolean = false
+    private val myReviewsOnly: Boolean = false,
+    private val previewLimit: Int? = null
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ReviewsUiState())
     val uiState: StateFlow<ReviewsUiState> = _uiState.asStateFlow()
@@ -519,12 +568,8 @@ class ReviewsViewModel(
     private var loadGeneration = 0
 
     init {
-        if (myReviewsOnly) {
-            viewModelScope.launch {
-                authRepository.currentUser.collect { loadReviews() }
-            }
-        } else {
-            loadReviews()
+        viewModelScope.launch {
+            authRepository.currentUser.map { it?.id }.distinctUntilChanged().collect { loadReviews() }
         }
     }
 
@@ -539,18 +584,20 @@ class ReviewsViewModel(
         // Clear account-specific results before refreshing or switching accounts.
         _uiState.update {
             it.copy(isLoading = true, errorMessage = null, signInRequired = false,
-                reviews = if (myReviewsOnly) emptyList() else it.reviews)
+                reviews = if (myReviewsOnly) emptyList() else it.reviews.map { review -> review.copy(userVote = null) })
         }
         loadJob = viewModelScope.launch {
             val result = if (myReviewsOnly) {
                 reviewRepository.getReviewsForUser(requireNotNull(userId))
+            } else if (previewLimit != null) {
+                reviewRepository.getLatestReviews(previewLimit)
             } else {
-                reviewRepository.getLatestReviews(30)
+                reviewRepository.getAllReviewsForBrowsing()
             }
             if (generation != loadGeneration ||
-                (myReviewsOnly && authRepository.currentUser.value?.id != userId)) return@launch
+                (authRepository.currentUser.value?.id != userId)) return@launch
             _uiState.update {
-                it.copy(isLoading = false, reviews = result.getOrDefault(emptyList()).let { reviews ->
+                it.copy(isLoading = false, reviews = result.getOrElse { if (myReviewsOnly) emptyList() else _uiState.value.reviews }.let { reviews ->
                         if (myReviewsOnly) reviews.filter { review -> review.userId == userId } else reviews
                     },
                     errorMessage = result.exceptionOrNull()?.localizedMessage)
@@ -583,127 +630,6 @@ class ReviewsViewModel(
 // ==========================================
 // Write Review ViewModel
 // ==========================================
-data class WriteReviewUiState(
-    val courseCode: String = "",
-    val courseTitle: String = "",
-    val instructorName: String = "",
-    val term: String = "Term 1",
-    val academicYear: String = "2024-2025",
-    val grade: String = "A",
-    val workloadRating: Double = 3.0,
-    val difficultyRating: Double = 3.0,
-    val gradingRating: Double = 3.0,
-    val teachingRating: Double = 3.0,
-    val comment: String = "",
-    val isAnonymous: Boolean = true,
-    val isLoading: Boolean = false,
-    val wordCount: Int = 0,
-    val isWordCountValid: Boolean = false,
-    val errorMessage: String? = null
-)
-
-class WriteReviewViewModel(
-    private val reviewRepository: ReviewRepository
-) : ViewModel() {
-    private val _uiState = MutableStateFlow(WriteReviewUiState())
-    val uiState: StateFlow<WriteReviewUiState> = _uiState.asStateFlow()
-
-    fun setInitialCourse(code: String) {
-        _uiState.update { it.copy(courseCode = code) }
-    }
-
-    fun updateCourseInfo(code: String, title: String, instructor: String) {
-        _uiState.update {
-            it.copy(
-                courseCode = code,
-                courseTitle = title,
-                instructorName = instructor
-            )
-        }
-    }
-
-    fun updateTerm(term: String, year: String, grade: String) {
-        _uiState.update {
-            it.copy(
-                term = term,
-                academicYear = year,
-                grade = grade
-            )
-        }
-    }
-
-    fun updateRatings(teaching: Double, grading: Double, workload: Double, difficulty: Double) {
-        _uiState.update {
-            it.copy(
-                teachingRating = teaching,
-                gradingRating = grading,
-                workloadRating = workload,
-                difficultyRating = difficulty
-            )
-        }
-    }
-
-    fun updateComment(text: String) {
-        val count = WordCountValidator.countWords(text)
-        val valid = WordCountValidator.isValid(text, 5, 1000)
-        _uiState.update {
-            it.copy(
-                comment = text,
-                wordCount = count,
-                isWordCountValid = valid
-            )
-        }
-    }
-
-    fun setAnonymous(isAnon: Boolean) {
-        _uiState.update { it.copy(isAnonymous = isAnon) }
-    }
-
-    fun submitReview(onSuccess: () -> Unit) {
-        val s = _uiState.value
-        if (s.courseCode.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Please specify a Course Code") }
-            return
-        }
-
-        if (!s.isWordCountValid) {
-            _uiState.update { it.copy(errorMessage = "Comment must contain between 5 and 1000 words (Current: ${s.wordCount})") }
-            return
-        }
-
-        val submission = ReviewSubmission(
-            courseCode = s.courseCode,
-            courseTitle = s.courseTitle.ifBlank { s.courseCode },
-            instructorName = s.instructorName.ifBlank { "TBD" },
-            term = s.term,
-            academicYear = s.academicYear,
-            grade = s.grade,
-            workloadRating = s.workloadRating,
-            difficultyRating = s.difficultyRating,
-            gradingRating = s.gradingRating,
-            teachingRating = s.teachingRating,
-            comment = s.comment,
-            isAnonymous = s.isAnonymous
-        )
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val res = reviewRepository.submitReview(submission)
-            if (res.isSuccess) {
-                _uiState.update { it.copy(isLoading = false) }
-                onSuccess()
-            } else {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = res.exceptionOrNull()?.localizedMessage ?: "Failed to submit review"
-                    )
-                }
-            }
-        }
-    }
-}
-
 // ==========================================
 // Home / Stats ViewModel
 // ==========================================

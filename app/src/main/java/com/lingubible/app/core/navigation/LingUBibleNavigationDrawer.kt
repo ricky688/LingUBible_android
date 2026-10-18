@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import com.lingubible.app.ui.components.fadingVerticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.BrightnessAuto
@@ -166,7 +166,7 @@ fun LingUBibleDrawerSheet(
                 modifier = Modifier
                     .weight(1f)
                     .mouseScrollbar(scrollState)
-                    .verticalScroll(scrollState)
+                    .fadingVerticalScroll(scrollState)
                     .padding(vertical = 6.dp)
             ) {
                 val categories = remember { DrawerCategory.entries }

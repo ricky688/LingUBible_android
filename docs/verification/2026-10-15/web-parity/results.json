@@ -1,0 +1,54 @@
+{
+  "completed_on": "2026-10-16",
+  "device": "192.168.240.112:5555",
+  "android": 13,
+  "installed_variant": "release",
+  "version": "1.0.6",
+  "version_code": 7,
+  "installed_apk_matches_final_artifact": true,
+  "apk_sha256": "b3c3e40bb0df766a07f93633ceef97b2f51e952f7ade6c8ce9ec4c705f16cb4c",
+  "certificate_compatible": true,
+  "data_cleared": false,
+  "unit_tests": {
+    "tests": 456,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "builds": {
+    "signed_release_apk": "PASS",
+    "signed_release_aab": "PASS",
+    "release_guard": "PASS"
+  },
+  "verified_on_waydroid": [
+    "startup and catalogue data",
+    "filter sheet opens fully with Apply visible",
+    "English filter: 667 courses",
+    "2026-27 Term 1 filter: 368 courses",
+    "ACT2200 real required/recommended readings",
+    "study materials guest sign-in prompt and navigation",
+    "favourites guest page and profile entry",
+    "My Reviews guest protection",
+    "FAQ browser URL",
+    "recovery browser URL and real page",
+    "browser Back returns to native auth",
+    "final process no AndroidRuntime fatal exceptions"
+  ],
+  "pending": [
+    "signed-in favourites round-trip and cross-client sync",
+    "live review edit/delete using a disposable test review",
+    "protected study material PDF/single/bulk export on a test account",
+    "actual reset email and completion",
+    "physical Samsung/Pixel, light theme, large fonts and landscape"
+  ],
+  "fixed_during_device_checks": [
+    "half-open filter sheet hid Apply; now skipPartiallyExpanded",
+    "localized context browser launch required FLAG_ACTIVITY_NEW_TASK; added to auth and reading links"
+  ],
+  "notes": [
+    "No reset email was sent and no live review was created, edited or deleted.",
+    "Recovery intentionally uses existing web CAPTCHA/token flow.",
+    "No backend/schema/preferences migration, version bump or publishing.",
+    "Earlier screenshots predate final accessibility labels; filters-final and recovery-browser-final show final build."
+  ]
+}

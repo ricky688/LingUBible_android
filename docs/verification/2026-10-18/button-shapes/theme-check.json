@@ -1,0 +1,12 @@
+{
+  "original": {
+    "深色": "true",
+    "OLED 純黑模式": "true"
+  },
+  "restored": {
+    "深色": "true",
+    "OLED 純黑模式": "true"
+  },
+  "light_press_advances_once": true,
+  "dark_oled_retained": true
+}

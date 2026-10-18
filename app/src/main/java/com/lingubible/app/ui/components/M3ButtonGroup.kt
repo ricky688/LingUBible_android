@@ -169,11 +169,11 @@ fun ScrollableM3ButtonGroup(
                     val fadePx = fadeWidth.toPx()
 
                     // Smooth leading edge fade-out transition
-                    if (leftFadeAlpha > 0.01f && fadePx > 0f) {
+                    if (canScrollBackward && leftFadeAlpha > 0.01f && fadePx > 0f) {
                         drawRect(
                             brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
                                 colors = listOf(
-                                    Color.Black.copy(alpha = 1f - leftFadeAlpha),
+                                    Color.Black.copy(alpha = 1f - leftFadeAlpha.coerceIn(0f, 1f)),
                                     Color.Black
                                 ),
                                 startX = 0f,
@@ -186,12 +186,12 @@ fun ScrollableM3ButtonGroup(
                     }
 
                     // Smooth trailing edge fade-out transition
-                    if (rightFadeAlpha > 0.01f && fadePx > 0f) {
+                    if (canScrollForward && rightFadeAlpha > 0.01f && fadePx > 0f) {
                         drawRect(
                             brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
                                 colors = listOf(
                                     Color.Black,
-                                    Color.Black.copy(alpha = 1f - rightFadeAlpha)
+                                    Color.Black.copy(alpha = 1f - rightFadeAlpha.coerceIn(0f, 1f))
                                 ),
                                 startX = size.width - fadePx,
                                 endX = size.width

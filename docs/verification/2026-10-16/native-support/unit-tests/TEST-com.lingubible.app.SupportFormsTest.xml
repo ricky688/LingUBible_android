@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.SupportFormsTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-16T12:00:11" hostname="Ricky" time="0.002">
+  <properties/>
+  <testcase name="contactValidationMatchesBackendWordBoundariesAndCapsInput" classname="com.lingubible.app.SupportFormsTest" time="0.0"/>
+  <testcase name="executionMustReportRealSuccessAndErrorsNeverExposeServerText" classname="com.lingubible.app.SupportFormsTest" time="0.001"/>
+  <testcase name="recoveryRequiresSchoolEmailAndWebPasswordRequirements" classname="com.lingubible.app.SupportFormsTest" time="0.0"/>
+  <testcase name="resetLinksHaveStrictOriginPathAndUnambiguousBoundedCredentials" classname="com.lingubible.app.SupportFormsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

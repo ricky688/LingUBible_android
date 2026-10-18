@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.components
 
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import com.lingubible.app.ui.common.hapticClick
 
 import androidx.compose.animation.*
@@ -124,7 +125,7 @@ fun AvatarCustomizerModal(
                         )
                     }
 
-                    IconButton(
+                    IconButton(shapes = AppButtonDefaults.iconShapes(),
                         onClick = hapticClick(onDismiss),
                         modifier = Modifier.size(32.dp)
                     ) {
@@ -189,7 +190,7 @@ fun AvatarCustomizerModal(
                     OutlinedButton(
                         onClick = hapticClick { randomize() },
                         modifier = Modifier.weight(1f),
-                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -203,7 +204,7 @@ fun AvatarCustomizerModal(
                             onDismiss()
                         },
                         modifier = Modifier.weight(1f),
-                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         )
@@ -264,11 +265,13 @@ fun AvatarCustomizerModal(
                 Box(modifier = Modifier.weight(1f)) {
                     if (activeTab == 0) {
                         // Animals Grid (6 columns)
+                        val gridState = rememberLazyGridState()
                         LazyVerticalGrid(
+                            state = gridState,
                             columns = GridCells.Fixed(6),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize().fadingBlurEdges(lazyGridState = gridState, surfaceColor = MaterialTheme.colorScheme.surface)
                         ) {
                             itemsIndexed(animals) { _, animal ->
                                 val isSelected = animal == selectedAnimal
@@ -293,11 +296,13 @@ fun AvatarCustomizerModal(
                         }
                     } else {
                         // Backgrounds Grid (5 columns)
+                        val gridState = rememberLazyGridState()
                         LazyVerticalGrid(
+                            state = gridState,
                             columns = GridCells.Fixed(5),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize().fadingBlurEdges(lazyGridState = gridState, surfaceColor = MaterialTheme.colorScheme.surface)
                         ) {
                             itemsIndexed(backgrounds) { index, bg ->
                                 val isSelected = index == selectedBackgroundIndex

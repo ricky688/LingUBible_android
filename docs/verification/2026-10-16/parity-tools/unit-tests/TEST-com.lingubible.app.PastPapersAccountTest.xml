@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.PastPapersAccountTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:02:42" hostname="Ricky" time="0.032">
+  <properties/>
+  <testcase name="failedPaperRefreshCanRetryWithoutHanging" classname="com.lingubible.app.PastPapersAccountTest" time="0.027"/>
+  <testcase name="accountChangeIgnoresLatePapersAndProfileRefreshKeepsCurrentPapers" classname="com.lingubible.app.PastPapersAccountTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

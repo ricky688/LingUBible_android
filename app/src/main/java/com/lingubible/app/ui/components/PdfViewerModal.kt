@@ -308,7 +308,7 @@ fun PdfViewerModal(
                         ) {
                             OutlinedButton(
                                 onClick = hapticClick(onDismiss),
-                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
+                                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
                             ) {
                                 Text("關閉 Close")
                             }
@@ -333,7 +333,7 @@ fun PdfViewerModal(
                                         }
                                     }
                                 },
-                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
+                                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
                             ) {
                                 Text("重試 Retry")
                             }
@@ -367,6 +367,7 @@ fun PdfViewerModal(
                                 .fillMaxSize()
                                 // Keep white PDF pages out from under light navigation icons.
                                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+                                .fadingBlurEdges(lazyListState = lazyListState)
                                 .graphicsLayer {
                                     scaleX = zoomScale
                                     scaleY = zoomScale
@@ -442,7 +443,7 @@ fun PdfViewerModal(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
                     ) {
-                        IconButton(onClick = hapticClick(onDismiss)) {
+                        IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick(onDismiss)) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Close",
@@ -496,7 +497,7 @@ fun PdfViewerModal(
                     ) {
                         // Reset zoom button when zoomed in
                         if (zoomScale > 1.05f) {
-                            IconButton(
+                            IconButton(shapes = AppButtonDefaults.iconShapes(),
                                 onClick = hapticClick {
                                     zoomScale = 1f
                                     panOffset = Offset.Zero
@@ -512,7 +513,7 @@ fun PdfViewerModal(
                         }
 
                         // Invert colors (Night Reading mode)
-                        IconButton(
+                        IconButton(shapes = AppButtonDefaults.iconShapes(),
                             onClick = hapticClick { isInverted = !isInverted }
                         ) {
                             Icon(
@@ -524,7 +525,7 @@ fun PdfViewerModal(
                         }
 
                         // Download Button
-                        IconButton(
+                        IconButton(shapes = AppButtonDefaults.iconShapes(),
                             onClick = hapticClick {
                                 if (!isDownloading) {
                                     scope.launch {
@@ -560,7 +561,7 @@ fun PdfViewerModal(
                         }
 
                         // Share / Open External Button
-                        IconButton(
+                        IconButton(shapes = AppButtonDefaults.iconShapes(),
                             onClick = hapticClick {
                                 cachedFile?.let { file ->
                                     DocumentDownloadHelper.shareDocument(

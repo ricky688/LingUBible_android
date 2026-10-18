@@ -10,11 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.dp
+import com.lingubible.app.ui.components.getGroupedItemShape
 
 internal val LocalCardCornerRadius = staticCompositionLocalOf { 28.dp }
 
 @Composable
-internal fun rememberCardPressShape(interactionSource: InteractionSource): RoundedCornerShape {
+internal fun rememberCardPressShape(interactionSource: InteractionSource, groupIndex: Int = 0, groupSize: Int = 1): RoundedCornerShape {
     val isPressed by interactionSource.collectIsPressedAsState()
     val restingCorner = LocalCardCornerRadius.current
     val corner by animateDpAsState(
@@ -22,5 +23,5 @@ internal fun rememberCardPressShape(interactionSource: InteractionSource): Round
         animationSpec = spring(stiffness = Spring.StiffnessMedium),
         label = "cardPressCorner"
     )
-    return RoundedCornerShape(corner)
+    return getGroupedItemShape(groupIndex, groupSize, outerRadius = corner)
 }

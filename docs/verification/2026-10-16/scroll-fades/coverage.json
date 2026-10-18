@@ -1,0 +1,13 @@
+{
+  "raw_vertical_scroll_calls_with_explicit_fade": [
+    "ui/components/ScrollFadingContainers.kt",
+    "ui/components/CourseSectionSelector.kt",
+    "ui/components/TimetableGrid.kt",
+    "ui/screens/CoursesScreen.kt"
+  ],
+  "fading_lazy_column_calls": 18,
+  "fading_vertical_scroll_calls": 17,
+  "pdf_viewport_fade": true,
+  "avatar_grids": 2,
+  "permanent_navigation_scrim_removed": true
+}

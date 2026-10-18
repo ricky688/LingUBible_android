@@ -20,11 +20,16 @@ val appModule = module {
     single { AppConfig() }
     single { AppwriteClientProvider(context = androidContext(), appConfig = get()) }
 
+    single { SupportRepository(get()) }
+    viewModel { PasswordRecoveryViewModel(get()) }
+    viewModel { ContactViewModel(get()) }
+
     single<AuthRepository> { AppwriteAuthRepository(clientProvider = get()) }
+    single { AppwriteFavoritesRepository(get(), get()) }
     single<AvatarRepository> { AppwriteAvatarRepository(context = androidContext(), clientProvider = get()) }
     single<CourseRepository> { AppwriteCourseRepository(clientProvider = get()) }
     single<InstructorRepository> { AppwriteInstructorRepository(clientProvider = get()) }
-    single<ReviewRepository> { AppwriteReviewRepository(clientProvider = get()) }
+    single<ReviewRepository> { AppwriteReviewRepository(clientProvider = get(), authRepository = get(), courseRepository = get()) }
     single<MaterialRepository> { AppwriteMaterialRepository(clientProvider = get()) }
     single<StatsRepository> { AppwriteStatsRepository(clientProvider = get()) }
     single { TimetableRepository(androidContext()) }
@@ -34,11 +39,12 @@ val appModule = module {
     viewModel { MainViewModel(get()) }
     viewModel { HomeViewModel(get()) }
     viewModel { AuthViewModel(get(), get()) }
-    viewModel { CoursesViewModel(get()) }
+    viewModel { CoursesViewModel(get(), get(), get()) }
     viewModel { CourseDetailViewModel(get(), get(), get(), get(), get()) }
-    viewModel { InstructorsViewModel(get()) }
-    viewModel { params -> ReviewsViewModel(get(), get(), params.getOrNull<Boolean>() ?: false) }
-    viewModel { WriteReviewViewModel(get()) }
+    viewModel { InstructorsViewModel(get(), get()) }
+    viewModel { params -> ReviewsViewModel(get(), get(), params.getOrNull<Boolean>() ?: false, params.getOrNull<Int>()) }
+    single { ReviewDraftStore(androidContext().getSharedPreferences("review_drafts", Context.MODE_PRIVATE)) }
+    viewModel { WriteReviewViewModel(get(), get(), get(), get()) }
     viewModel { TimetableViewModel(get(), get()) }
     viewModel { AcademicCalendarViewModel(get()) }
     viewModel { GpaHonsViewModel(androidContext(), get()) }

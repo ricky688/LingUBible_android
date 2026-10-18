@@ -10,6 +10,7 @@ import android.graphics.Typeface
 import android.net.Uri
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.GraphicsLayer
+import com.lingubible.app.domain.model.TimetableAppearance
 import com.lingubible.app.domain.model.TimeConflict
 import com.lingubible.app.domain.model.TimetableMeeting
 import com.lingubible.app.domain.model.TimetableSection
@@ -19,6 +20,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
+
+enum class TimetableExportFormat(val extension: String, val mime: String) {
+    PNG("png", "image/png"), PDF("pdf", "application/pdf")
+}
+
+internal data class PdfImagePlacement(val width: Int, val height: Int, val left: Float, val top: Float, val right: Float, val bottom: Float)
+internal fun timetablePdfPlacement(orientation: TimetableExportOrientation, imageWidth: Int, imageHeight: Int): PdfImagePlacement {
+    require(imageWidth > 0 && imageHeight > 0)
+    val width = if (orientation == TimetableExportOrientation.LANDSCAPE) 842 else 595
+    val height = if (orientation == TimetableExportOrientation.LANDSCAPE) 595 else 842
+    val scale = minOf((width - 32f) / imageWidth, (height - 32f) / imageHeight)
+    val left = (width - imageWidth * scale) / 2f
+    val top = (height - imageHeight * scale) / 2f
+    return PdfImagePlacement(width, height, left, top, width - left, height - top)
+}
 
 enum class TimetableExportOrientation(
     val titleZh: String,
@@ -100,6 +116,25 @@ object TimetableImageExport {
         val finalEndHour = endHourWithMinSpan.coerceIn(computedStartHour + 4, 23)
 
         return TimetableHourRange(startHour = computedStartHour, endHour = finalEndHour)
+    }
+
+    /**
+     * Computes the summary label for courses and credits (e.g. "6 科課程 • 共 18 學分").
+     * Deduplicates courses by normalized course code so multi-section courses
+     * (e.g. Lecture + Tutorial) do not double-count credits or course count.
+     */
+    fun computeSummaryText(
+        selectedSections: List<TimetableSection>,
+        creditsByCode: Map<String, Int> = emptyMap()
+    ): String {
+        val distinctCourseCodes = selectedSections
+            .map { it.courseCode.trim().uppercase(Locale.ROOT) }
+            .filter { it.isNotBlank() }
+            .distinct()
+        val totalCredits = distinctCourseCodes.sumOf { code ->
+            creditsByCode[code] ?: 3
+        }
+        return "${distinctCourseCodes.size} 科課程 • 共 $totalCredits 學分"
     }
 
     private const val GRID_TOP = HEADER_HEIGHT + DAY_HEADER_HEIGHT
@@ -189,10 +224,7 @@ object TimetableImageExport {
         }
         canvas.drawText(term.name, EXPORT_WIDTH - 48f, 58f, termPaint)
 
-        val totalCredits = selectedSections.sumOf { s ->
-            creditsByCode[s.courseCode.trim().uppercase(Locale.ROOT)] ?: 3
-        }
-        val summaryText = "${selectedSections.size} 科課程 • 共 $totalCredits 學分"
+        val summaryText = computeSummaryText(selectedSections, creditsByCode)
         val summaryPaint = Paint().apply {
             color = textSecondary
             textSize = 21f
@@ -583,10 +615,7 @@ object TimetableImageExport {
         }
         canvas.drawText(term.name, PORTRAIT_WIDTH - 36f, 70f, termPaint)
 
-        val totalCredits = selectedSections.sumOf { s ->
-            creditsByCode[s.courseCode.trim().uppercase(Locale.ROOT)] ?: 3
-        }
-        val summaryText = "${selectedSections.size} 科課程 • 共 $totalCredits 學分"
+        val summaryText = computeSummaryText(selectedSections, creditsByCode)
         val summaryPaint = Paint().apply {
             color = textSecondary
             textSize = 20f
@@ -874,8 +903,12 @@ object TimetableImageExport {
         conflicts: List<TimeConflict> = emptyList(),
         isDark: Boolean = false,
         creditsByCode: Map<String, Int> = emptyMap(),
-        showGridLines: Boolean = true
+        showGridLines: Boolean = true,
+        appearance: TimetableAppearance? = null,
+        colors: TimetableExportColors? = null
     ): Bitmap {
+        if (appearance != null) return configuredTimetableImage(orientation, term, selectedSections, conflicts, creditsByCode, showGridLines, appearance,
+            colors ?: TimetableExportColors(if (isDark) Color.BLACK else Color.WHITE, if (isDark) 0xFF202020.toInt() else 0xFFF5F5F5.toInt(), if (isDark) Color.WHITE else Color.BLACK, Color.GRAY))
         return when (orientation) {
             TimetableExportOrientation.LANDSCAPE -> generateLandscapeBitmap(term, selectedSections, conflicts, isDark, creditsByCode, showGridLines)
             TimetableExportOrientation.PORTRAIT -> generatePortraitBitmap(term, selectedSections, conflicts, isDark, creditsByCode, showGridLines)
@@ -917,15 +950,30 @@ object TimetableImageExport {
         conflicts: List<TimeConflict> = emptyList(),
         isDark: Boolean = false,
         creditsByCode: Map<String, Int> = emptyMap(),
-        showGridLines: Boolean = true
+        showGridLines: Boolean = true,
+        format: TimetableExportFormat = TimetableExportFormat.PNG,
+        appearance: TimetableAppearance? = null,
+        colors: TimetableExportColors? = null
     ): File = withContext(Dispatchers.IO) {
-        val bitmap = generateBitmap(orientation, term, selectedSections, conflicts, isDark, creditsByCode, showGridLines)
+        val bitmap = generateBitmap(orientation, term, selectedSections, conflicts, isDark, creditsByCode, showGridLines, appearance, colors)
         try {
             val prefix = if (orientation == TimetableExportOrientation.LANDSCAPE) "timetable-landscape-" else "timetable-portrait-"
-            val file = File.createTempFile(prefix, ".png", context.cacheDir)
+            val file = File.createTempFile(prefix, ".${format.extension}", context.cacheDir)
             try {
                 file.outputStream().use { out ->
-                    check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)) { "Failed to compress timetable bitmap" }
+                    if (format == TimetableExportFormat.PNG) {
+                        check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)) { "Failed to compress timetable bitmap" }
+                    } else {
+                        val placement = timetablePdfPlacement(orientation, bitmap.width, bitmap.height)
+                        val pdf = android.graphics.pdf.PdfDocument()
+                        try {
+                            val page = pdf.startPage(android.graphics.pdf.PdfDocument.PageInfo.Builder(placement.width, placement.height, 1).create())
+                            page.canvas.drawColor(Color.WHITE)
+                            page.canvas.drawBitmap(bitmap, null, RectF(placement.left, placement.top, placement.right, placement.bottom), Paint(Paint.FILTER_BITMAP_FLAG))
+                            pdf.finishPage(page)
+                            pdf.writeTo(out)
+                        } finally { pdf.close() }
+                    }
                 }
                 file
             } catch (e: Exception) {

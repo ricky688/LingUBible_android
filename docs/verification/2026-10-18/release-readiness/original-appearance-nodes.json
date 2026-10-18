@@ -1,0 +1,42 @@
+[
+  {
+    "text": "",
+    "desc": "",
+    "checked": "false",
+    "selected": "false",
+    "bounds": "[38,395][123,449]",
+    "class": "android.view.View"
+  },
+  {
+    "text": "",
+    "desc": "",
+    "checked": "true",
+    "selected": "false",
+    "bounds": "[128,395][213,449]",
+    "class": "android.view.View"
+  },
+  {
+    "text": "",
+    "desc": "",
+    "checked": "false",
+    "selected": "false",
+    "bounds": "[218,395][303,449]",
+    "class": "android.view.View"
+  },
+  {
+    "text": "",
+    "desc": "",
+    "checked": "true",
+    "selected": "false",
+    "bounds": "[383,510][442,564]",
+    "class": "android.view.View"
+  },
+  {
+    "text": "",
+    "desc": "",
+    "checked": "false",
+    "selected": "false",
+    "bounds": "[369,710][428,764]",
+    "class": "android.view.View"
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "trace_id": "337a66ce-b96e-487d-a50f-e7de1350718f",
+  "device": "192.168.240.112:5555",
+  "status": "completed",
+  "verified": [
+    "User Settings \u2192 Guide",
+    "Step 1 \u2192 Next \u2192 Step 2",
+    "Step 2 \u2192 Previous \u2192 Step 1",
+    "Previous disabled at step 1"
+  ],
+  "stderr_errors": false,
+  "video_available": false,
+  "video_limitation": "ARTEMIS recording finalization failed; manual ADB screenshots used for animation evidence."
+}

@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "version_code": 7,
+  "version_name": "1.0.6",
+  "apk_bytes": 4463519,
+  "aab_bytes": 7974612,
+  "uncompressed_dex_bytes": 5194256,
+  "renamed_application_types_present_in_dex": 992,
+  "matching_r8_mapping_embedded": true,
+  "preserved_navigation_enums": [
+    "com.lingubible.app.domain.model.InformationPage"
+  ],
+  "sha256": {
+    "app-release.apk": "1b60c6fca26778b06b5609d4bb3caba7cd06f1618d88ee2270f4fcd96c0852eb",
+    "app-release.aab": "c7ad9d67b6fee66d9d64d33613f31b7a94669dc34b74904d8fd3f6655f984c37"
+  },
+  "note": "Type count and size are local evidence, not Play Console coverage percentages."
+}

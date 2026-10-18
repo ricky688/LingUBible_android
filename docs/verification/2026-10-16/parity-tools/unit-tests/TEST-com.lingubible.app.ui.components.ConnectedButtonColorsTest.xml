@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ui.components.ConnectedButtonColorsTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:02:43" hostname="Ricky" time="0.002">
+  <properties/>
+  <testcase name="releaseReturnsToSelectedPaletteColors" classname="com.lingubible.app.ui.components.ConnectedButtonColorsTest" time="0.001"/>
+  <testcase name="darkPressLeavesFocusOnTheCommittedSelection" classname="com.lingubible.app.ui.components.ConnectedButtonColorsTest" time="0.0"/>
+  <testcase name="lightPressTransfersVisualFocusBeforeSelectionCommits" classname="com.lingubible.app.ui.components.ConnectedButtonColorsTest" time="0.0"/>
+  <testcase name="lightPressUsesPrimaryFocusColorsAndKeepsTheLabelDistinct" classname="com.lingubible.app.ui.components.ConnectedButtonColorsTest" time="0.0"/>
+  <testcase name="canceledPressRestoresVisualFocusToTheSelectedButton" classname="com.lingubible.app.ui.components.ConnectedButtonColorsTest" time="0.0"/>
+  <testcase name="darkModeNeverConverges" classname="com.lingubible.app.ui.components.ConnectedButtonColorsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

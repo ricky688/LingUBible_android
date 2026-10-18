@@ -1,5 +1,8 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.AppButtonDefaults
+
+import com.lingubible.app.ui.components.fadingVerticalScroll
 import com.lingubible.app.ui.common.hapticChange
 import com.lingubible.app.ui.common.hapticClick
 
@@ -16,7 +19,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -50,6 +52,8 @@ import org.koin.compose.koinInject
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit = {},
+    onNavigateToGuide: () -> Unit = {},
+    onNavigateToInformation: (com.lingubible.app.domain.model.InformationPage) -> Unit = {},
     settingsManager: AppSettingsManager = koinInject()
 ) {
     val isDark = isAppDarkTheme()
@@ -99,12 +103,14 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
+                .fadingVerticalScroll(rememberScrollState(), bottomInset = com.lingubible.app.core.navigation.LocalScreenBottomClearance.current)
                 .screenBottomPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
+
+            com.lingubible.app.ui.components.GuideEntry(onNavigateToGuide, isZh)
 
             // 1. Theme Mode Card (Light, Dark, System)
             Card(
@@ -302,7 +308,7 @@ fun SettingsScreen(
                             }
                         }
 
-                        IconButton(
+                        IconButton(shapes = AppButtonDefaults.iconShapes(),
                             onClick = hapticClick {
 
                                 android.util.Log.d("ImageToolbox", "Pencil button clicked, showColorSchemeSheet = true")
@@ -449,7 +455,7 @@ fun SettingsScreen(
 
                             showColorSchemeSheet = true
                         },
-                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
+                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
                         colors = ButtonDefaults.outlinedButtonColors(
                             containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
@@ -507,7 +513,7 @@ fun SettingsScreen(
                             ) {
                                 Button(
                                     onClick = hapticClick {},
-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary
                                     ),
@@ -520,7 +526,7 @@ fun SettingsScreen(
 
                                 OutlinedButton(
                                     onClick = hapticClick {},
-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                                     modifier = Modifier.weight(1f)
                                 ) {
@@ -765,6 +771,8 @@ fun SettingsScreen(
                 }
             }
 
+            InformationSettingsEntries(isZh, onNavigateToInformation)
+
             // 6. Reset to Defaults & App Version Info
             OutlinedButton(
                 onClick = hapticClick {
@@ -775,7 +783,7 @@ fun SettingsScreen(
                     settingsManager.setHighContrast(false)
                     settingsManager.setHapticsEnabled(true)
                 },
-                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(18.dp)),
+                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(18.dp)),
                 border = BorderStroke(1.dp, cardBorderColor),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -788,7 +796,7 @@ fun SettingsScreen(
             }
 
             Text(
-                text = "LingUBible Android • Material 3 Expressive • v1.0.0",
+                text = "LingUBible Android • Material 3 Expressive • v${com.lingubible.app.BuildConfig.VERSION_NAME}",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )

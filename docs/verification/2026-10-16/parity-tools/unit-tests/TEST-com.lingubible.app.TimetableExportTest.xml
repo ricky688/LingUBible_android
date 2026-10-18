@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.TimetableExportTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:02:43" hostname="Ricky" time="0.024">
+  <properties/>
+  <testcase name="insertTimesMatchHongKongTimeAndInclusiveMinuteEnd" classname="com.lingubible.app.TimetableExportTest" time="0.004"/>
+  <testcase name="invalidMeetingOrNoOccurrenceIsRejectedBeforeExport" classname="com.lingubible.app.TimetableExportTest" time="0.001"/>
+  <testcase name="wholeTimetableStillExportsEveryMeeting" classname="com.lingubible.app.TimetableExportTest" time="0.016"/>
+  <testcase name="inclusiveLastMinuteCanEndAtTheNextMidnight" classname="com.lingubible.app.TimetableExportTest" time="0.0"/>
+  <testcase name="exportedMeetingEscapesUserVisibleText" classname="com.lingubible.app.TimetableExportTest" time="0.001"/>
+  <testcase name="firstOccurrenceMovesForwardToSelectedWeekday" classname="com.lingubible.app.TimetableExportTest" time="0.0"/>
+  <testcase name="singleExportContainsOnlyTheClickedMeetingAndRepeatsThroughTerm" classname="com.lingubible.app.TimetableExportTest" time="0.0"/>
+  <testcase name="leapDayAndEndOfDayAreHandledInTheTermTimezone" classname="com.lingubible.app.TimetableExportTest" time="0.001"/>
+  <testcase name="deviceTimezoneCannotMoveTheClassOrTermBoundary" classname="com.lingubible.app.TimetableExportTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

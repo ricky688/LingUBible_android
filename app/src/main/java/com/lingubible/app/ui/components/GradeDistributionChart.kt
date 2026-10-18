@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -46,9 +48,9 @@ fun GradeDistributionChart(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(Modifier.weight(1f)) {
                     Text(
-                        text = "Grade Distribution",
+                        text = "成績分佈 Grade Distribution",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -76,7 +78,7 @@ fun GradeDistributionChart(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Text(
-                                text = "Mean GPA",
+                                text = "平均 Mean GPA",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -90,7 +92,7 @@ fun GradeDistributionChart(
 
             // Canvas Chart
             val barColor = MaterialTheme.colorScheme.primary
-            val curveColor = Color(0xFFE11D48)
+            val curveColor = MaterialTheme.colorScheme.tertiary
             val grades = listOf("A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F")
 
             Box(
@@ -98,7 +100,7 @@ fun GradeDistributionChart(
                     .fillMaxWidth()
                     .height(180.dp)
             ) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
+                Canvas(modifier = Modifier.fillMaxSize().semantics { contentDescription = "成績分佈 Grade distribution: " + GradeCalculator.GRADE_ORDER.filter { (distribution[it] ?: 0) > 0 }.joinToString { "$it: ${distribution[it]}" } }) {
                     val w = size.width
                     val h = size.height - 30f // Leave space for bottom labels
                     val barWidth = (w / grades.size) * 0.65f

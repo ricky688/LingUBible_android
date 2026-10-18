@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Casino
@@ -132,7 +131,7 @@ fun GpaGodFortuneModal(
             Column(
                 modifier = Modifier
                     .padding(20.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .fadingVerticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
@@ -175,7 +174,7 @@ fun GpaGodFortuneModal(
                             )
                         }
                     }
-                    IconButton(
+                    IconButton(shapes = AppButtonDefaults.iconShapes(),
                         onClick = hapticClick(onDismiss),
                         modifier = Modifier.size(32.dp)
                     ) {
@@ -427,7 +426,7 @@ fun GpaGodFortuneModal(
                         },
                         modifier = Modifier.weight(1f),
                         enabled = !isShaking,
-                        shape = RoundedCornerShape(14.dp)
+                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp))
                     ) {
                         Icon(Icons.Default.Casino, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
@@ -437,7 +436,7 @@ fun GpaGodFortuneModal(
                     Button(
                         onClick = hapticClick(onDismiss),
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(14.dp),
+                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFDC2626) // Auspicious Red
                         )

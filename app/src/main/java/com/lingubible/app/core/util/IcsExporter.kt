@@ -96,6 +96,7 @@ object IcsExporter {
         endYmd: String = "2026-11-30",
         calendarName: String = "LingUBible Course Timetable"
     ): String {
+        require(!LocalDate.parse(endYmd).isBefore(LocalDate.parse(startYmd))) { "Invalid calendar date range" }
         val lines = mutableListOf<String>()
         val push = { line: String -> lines.add(fold(line)) }
 
@@ -123,6 +124,7 @@ object IcsExporter {
         for (s in sections) {
             for ((idx, m) in s.meetings.withIndex()) {
                 val date = firstOccurrence(startYmd, m.day)
+                if (date > endYmd.replace("-", "")) continue
                 val byDay = BYDAY[m.day] ?: "MO"
 
                 val description = listOfNotNull(

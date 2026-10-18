@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ReviewBrowsingTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-15T18:36:42" hostname="Ricky" time="0.005">
+  <properties/>
+  <testcase name="grade date and votes sort consistently" classname="com.lingubible.app.ReviewBrowsingTest" time="0.004"/>
+  <testcase name="search includes instructor comments and multiple alternatives work within a category" classname="com.lingubible.app.ReviewBrowsingTest" time="0.001"/>
+  <testcase name="NA is last in both directions while explicit zero remains sortable" classname="com.lingubible.app.ReviewBrowsingTest" time="0.0"/>
+  <testcase name="filters combine across categories and include every instructor session" classname="com.lingubible.app.ReviewBrowsingTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

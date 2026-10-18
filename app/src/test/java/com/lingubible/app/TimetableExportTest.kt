@@ -15,6 +15,13 @@ class TimetableExportTest {
     private val thursday = TimetableMeeting("THU", 750, 839, "12:30", "13:59", "LKK101", "TUT")
     private val section = TimetableSection("6", "6", "ACT3300", "Company Law", meetings = listOf(tuesday, thursday))
 
+    @Test fun customDateRangeSkipsMeetingsThatStartAfterItsEnd() {
+        val monday = TimetableMeeting("MON", 540, 599, "09:00", "09:59")
+        val section = TimetableSection("test", "test", "ACT2200", "Accounting", meetings = listOf(monday))
+        val calendar = IcsExporter.buildTimetableIcs(listOf(section), "2026-09-01", "2026-09-01")
+        assertFalse(calendar.contains("BEGIN:VEVENT")); assertTrue(calendar.contains("END:VCALENDAR"))
+        assertThrows(IllegalArgumentException::class.java) { IcsExporter.buildTimetableIcs(listOf(section), "2026-09-02", "2026-09-01") }
+    }
     @Test fun singleExportContainsOnlyTheClickedMeetingAndRepeatsThroughTerm() {
         val ics = IcsExporter.buildTimetableMeetingIcs(section, tuesday, term).replace("\r\n ", "")
         assertEquals(1, Regex("BEGIN:VEVENT").findAll(ics).count())

@@ -1,0 +1,93 @@
+{
+  "status": "WAYDROID_CHECKS_PASSED",
+  "date": "2026-10-16",
+  "feature": "Native password recovery and information pages; Android-only changelog",
+  "unit_tests": {
+    "tests": 527,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "release_guard": "PASS",
+  "release_certificate_sha256": "9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e",
+  "version_name": "1.0.6",
+  "version_code": 7,
+  "artifacts": {
+    "app-release.apk": {
+      "path": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/native-support-2026-10-16/app-release.apk",
+      "bytes": 4430619,
+      "sha256": "0f157262afdb45cb2c7e6660910c0e3bcf7a916e836d8deea02ef2f5215bb2ae",
+      "bilingual_policy_assets": "MATCH_SOURCE"
+    },
+    "app-release.aab": {
+      "path": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/native-support-2026-10-16/app-release.aab",
+      "bytes": 7882904,
+      "sha256": "8b6b6ccc276a6130e713aa4918ff5b0dfa92e4f84636dbf8df28babc0269e3d1",
+      "bilingual_policy_assets": "MATCH_SOURCE"
+    }
+  },
+  "mapping": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/native-support-2026-10-16/mapping",
+  "build_log": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/native-support-2026-10-16/build.log",
+  "handshake_self_check": "PASS_SIMULATED_GOOGLE_CALLBACK",
+  "native_routing_source_check": "PASS",
+  "installed": true,
+  "device_validation": "PASS_ANDROID_13_CURRENT_CONFIGURATION",
+  "live_email_reset_contact_validation": "ONE_RECOVERY_EMAIL_RECEIVED_CONFIRMED_BY_USER",
+  "screenshots": [
+    "docs/verification/2026-10-16/native-support/device/android-changelog-final-entry.png",
+    "docs/verification/2026-10-16/native-support/device/android-changelog-local-build.png",
+    "docs/verification/2026-10-16/native-support/device/contact-draft-restored.png",
+    "docs/verification/2026-10-16/native-support/device/contact-empty-validation.png",
+    "docs/verification/2026-10-16/native-support/device/faq-account-expanded.png",
+    "docs/verification/2026-10-16/native-support/device/faq-expanded-recovery.png",
+    "docs/verification/2026-10-16/native-support/device/faq-final-actions.png",
+    "docs/verification/2026-10-16/native-support/device/privacy-final-android-notes.png",
+    "docs/verification/2026-10-16/native-support/device/privacy-original-policy-date.png",
+    "docs/verification/2026-10-16/native-support/device/settings-final-entries-reachable.png",
+    "docs/verification/2026-10-16/native-support/device/settings-native-information.png",
+    "docs/verification/2026-10-16/native-support/device/terms-final-android-notes.png",
+    "docs/verification/2026-10-16/native-support/device/terms-original-policy-date.png"
+  ],
+  "ui_tests_authored": false,
+  "backend_changes": false,
+  "version_or_signing_changes": false,
+  "committed": false,
+  "published": false,
+  "startup_regression": "FIXED_AND_RELAUNCHED_OPTIMIZED_BUILD",
+  "preserved_navigation_enums": [
+    "com.lingubible.app.domain.model.InformationPage"
+  ],
+  "device_checks": {
+    "startup_after_keep_fix": "PASS",
+    "signed_in_account_preserved": "PASS",
+    "settings_information_entries": "PASS",
+    "settings_to_native_faq": "PASS",
+    "remaining_pages": "NONE",
+    "recovery_emails_sent": 1,
+    "password_changed": false,
+    "contact_messages_sent": 0,
+    "data_cleared": false,
+    "faq_expand_collapse": "PASS",
+    "faq_final_actions": "PASS",
+    "contact_empty_validation": "PASS_NO_MESSAGE_SENT",
+    "contact_categories": "PASS",
+    "contact_draft_privacy_back": "PASS_TEMP_TEXT_CLEARED",
+    "contact_keyboard_back": "PASS",
+    "terms_bilingual_original_date_and_final_notes": "PASS",
+    "privacy_bilingual_original_date_and_final_notes": "PASS",
+    "android_only_changelog_version_and_final_entry": "PASS",
+    "settings_final_entry_reachability": "PASS",
+    "warm_reset_invalid_token": "PASS",
+    "cold_reset_invalid_token": "PASS",
+    "empty_recovery_email": "PASS",
+    "live_captcha": "PASS",
+    "recovery_email_receipt_user_confirmed": true,
+    "sign_in_after_process_restart": "PASS",
+    "automatic_recovery_resend_after_restart": false
+  },
+  "pending_checks": [
+    "Actual password change and valid-reset-form end-to-end submission",
+    "Live contact-message submission",
+    "Physical Samsung/Pixel; Android 15/16; other themes/font scales/orientations; TalkBack"
+  ]
+}

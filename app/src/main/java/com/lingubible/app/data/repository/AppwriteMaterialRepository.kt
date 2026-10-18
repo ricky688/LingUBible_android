@@ -3,6 +3,8 @@ package com.lingubible.app.data.repository
 import com.lingubible.app.data.remote.AppwriteClientProvider
 import com.lingubible.app.domain.model.CourseSyllabus
 import com.lingubible.app.domain.model.PastPaper
+import com.lingubible.app.domain.model.StudyMaterial
+import com.lingubible.app.domain.model.materialCourseCode
 import com.lingubible.app.domain.repository.MaterialRepository
 import com.lingubible.app.domain.util.PastPapersParser
 import io.appwrite.Query
@@ -15,6 +17,33 @@ class AppwriteMaterialRepository(
     private val syllabusBucketId = "course_syllabus"
     private val endpoint = clientProvider.appConfig.endpoint
     private val projectId = clientProvider.appConfig.projectId
+
+    private suspend fun listStudyFiles(search: String? = null): List<io.appwrite.models.File> {
+        val storage = requireNotNull(clientProvider.storage) { "Storage unavailable" }
+        val files = mutableListOf<io.appwrite.models.File>()
+        var cursor: String? = null
+        do {
+            val page = storage.listFiles("study_materials", buildList {
+                add(Query.limit(100)); add(Query.orderAsc("\$id")); cursor?.let { add(Query.cursorAfter(it)) }
+            }, search).files
+            files += page
+            cursor = page.lastOrNull()?.id
+        } while (page.size == 100)
+        return files
+    }
+
+    override suspend fun getStudyMaterials(courseCode: String): Result<List<StudyMaterial>> = try {
+        require(courseCode.isNotBlank())
+        val code = courseCode.trim().uppercase()
+        Result.success(listStudyFiles(code).filter { materialCourseCode(it.name) == code }
+            .map { StudyMaterial(it.id, it.name, it.sizeOriginal) }.sortedBy { it.displayName.lowercase() })
+    } catch (e: kotlinx.coroutines.CancellationException) { throw e
+    } catch (e: Exception) { Result.failure(e) }
+
+    override suspend fun getStudyMaterialCourseCodes(): Result<Set<String>> = try {
+        Result.success(listStudyFiles().mapNotNull { materialCourseCode(it.name) }.toSet())
+    } catch (e: kotlinx.coroutines.CancellationException) { throw e
+    } catch (e: Exception) { Result.failure(e) }
 
     override suspend fun getPastPapers(courseCode: String): Result<List<PastPaper>> {
         val storage = clientProvider.storage

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ThemeTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:32:27" hostname="Ricky" time="0.018">
+  <properties/>
+  <testcase name="verify background color dynamically changes with selected color scheme" classname="com.lingubible.app.ThemeTest" time="0.0"/>
+  <testcase name="verify accent color palettes available and generate distinct schemes" classname="com.lingubible.app.ThemeTest" time="0.001"/>
+  <testcase name="verify default app color scheme is Red with OLED pitch black mode" classname="com.lingubible.app.ThemeTest" time="0.0"/>
+  <testcase name="verify typography scales and font sizes" classname="com.lingubible.app.ThemeTest" time="0.016"/>
+  <testcase name="verify Lingnan Red brand color definitions" classname="com.lingubible.app.ThemeTest" time="0.0"/>
+  <testcase name="verify OLED black mode overrides dark surfaces to pure black" classname="com.lingubible.app.ThemeTest" time="0.0"/>
+  <testcase name="verify light and dark color schemes primary tokens" classname="com.lingubible.app.ThemeTest" time="0.0"/>
+  <testcase name="verify Image Toolbox inverted colors and custom hex" classname="com.lingubible.app.ThemeTest" time="0.0"/>
+  <testcase name="verify Google recommended and Android blue default schemes" classname="com.lingubible.app.ThemeTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

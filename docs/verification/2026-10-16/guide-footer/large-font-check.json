@@ -1,0 +1,26 @@
+{
+  "window_width_dp": 320,
+  "font_scale": 2.0,
+  "controls_visible_at_topic_top": {
+    "上一步 Previous": [
+      41,
+      561,
+      252,
+      603
+    ],
+    "下一步 Next": [
+      41,
+      621,
+      200,
+      663
+    ],
+    "關閉指南 Close": [
+      37,
+      681,
+      237,
+      723
+    ]
+  },
+  "next_without_scrolling": "2 to 3 passed",
+  "previous_without_scrolling": "3 to 2 passed"
+}

@@ -4,6 +4,8 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.RateReview
@@ -39,10 +41,13 @@ sealed interface Screen {
     data object Courses : Screen
 
     @Serializable
-    data class CourseDetail(val courseCode: String) : Screen
+    data class CourseDetail(val courseCode: String, val initialTab: Int = 0) : Screen
 
     @Serializable
     data object Planner : Screen
+
+    @Serializable
+    data class ImportTimetable(val term: String = "", val sections: String = "") : Screen
 
     @Serializable
     data object Calendar : Screen
@@ -54,10 +59,13 @@ sealed interface Screen {
     data object Instructors : Screen
 
     @Serializable
-    data class InstructorDetail(val name: String) : Screen
+    data class InstructorDetail(val name: String, val initialTab: Int = 0) : Screen
 
     @Serializable
     data object Reviews : Screen
+
+    @Serializable
+    data object Favorites : Screen
 
     @Serializable
     data object MyReviews : Screen
@@ -73,6 +81,15 @@ sealed interface Screen {
 
     @Serializable
     data object Settings : Screen
+
+    @Serializable
+    data object Guide : Screen
+
+    @Serializable
+    data object PasswordRecovery : Screen
+
+    @Serializable
+    data class Information(val page: com.lingubible.app.domain.model.InformationPage) : Screen
 }
 
 enum class BottomNavDestination(
@@ -180,6 +197,14 @@ enum class DrawerNavDestination(
         unselectedIcon = Icons.Outlined.Calculate,
         selectedIcon = Icons.Filled.Calculate,
         category = DrawerCategory.TOOLS
+    ),
+    FAVORITES(
+        screen = Screen.Favorites,
+        titleZh = "我的收藏",
+        titleEn = "Favourites",
+        unselectedIcon = Icons.Outlined.FavoriteBorder,
+        selectedIcon = Icons.Filled.Favorite,
+        category = DrawerCategory.ACCOUNT
     ),
     PROFILE(
         screen = Screen.Profile,

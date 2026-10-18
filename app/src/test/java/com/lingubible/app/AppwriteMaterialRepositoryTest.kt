@@ -421,4 +421,22 @@ class AppwriteMaterialRepositoryTest {
         assertTrue(result.isFailure)
         assertEquals("Network error", result.exceptionOrNull()?.message)
     }
+    @Test
+    fun `study materials paginate and match exact course prefix across file types`() = runTest {
+        val page1 = (1..100).map { mockFile("id$it", "ACT1110_notes$it.pdf") }
+        val page2 = listOf(mockFile("doc", "ACT1110_workbook.docx"), mockFile("other", "ACT11100_notes.pdf"))
+        coEvery { storage.listFiles("study_materials", any(), "ACT1110") } returnsMany listOf(FileList(102, page1), FileList(102, page2))
+        val result = repository.getStudyMaterials("act1110").getOrThrow()
+        assertEquals(101, result.size)
+        assertFalse(result.single { it.id == "doc" }.isPdf)
+        assertFalse(result.any { it.id == "other" })
+        coVerify(exactly = 2) { storage.listFiles("study_materials", any(), "ACT1110") }
+    }
+    @Test
+    fun `material catalog excludes filenames without valid leading course code`() = runTest {
+        val files = listOf(mockFile("a", "ACT1110_notes.pdf"), mockFile("b", "act1110_book.pdf"), mockFile("c", "BUS1102_notes.docx"), mockFile("x", "notes.txt"))
+        coEvery { storage.listFiles("study_materials", any(), null) } returns FileList(4, files)
+        assertEquals(setOf("ACT1110", "BUS1102"), repository.getStudyMaterialCourseCodes().getOrThrow())
+    }
+
 }

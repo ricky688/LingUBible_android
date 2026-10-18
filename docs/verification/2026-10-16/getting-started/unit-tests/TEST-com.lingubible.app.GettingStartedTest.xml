@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.GettingStartedTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-16T06:44:32" hostname="Ricky" time="0.463">
+  <properties/>
+  <testcase name="guideDismissalSurvivesRestartAndAppearanceResetWithoutChangingOtherPreferences" classname="com.lingubible.app.GettingStartedTest" time="0.457"/>
+  <testcase name="sevenWebTopicsHaveBilingualNativeInstructionsAndLinks" classname="com.lingubible.app.GettingStartedTest" time="0.006"/>
+  <testcase name="firstLaunchIsLimitedToHomeAndDoesNotInterruptKeyboardOrOtherDestinations" classname="com.lingubible.app.GettingStartedTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

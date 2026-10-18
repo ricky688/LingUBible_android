@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-16",
+  "device": "192.168.240.112:5555",
+  "android": 13,
+  "signed_in_by_user": true,
+  "tested_apk_before_preview_language_fix": "db7805a3fcb5763a81553e91274cb5334cc25b07fc2f9556cfdaedce0bcbdd10",
+  "passed": [
+    "Native signed-in course picker searches CHI2114 and selects actual catalogue course",
+    "Term picker displays actual offered terms; 2025-T2 selects Lecture and Tutorial independently",
+    "Keyboard opens for course/instructor comments and Back dismisses it",
+    "Incomplete instructor ratings prevent preview and show an error",
+    "Lecture teaching slider supports explicit 0.0; course/Tutorial N/A choices are retained",
+    "Each session accepts its own comment and assessment requirement",
+    "Completed form reaches Preview without any submission",
+    "Expanded preview displays both session comments, Final requirements, 0.0 and N/A",
+    "Leaving/reopening form restores selected course, term and sessions",
+    "Force-stop/relaunch preserves authentication and full draft; expanded preview confirms exact comments and ratings",
+    "Changing term warns before clearing instructor answers; Cancel preserves original answers",
+    "Reselecting current course/term preserves complete draft and still reaches valid preview",
+    "Draft also survives replacement installation of the corrected signed release",
+    "Discard confirmation and durable cleanup verified by reopening the form"
+  ],
+  "found_and_fixed": [
+    "Expanded preview omitted review language; passing the selected language to the preview Review fixes display without changing submitted payload"
+  ],
+  "not_performed": [
+    "Submit review button was never activated",
+    "No public review/vote or account mutation",
+    "No account switching/logout",
+    "No physical Samsung/Pixel or full font/window matrix"
+  ],
+  "cleanup": "Discarded only synthetic draft created by this test; reopened form confirmed empty while account remained signed in",
+  "final_apk_sha256": "822cf1b4831a326efcf5314371c34c281aa276a126aafbbeadda52b47797b746",
+  "installed_hash_matches_final_build": true,
+  "final_release_fix_verified": "Expanded preview shows 2025-T2 · en with both session comments, 0.0 and N/A preserved after replacement installation",
+  "tests": {
+    "tests": 487,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "release_guard": "PASS"
+}

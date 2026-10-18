@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.SearchHistoryStoreTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-16T14:27:38" hostname="Ricky" time="0.009">
+  <properties/>
+  <testcase name="searchesSurviveRecreationAndClearOnlyTheirOwnList" classname="com.lingubible.app.SearchHistoryStoreTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

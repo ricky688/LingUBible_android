@@ -19,6 +19,8 @@ interface AuthRepository {
 }
 
 interface CourseRepository {
+    suspend fun getTerms(): Result<List<CourseTerm>> = Result.failure(UnsupportedOperationException())
+    suspend fun getCourseCodesForTerms(terms: Set<String>): Result<Set<String>> = Result.failure(UnsupportedOperationException())
     suspend fun getCourses(search: String? = null, subject: String? = null, page: Int = 1): Result<List<Course>>
     suspend fun getCourseByCode(courseCode: String): Result<Course>
     suspend fun getTeachingRecords(courseCode: String): Result<List<TeachingRecord>>
@@ -26,12 +28,18 @@ interface CourseRepository {
 }
 
 interface InstructorRepository {
+    suspend fun getAllInstructors(): Result<List<Instructor>> = getInstructors()
+    suspend fun getInstructorNamesForTerms(terms: Set<String>): Result<Set<String>> = Result.failure(UnsupportedOperationException())
     suspend fun getInstructors(search: String? = null, department: String? = null, page: Int = 1): Result<List<Instructor>>
     suspend fun getInstructorByName(name: String): Result<Instructor>
     suspend fun getInstructorTeachingRecords(name: String): Result<List<TeachingRecord>>
 }
 
 interface ReviewRepository {
+    suspend fun getAllReviewsForBrowsing(): Result<List<Review>> = getLatestReviews(100)
+    suspend fun getReviewEdit(reviewId: String): Result<ReviewEdit> = Result.failure(UnsupportedOperationException())
+    suspend fun updateReview(reviewId: String, edit: ReviewEdit): Result<Review> = Result.failure(UnsupportedOperationException())
+    suspend fun deleteReview(reviewId: String): Result<Unit> = Result.failure(UnsupportedOperationException())
     suspend fun getReviewsForCourse(courseCode: String): Result<List<Review>>
     suspend fun getReviewsForInstructor(instructorName: String): Result<List<Review>>
     suspend fun getLatestReviews(limit: Int = 20): Result<List<Review>>
@@ -42,6 +50,8 @@ interface ReviewRepository {
 }
 
 interface MaterialRepository {
+    suspend fun getStudyMaterials(courseCode: String): Result<List<StudyMaterial>> = Result.failure(UnsupportedOperationException())
+    suspend fun getStudyMaterialCourseCodes(): Result<Set<String>> = Result.failure(UnsupportedOperationException())
     suspend fun getPastPapers(courseCode: String): Result<List<PastPaper>>
     suspend fun getDownloadUrl(fileId: String): String
     suspend fun getViewUrl(fileId: String): String

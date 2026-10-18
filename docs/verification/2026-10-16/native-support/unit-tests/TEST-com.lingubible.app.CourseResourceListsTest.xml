@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.CourseResourceListsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-16T12:00:08" hostname="Ricky" time="0.004">
+  <properties/>
+  <testcase name="directReviewEntrySkipsProfileAndDistinctCourseRows" classname="com.lingubible.app.CourseResourceListsTest" time="0.001"/>
+  <testcase name="courseTermAndSessionLabelsAvoidDuplicateYearsAndIncorrectSectionBadges" classname="com.lingubible.app.CourseResourceListsTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

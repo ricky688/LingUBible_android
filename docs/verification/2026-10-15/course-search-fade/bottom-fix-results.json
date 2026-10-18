@@ -1,0 +1,19 @@
+{
+  "tests": {
+    "tests": 436,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "release_build": "passed",
+  "installed": "release 1.0.6/code7",
+  "certificate_matched": true,
+  "data_cleared": false,
+  "apk_sha256": "1430a29add1ca8d0cb74c24282cc8b6edc2f97c7c1b8e074da0ecc6bcb882e7f",
+  "observed": "OLED dark course list scrolling, continuous fade to system navigation, no restored card strip below boundary",
+  "not_checked": [
+    "light theme",
+    "gesture navigation",
+    "physical devices"
+  ]
+}

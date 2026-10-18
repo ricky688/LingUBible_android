@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ReviewOwnershipTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-15T12:22:49" hostname="Ricky" time="0.014">
+  <properties/>
+  <testcase name="otherUsersCannotLoadEditorOrDeleteReview" classname="com.lingubible.app.ReviewOwnershipTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

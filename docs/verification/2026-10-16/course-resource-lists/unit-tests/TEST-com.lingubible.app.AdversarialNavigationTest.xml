@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.AdversarialNavigationTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:32:23" hostname="Ricky" time="0.062">
+  <properties/>
+  <testcase name="adversarial test course detail with edge case course codes" classname="com.lingubible.app.AdversarialNavigationTest" time="0.028"/>
+  <testcase name="adversarial test auth route with multiple modes" classname="com.lingubible.app.AdversarialNavigationTest" time="0.002"/>
+  <testcase name="adversarial test instructor detail with edge case names" classname="com.lingubible.app.AdversarialNavigationTest" time="0.003"/>
+  <testcase name="adversarial test I18n key sanitization stress harness" classname="com.lingubible.app.AdversarialNavigationTest" time="0.001"/>
+  <testcase name="adversarial test bottom navigation destination coverage" classname="com.lingubible.app.AdversarialNavigationTest" time="0.023"/>
+  <testcase name="adversarial test write review with null and edge case course codes" classname="com.lingubible.app.AdversarialNavigationTest" time="0.003"/>
+  <testcase name="adversarial test I18n plural processing stress harness" classname="com.lingubible.app.AdversarialNavigationTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

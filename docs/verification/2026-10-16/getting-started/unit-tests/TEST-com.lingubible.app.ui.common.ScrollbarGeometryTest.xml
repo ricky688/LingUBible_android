@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ui.common.ScrollbarGeometryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-16T06:44:35" hostname="Ricky" time="0.001">
+  <properties/>
+  <testcase name="zeroViewportDuringRotationHasNoThumb" classname="com.lingubible.app.ui.common.ScrollbarGeometryTest" time="0.001"/>
+  <testcase name="shortViewportContainsThePreferredMinimumThumb" classname="com.lingubible.app.ui.common.ScrollbarGeometryTest" time="0.0"/>
+  <testcase name="regularViewportPreservesProportionalAndMinimumSizes" classname="com.lingubible.app.ui.common.ScrollbarGeometryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

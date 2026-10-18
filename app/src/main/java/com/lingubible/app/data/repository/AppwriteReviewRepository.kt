@@ -4,18 +4,20 @@ import android.util.Log
 import com.lingubible.app.data.remote.AppwriteClientProvider
 import com.lingubible.app.domain.model.EligibilityResult
 import com.lingubible.app.domain.model.Review
+import com.lingubible.app.domain.model.ReviewEdit
 import com.lingubible.app.domain.model.ReviewSubmission
 import com.lingubible.app.domain.model.VoteState
+import com.lingubible.app.domain.model.InstructorEvaluation
 import com.lingubible.app.domain.repository.ReviewRepository
-import com.lingubible.app.domain.util.RatingValidator
-import com.lingubible.app.domain.util.WordCountValidator
 import io.appwrite.ID
 import io.appwrite.Query
-import org.json.JSONArray
 import org.json.JSONObject
+import kotlinx.serialization.json.jsonObject
 
 class AppwriteReviewRepository(
-    private val clientProvider: AppwriteClientProvider
+    private val clientProvider: AppwriteClientProvider,
+    private val authRepository: com.lingubible.app.domain.repository.AuthRepository? = null,
+    private val courseRepository: com.lingubible.app.domain.repository.CourseRepository? = null
 ) : ReviewRepository {
 
     private val dbId = clientProvider.databaseId
@@ -23,44 +25,127 @@ class AppwriteReviewRepository(
     private val votesCol = "review_votes"
     private val TAG = "ReviewRepo"
 
-    override suspend fun getReviewsForCourse(courseCode: String): Result<List<Review>> {
-        return getReviews(listOf(
-            Query.equal("course_code", courseCode.trim().uppercase()),
-            Query.orderDesc("\$createdAt")
-        ))
+    private suspend fun ownedReview(reviewId: String): io.appwrite.models.Document<Map<String, Any>> {
+        require(reviewId.isNotBlank())
+        val userId = requireNotNull(clientProvider.account) { "Sign in required" }.get().id
+        val document = requireNotNull(clientProvider.databases).getDocument(dbId, reviewsCol, reviewId)
+        check(document.data["user_id"] == userId) { "你只能管理自己的評價 · You can only manage your own reviews" }
+        return document
     }
 
-    override suspend fun getReviewsForInstructor(instructorName: String): Result<List<Review>> {
-        return getLatestReviews(200).map { reviews ->
-            reviews.filter { it.instructorName.contains(instructorName.trim(), ignoreCase = true) }
+    override suspend fun getReviewEdit(reviewId: String): Result<ReviewEdit> = try {
+        Result.success(ReviewEdit.from(ownedReview(reviewId).data))
+    } catch (e: kotlinx.coroutines.CancellationException) { throw e
+    } catch (e: Exception) { Result.failure(e) }
+
+    override suspend fun updateReview(reviewId: String, edit: ReviewEdit): Result<Review> = try {
+        val original = ownedReview(reviewId)
+        val originalDetails = ReviewEdit.from(original.data).instructors
+        // Keep instructor identities, sessions and unknown fields from the saved review.
+        require(edit.instructors.size == originalDetails.size) { "Instructor list changed; reopen the review" }
+        edit.instructors.forEachIndexed { index, value ->
+            val originalDetail = originalDetails[index].jsonObject
+            val detail = value.jsonObject
+            originalDetail.keys.filterNot { it in setOf("grading", "teaching", "comments") }.forEach {
+                require(detail[it] == originalDetail[it]) { "Instructor identity changed" }
+            }
         }
+        val doc = requireNotNull(clientProvider.databases).updateDocument(dbId, reviewsCol, reviewId, edit.patch())
+        recomputeStats(original.data["course_code"] as? String ?: "")
+        Result.success(mapDocumentToReview(doc.id, doc.data, doc.createdAt))
+    } catch (e: kotlinx.coroutines.CancellationException) { throw e
+    } catch (e: Exception) { Result.failure(e) }
+
+    override suspend fun deleteReview(reviewId: String): Result<Unit> = try {
+        val original = ownedReview(reviewId)
+        val db = requireNotNull(clientProvider.databases)
+        // Match web cleanup before deleting the review; never silently ignore a permission failure.
+        while (true) {
+            val votes = db.listDocuments(dbId, votesCol, listOf(Query.equal("review_id", reviewId), Query.limit(100))).documents
+            votes.forEach { db.deleteDocument(dbId, votesCol, it.id) }
+            if (votes.size < 100) break
+        }
+        db.deleteDocument(dbId, reviewsCol, reviewId)
+        recomputeStats(original.data["course_code"] as? String ?: "")
+        Result.success(Unit)
+    } catch (e: kotlinx.coroutines.CancellationException) { throw e
+    } catch (e: Exception) { Result.failure(e) }
+
+    private suspend fun recomputeStats(courseCode: String) {
+        try {
+            clientProvider.functions?.createExecution("recompute-course-stats", JSONObject().put("courseCode", courseCode).toString(), true)
+            clientProvider.functions?.createExecution("recompute-course-stats", "{\"instructors\":true}", true)
+        } catch (e: kotlinx.coroutines.CancellationException) { throw e
+        } catch (e: Exception) { Log.w(TAG, "Statistics refresh deferred", e) }
     }
 
-    override suspend fun getLatestReviews(limit: Int): Result<List<Review>> {
-        return getReviews(listOf(
-            Query.orderDesc("\$createdAt"),
-            Query.limit(limit)
-        ))
-    }
+    override suspend fun getReviewsForCourse(courseCode: String): Result<List<Review>> =
+        getAllReviews(listOf(Query.equal("course_code", courseCode.trim().uppercase())))
+
+    override suspend fun getReviewsForInstructor(instructorName: String): Result<List<Review>> =
+        getAllReviewsForBrowsing().map { reviews -> reviews.filter { review ->
+            review.instructors.any { it.name.equals(instructorName.trim(), true) } ||
+                review.instructorName.equals(instructorName.trim(), true)
+        } }
+
+    override suspend fun getLatestReviews(limit: Int): Result<List<Review>> =
+        attachVotes(getReviews(listOf(Query.orderDesc("\$createdAt"), Query.limit(limit))))
+
+    override suspend fun getAllReviewsForBrowsing(): Result<List<Review>> = getAllReviews(emptyList())
 
     override suspend fun getReviewsForUser(userId: String): Result<List<Review>> {
         require(userId.isNotBlank()) { "A signed-in user is required" }
+        return getAllReviews(listOf(Query.equal("user_id", userId)))
+    }
+
+    private suspend fun getAllReviews(filters: List<String>): Result<List<Review>> {
         val reviews = mutableListOf<Review>()
         var cursor: String? = null
         do {
-            val queries = buildList {
-                add(Query.equal("user_id", userId))
-                add(Query.orderDesc("\$createdAt"))
-                add(Query.limit(100))
+            val result = getReviews(buildList {
+                addAll(filters); add(Query.orderDesc("\$createdAt")); add(Query.limit(100))
                 cursor?.let { add(Query.cursorAfter(it)) }
-            }
-            val result = getReviews(queries)
+            })
             if (result.isFailure) return result
             val page = result.getOrThrow()
             reviews += page
             cursor = page.lastOrNull()?.id
         } while (page.size == 100)
-        return Result.success(reviews)
+        return attachVotes(Result.success(reviews.distinctBy { it.id }))
+    }
+
+    private suspend fun readVotes(reviewId: String? = null): List<io.appwrite.models.Document<Map<String, Any>>> {
+        val db = requireNotNull(clientProvider.databases)
+        val votes = mutableListOf<io.appwrite.models.Document<Map<String, Any>>>()
+        var cursor: String? = null
+        do {
+            val page = db.listDocuments(dbId, votesCol, buildList {
+                reviewId?.let { add(Query.equal("review_id", it)) }
+                add(Query.limit(100)); add(Query.orderAsc("\$id"))
+                add(Query.select(listOf("\$id", "review_id", "vote_type", "user_id")))
+                cursor?.let { add(Query.cursorAfter(it)) }
+            }).documents
+            votes += page; cursor = page.lastOrNull()?.id
+        } while (page.size == 100)
+        return votes
+    }
+
+    private suspend fun attachVotes(result: Result<List<Review>>): Result<List<Review>> {
+        if (result.isFailure || result.getOrThrow().isEmpty()) return result
+        return try {
+            val catalog = courseRepository?.getCourses()?.getOrThrow()?.associateBy { it.code }.orEmpty()
+            val owner = authRepository?.currentUser?.value?.id
+            val grouped = readVotes().groupBy { it.data["review_id"] as? String }
+            Result.success(result.getOrThrow().map { review ->
+                val votes = grouped[review.id].orEmpty()
+                val course = catalog[review.courseCode]
+                review.copy(courseTitle = course?.titleEn ?: review.courseTitle, courseTitleZh = course?.titleZh ?: review.courseTitleZh,
+                    upvotes = votes.count { it.data["vote_type"] == "up" },
+                    downvotes = votes.count { it.data["vote_type"] == "down" },
+                    userVote = if (owner == null) null else votes.firstOrNull { it.data["user_id"] == owner }?.data?.get("vote_type") as? String)
+            })
+        } catch (e: kotlinx.coroutines.CancellationException) { throw e
+        } catch (e: Exception) { Result.failure(e) }
     }
 
     private suspend fun getReviews(queries: List<String>): Result<List<Review>> {
@@ -91,67 +176,27 @@ class AppwriteReviewRepository(
     }
 
 
-    override suspend fun submitReview(submission: ReviewSubmission): Result<Review> {
-        if (!WordCountValidator.isValid(submission.comment, 5, 1000)) {
-            return Result.failure(IllegalArgumentException("Review comment must contain between 5 and 1000 words"))
-        }
-
-        if (!RatingValidator.isValidRating(submission.workloadRating) ||
-            !RatingValidator.isValidRating(submission.difficultyRating) ||
-            !RatingValidator.isValidRating(submission.gradingRating) ||
-            !RatingValidator.isValidRating(submission.teachingRating)
-        ) {
-            return Result.failure(IllegalArgumentException("Ratings must be between 0.5 and 5.0 (in increments of 0.5) or -1 for N/A"))
-        }
-
-        val databases = clientProvider.databases
-            ?: return Result.failure(IllegalStateException("Databases not initialized"))
-
-        return try {
-            val account = clientProvider.account
-            val user = account?.get()
-            val userId = user?.id ?: ""
-
-            val instructorDetailsJson = JSONArray().apply {
-                put(JSONObject().apply {
-                    put("instructor_name", submission.instructorName.trim())
-                    put("session_type", "Lecture")
-                    put("grading", submission.gradingRating)
-                    put("teaching", submission.teachingRating)
-                    put("comments", submission.comment.trim())
-                })
-            }.toString()
-
-            val documentData = mapOf(
-                "course_code" to submission.courseCode.trim().uppercase(),
-                "term_code" to submission.term.trim(),
-                "course_final_grade" to submission.grade.trim().uppercase(),
-                "course_workload" to submission.workloadRating,
-                "course_difficulties" to submission.difficultyRating,
-                "course_usefulness" to 3.0,
-                "course_comments" to submission.comment.trim(),
-                "instructor_details" to instructorDetailsJson,
-                "user_id" to userId,
-                "username" to (user?.name ?: "Lingnanian"),
-                "is_anon" to submission.isAnonymous,
-                "submitted_at" to java.time.Instant.now().toString(),
-                "review_language" to "en"
-            )
-
-            val doc = databases.createDocument(
-                databaseId = dbId,
-                collectionId = reviewsCol,
-                documentId = ID.unique(),
-                data = documentData
-            )
-
-            val review = mapDocumentToReview(doc.id, doc.data, doc.createdAt)
-            Result.success(review)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error submitting review: ${e.message}", e)
-            Result.failure(e)
-        }
-    }
+    override suspend fun submitReview(submission: ReviewSubmission): Result<Review> = try {
+        val form = submission.form
+        form.validate()
+        val db = requireNotNull(clientProvider.databases) { "Databases not initialized" }
+        val user = requireNotNull(clientProvider.account) { "Sign in required" }.get()
+        require(user.id == submission.userId) { "帳戶已變更，請重新開啟表單 · Account changed; reopen the form" }
+        // Recheck catalogue membership and eligibility at the write boundary, including restored drafts.
+        val records = (courseRepository ?: AppwriteCourseRepository(clientProvider)).getTeachingRecords(form.courseCode).getOrThrow()
+        require(form.instructors.all { evaluation -> records.any {
+            it.term == form.term && it.instructorName == evaluation.name && it.section == evaluation.session &&
+                (it.serviceLearning == null || it.serviceLearning == evaluation.serviceLearning)
+        } }) { "課程／講師資料已變更，請重新選擇 · Course or instructor data changed; select again" }
+        val eligibility = checkEligibility(user.id, form.courseCode, form.term)
+        check(eligibility.canSubmit) { eligibilityMessage(eligibility.reasonKey) }
+        require(clientProvider.account?.get()?.id == submission.userId) { "Account changed" }
+        val doc = db.createDocument(dbId, reviewsCol, ID.unique(),
+            form.documentData(user.id, user.name, java.time.Instant.now().toString()))
+        recomputeStats(form.courseCode)
+        Result.success(mapDocumentToReview(doc.id, doc.data, doc.createdAt))
+    } catch (e: kotlinx.coroutines.CancellationException) { throw e
+    } catch (e: Exception) { Result.failure(e) }
 
     override suspend fun voteReview(reviewId: String, voteType: String): Result<VoteState> {
         val databases = clientProvider.databases
@@ -201,14 +246,10 @@ class AppwriteReviewRepository(
                 voteType
             }
 
-            val allVotes = databases.listDocuments(
-                databaseId = dbId,
-                collectionId = votesCol,
-                queries = listOf(Query.equal("review_id", reviewId))
-            )
+            val allVotes = readVotes(reviewId)
 
-            val upCount = allVotes.documents.count { it.data["vote_type"] == "up" }
-            val downCount = allVotes.documents.count { it.data["vote_type"] == "down" }
+            val upCount = allVotes.count { it.data["vote_type"] == "up" }
+            val downCount = allVotes.count { it.data["vote_type"] == "down" }
 
             Result.success(VoteState(upvotes = upCount, downvotes = downCount, userVote = finalVote))
         } catch (e: Exception) {
@@ -223,7 +264,7 @@ class AppwriteReviewRepository(
         termCode: String
     ): EligibilityResult {
         val databases = clientProvider.databases
-            ?: return EligibilityResult(true)
+            ?: return EligibilityResult(false, "review.eligibilityUnavailable")
 
         return try {
             val userReviews = databases.listDocuments(
@@ -263,9 +304,10 @@ class AppwriteReviewRepository(
             }
 
             EligibilityResult(true)
+        } catch (e: kotlinx.coroutines.CancellationException) { throw e
         } catch (e: Exception) {
             Log.e(TAG, "Error checking eligibility: ${e.message}", e)
-            EligibilityResult(true)
+            EligibilityResult(false, "review.eligibilityUnavailable")
         }
     }
 
@@ -273,8 +315,8 @@ class AppwriteReviewRepository(
         val courseCode = (data["course_code"] as? String) ?: ""
         val termCode = (data["term_code"] as? String) ?: (data["term"] as? String) ?: ""
         val grade = (data["course_final_grade"] as? String) ?: (data["grade"] as? String) ?: "N/A"
-        val workload = (data["course_workload"] as? Number)?.toDouble() ?: 3.0
-        val difficulty = (data["course_difficulties"] as? Number)?.toDouble() ?: 3.0
+        val workload = (data["course_workload"] as? Number)?.toDouble() ?: -1.0
+        val difficulty = (data["course_difficulties"] as? Number)?.toDouble() ?: -1.0
         val comment = (data["course_comments"] as? String) ?: (data["comment"] as? String) ?: ""
         val isAnon = (data["is_anon"] as? Boolean) ?: (data["is_anonymous"] as? Boolean) ?: true
 
@@ -284,33 +326,12 @@ class AppwriteReviewRepository(
             ?: (data["course_title_zh"] as? String)?.trim()
             ?: ""
 
-        val instructorDetailsStr = data["instructor_details"] as? String
-        var instructorName = (data["instructor_name"] as? String) ?: ""
-        var instructorNameZh = (data["instructor_name_tc"] as? String)?.trim()
-            ?: (data["instructor_name_zh"] as? String)?.trim()
-            ?: ""
-        var teachingRating = 3.0
-        var gradingRating = 3.0
-
-        if (!instructorDetailsStr.isNullOrBlank()) {
-            try {
-                val jsonArr = JSONArray(instructorDetailsStr)
-                if (jsonArr.length() > 0) {
-                    val first = jsonArr.getJSONObject(0)
-                    if (instructorName.isBlank()) {
-                        instructorName = first.optString("instructor_name", "")
-                    }
-                    if (instructorNameZh.isBlank()) {
-                        instructorNameZh = first.optString("instructor_name_tc", "")
-                            .ifBlank { first.optString("name_tc", "") }
-                    }
-                    val t = first.optDouble("teaching", -1.0)
-                    if (t > 0) teachingRating = t
-                    val g = first.optDouble("grading", -1.0)
-                    if (g > 0) gradingRating = g
-                }
-            } catch (_: Exception) {}
-        }
+        val details = InstructorEvaluation.fromWire(data["instructor_details"] as? String)
+        val instructorName = details.joinToString { it.name }.ifBlank { data["instructor_name"] as? String ?: "" }
+        val instructorNameZh = data["instructor_name_tc"] as? String ?: ""
+        fun average(values: List<Double?>) = values.filterNotNull().filter { it >= 0 }.let { if (it.isEmpty()) -1.0 else it.average() }
+        val teachingRating = average(details.map { if (it.notAttended) -1.0 else it.teaching })
+        val gradingRating = average(details.map { it.grading })
 
         return Review(
             id = docId,
@@ -322,8 +343,8 @@ class AppwriteReviewRepository(
             term = termCode,
             academicYear = if (termCode.length >= 4) termCode.take(4) else "",
             grade = grade,
-            workloadRating = if (workload > 0) workload else 3.0,
-            difficultyRating = if (difficulty > 0) difficulty else 3.0,
+            workloadRating = workload,
+            difficultyRating = difficulty,
             gradingRating = gradingRating,
             teachingRating = teachingRating,
             comment = comment,
@@ -332,7 +353,17 @@ class AppwriteReviewRepository(
             userVote = data["user_vote"] as? String,
             createdAt = (data["submitted_at"] as? String) ?: (data["created_at"] as? String) ?: docCreatedAt,
             userId = (data["user_id"] as? String) ?: "",
-            isAnonymous = isAnon
+            isAnonymous = isAnon,
+            usefulnessRating = (data["course_usefulness"] as? Number)?.toDouble() ?: -1.0,
+            language = data["review_language"] as? String ?: "",
+            instructors = details
         )
     }
+}
+
+internal fun eligibilityMessage(key: String?): String = when (key) {
+    "review.termLimitExceeded" -> "本學期最多可提交 7 則評價 · Maximum 7 reviews per term"
+    "review.limitExceeded" -> "此課程最多可提交 2 則評價 · Maximum 2 reviews per course"
+    "review.limitReachedWithPass" -> "你已評價此課程；僅不及格後重修可再次提交 · Only a failed course can be reviewed again"
+    else -> "無法確認提交資格，請重試 · Could not verify eligibility; retry"
 }

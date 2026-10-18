@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.AppButtonDefaults
+import com.lingubible.app.ui.components.fadingVerticalScroll
 import com.lingubible.app.ui.common.hapticClick
 
 import com.lingubible.app.core.navigation.screenBottomPadding
@@ -9,7 +11,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
@@ -54,6 +55,7 @@ fun AuthScreen(
     initialMode: String = "login",
     onAuthSuccess: () -> Unit,
     onNavigateBack: () -> Unit,
+    onForgotPassword: () -> Unit,
     viewModel: AuthViewModel = koinViewModel()
 ) {
     val isDark = isAppDarkTheme()
@@ -78,7 +80,7 @@ fun AuthScreen(
                 .fillMaxSize()
                 .padding(horizontal = 24.dp)
                 .imePadding()
-                .verticalScroll(rememberScrollState())
+                .fadingVerticalScroll(rememberScrollState(), bottomInset = com.lingubible.app.core.navigation.LocalScreenBottomClearance.current)
                 .screenBottomPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -141,7 +143,7 @@ fun AuthScreen(
                         .fillMaxWidth()
                         .height(52.dp),
                     enabled = !uiState.isLoading && activity != null,
-                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(26.dp))
+                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(26.dp))
                 ) {
                     Surface(
                         modifier = Modifier.size(24.dp),
@@ -244,6 +246,15 @@ fun AuthScreen(
                         }
                 }
 
+                if (isLoginMode) {
+                    TextButton(
+                        onClick = hapticClick(onForgotPassword),
+                        enabled = !uiState.isLoading,
+                        shapes = AppButtonDefaults.shapes(),
+                        modifier = Modifier.align(Alignment.End)
+                    ) { Text("忘記密碼？ Forgot password?") }
+                }
+
                 if (uiState.errorMessage != null) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
@@ -267,7 +278,7 @@ fun AuthScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
-                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(26.dp)),
+                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(26.dp)),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary

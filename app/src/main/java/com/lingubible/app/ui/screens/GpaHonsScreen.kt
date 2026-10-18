@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.ui.common.hapticClick
 
 import com.lingubible.app.core.navigation.screenContentPadding
@@ -21,7 +22,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -105,8 +105,8 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     text = {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(zh, style = MaterialTheme.typography.titleSmall)
-                            Text(en, style = MaterialTheme.typography.labelMedium)
+                            Text(zh, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(en, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 )
@@ -135,7 +135,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                 if (showStatistics) {
                     FirstClassHonoursContent(listState = statisticsScroll)
                 } else {
-                LazyColumn(
+                FadingLazyColumn(
                     state = calculatorScroll,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = screenContentPadding(start = 16.dp, end = 16.dp, top = 8.dp),
@@ -154,15 +154,15 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                 Text("JSON 可還原完整資料；CSV 可用於試算表。\nRestore with JSON; view CSV in a spreadsheet.",
                                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { jsonExport.launch(exportName("json")) }, enabled = !state.backupBusy) {
+                                    FilledTonalButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { jsonExport.launch(exportName("json")) }, enabled = !state.backupBusy) {
                                         Icon(Icons.Outlined.SaveAlt, contentDescription = null, modifier = Modifier.size(18.dp))
                                         Spacer(Modifier.width(6.dp))
                                         Text("備份 Backup")
                                     }
-                                    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { csvExport.launch(exportName("csv")) }, enabled = !state.backupBusy) {
+                                    OutlinedButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { csvExport.launch(exportName("csv")) }, enabled = !state.backupBusy) {
                                         Text("匯出 CSV")
                                     }
-                                    TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { importBackup.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }, enabled = !state.backupBusy) {
+                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { importBackup.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }, enabled = !state.backupBusy) {
                                         Text("還原 Restore")
                                     }
                                 }
@@ -198,7 +198,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
-                                    IconButton(
+                                    IconButton(shapes = AppButtonDefaults.iconShapes(),
                                         onClick = hapticClick(viewModel::undo),
                                         enabled = state.canUndo,
                                         modifier = Modifier.size(36.dp)
@@ -210,7 +210,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                             modifier = Modifier.size(18.dp)
                                         )
                                     }
-                                    IconButton(
+                                    IconButton(shapes = AppButtonDefaults.iconShapes(),
                                         onClick = hapticClick(viewModel::redo),
                                         enabled = state.canRedo,
                                         modifier = Modifier.size(36.dp)
@@ -226,7 +226,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                         modifier = Modifier.height(18.dp).padding(horizontal = 2.dp),
                                         color = MaterialTheme.colorScheme.outlineVariant
                                     )
-                                    IconButton(
+                                    IconButton(shapes = AppButtonDefaults.iconShapes(),
                                         onClick = hapticClick { showResetDialog = true },
                                         modifier = Modifier.size(36.dp)
                                     ) {
@@ -325,16 +325,16 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
             onDismissRequest = viewModel::dismissCalculatorRestore,
             title = { Text("還原計算器備份？\nRestore calculator backup?") },
             text = { Text("備份包含 $terms 個學期、$courses 個課程。將取代目前的計算器資料及目標設定，可按「復原 Undo」還原。\n$terms terms and $courses courses will replace the current entries and goals. You can Undo this change.") },
-            confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(viewModel::confirmCalculatorRestore)) { Text("還原 Restore") } },
-            dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(viewModel::dismissCalculatorRestore)) { Text("取消 Cancel") } }
+            confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::confirmCalculatorRestore)) { Text("還原 Restore") } },
+            dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::dismissCalculatorRestore)) { Text("取消 Cancel") } }
         )
     }
     if (showResetDialog) AlertDialog(
         onDismissRequest = { showResetDialog = false },
         title = { Text("重設所有成績？ Reset planner?") },
         text = { Text("學期、課程和成績將回復初始狀態。可按「復原 Undo」還原。") },
-        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { viewModel.resetAll(); showResetDialog = false }) { Text("重設 Reset") } },
-        dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick { showResetDialog = false }) { Text("取消 Cancel") } }
+        confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.resetAll(); showResetDialog = false }) { Text("重設 Reset") } },
+        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showResetDialog = false }) { Text("取消 Cancel") } }
     )
     if (showGpaGodModal) {
         GpaGodFortuneModal(
@@ -594,7 +594,7 @@ fun YearCard(
                 }
 
                 if (canRemoveYear) {
-                    IconButton(
+                    IconButton(shapes = AppButtonDefaults.iconShapes(),
                         onClick = hapticClick(onRemoveYear),
                         modifier = Modifier
                             .size(36.dp)
@@ -723,7 +723,7 @@ fun TermSection(
             }
 
             if (canRemoveTerm) {
-                IconButton(
+                IconButton(shapes = AppButtonDefaults.iconShapes(),
                     onClick = hapticClick(onRemoveTerm),
                     modifier = Modifier
                         .size(36.dp)
@@ -857,7 +857,7 @@ fun CourseRow(
                 shape = RoundedCornerShape(14.dp),
                 trailingIcon = if (canRemove) {
                     {
-                        IconButton(
+                        IconButton(shapes = AppButtonDefaults.iconShapes(),
                             onClick = hapticClick(onRemove),
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                         ) {

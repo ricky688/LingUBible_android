@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-16",
+  "status": "SOURCE_AND_LOCAL_BUILD_VERIFIED",
+  "unit_tests": {
+    "tests": 508,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "build_tasks": [
+    "testDebugUnitTest",
+    "assembleRelease",
+    "bundleRelease"
+  ],
+  "build": "PASS",
+  "release_guard": {
+    "status": "PASS",
+    "version_code": 7,
+    "version_name": "1.0.6",
+    "apk_bytes": 4279523,
+    "aab_bytes": 7623859,
+    "uncompressed_dex_bytes": 4939740,
+    "renamed_application_types_present_in_dex": 862,
+    "matching_r8_mapping_embedded": true,
+    "sha256": {
+      "app-release.apk": "babd24c95782f48a73c52be59f1ecb78a54dcaad659fd962a82fbab227747b22",
+      "app-release.aab": "e892a744065e35e36332e3a856f5ed15f73574f31f58df2460310d2d5939915b"
+    },
+    "note": "Type count and size are local evidence, not Play Console coverage percentages."
+  },
+  "certificate_sha256": "9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e",
+  "archive": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/scroll-fades-2026-10-16",
+  "installed": false,
+  "waydroid": "DEFERRED_SOURCE_FIRST_INSTRUCTION",
+  "screenshots": [],
+  "checks": [
+    "Idle/top/middle/bottom/non-scrollable fade policy",
+    "Immediate boundary clearing and spring opacity clamping",
+    "Existing navigation/short-viewport fade geometry",
+    "Static coverage of all vertical scroll views and main lists",
+    "Final source recompiled/tested after drawer integration; APK/AAB release tasks up to date"
+  ],
+  "pending": [
+    "On-device visual verification and performance",
+    "Keyboard/theme/landscape/sheets/PDF zoom on Waydroid"
+  ],
+  "committed": false,
+  "published": false
+}

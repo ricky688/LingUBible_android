@@ -1,0 +1,150 @@
+--- a/app/src/main/java/com/lingubible/app/MainActivity.kt
++++ b/app/src/main/java/com/lingubible/app/MainActivity.kt
+@@ -181,6 +181,7 @@
+     var isBottomBarVisible by remember { mutableStateOf(true) }
+     var isTopBarVisible by remember { mutableStateOf(true) }
+     var isTopBarExpanded by remember { mutableStateOf(true) }
++    val effectiveTopBarExpanded = isTopBarExpanded && !imeVisible && LocalConfiguration.current.screenHeightDp >= 480
+     var isSubBarVisible by remember { mutableStateOf(true) }
+     var academicSubTab by remember { mutableIntStateOf(0) }
+ 
+@@ -277,10 +278,10 @@
+         )
+     }
+ 
+-    val topBarState = remember(isTopBarVisible, isTopBarExpanded, isSubBarVisible, academicSubTab) {
++    val topBarState = remember(isTopBarVisible, effectiveTopBarExpanded, isSubBarVisible, academicSubTab) {
+         TopBarState(
+             isVisible = isTopBarVisible,
+-            isExpanded = isTopBarExpanded,
++            isExpanded = effectiveTopBarExpanded,
+             isSubBarVisible = isSubBarVisible,
+             academicSubTab = academicSubTab,
+             setVisible = { isTopBarVisible = it },
+@@ -325,7 +326,7 @@
+                     LingUBibleTopBar(
+                         navController = navController,
+                         isVisible = isTopBarVisible,
+-                        isExpanded = isTopBarExpanded,
++                        isExpanded = effectiveTopBarExpanded,
+                         academicSubTab = academicSubTab,
+                         onLogoClick = {
+                             catWalkState.onLogoTap(screenWidthPx, screenHeightPx) { hapticType ->
+--- a/app/src/main/java/com/lingubible/app/core/navigation/LingUBibleBottomBar.kt
++++ b/app/src/main/java/com/lingubible/app/core/navigation/LingUBibleBottomBar.kt
+@@ -29,6 +29,8 @@
+ import androidx.compose.ui.input.pointer.pointerHoverIcon
+ import androidx.compose.ui.res.stringResource
+ import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.text.style.TextOverflow
++import androidx.compose.ui.text.style.TextAlign
+ import androidx.compose.ui.unit.Dp
+ import androidx.compose.ui.unit.dp
+ import androidx.navigation.NavDestination.Companion.hasRoute
+@@ -246,6 +248,8 @@
+                                     translationY = iconTranslationY * 0.4f
+                                 },
+                                 maxLines = 1,
++                                overflow = TextOverflow.Ellipsis,
++                                textAlign = TextAlign.Center,
+                                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                             )
+                         },
+--- a/app/src/main/java/com/lingubible/app/ui/screens/GpaHonsScreen.kt
++++ b/app/src/main/java/com/lingubible/app/ui/screens/GpaHonsScreen.kt
+@@ -104,8 +104,8 @@
+                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                     text = {
+                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+-                            Text(zh, style = MaterialTheme.typography.titleSmall)
+-                            Text(en, style = MaterialTheme.typography.labelMedium)
++                            Text(zh, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
++                            Text(en, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                         }
+                     }
+                 )
+--- a/app/src/main/java/com/lingubible/app/ui/components/FirstClassHonoursContent.kt
++++ b/app/src/main/java/com/lingubible/app/ui/components/FirstClassHonoursContent.kt
+@@ -33,6 +33,8 @@
+ import androidx.compose.ui.graphics.graphicsLayer
+ import androidx.compose.ui.graphics.vector.ImageVector
+ import androidx.compose.ui.platform.LocalContext
++import androidx.compose.ui.platform.LocalConfiguration
++import androidx.compose.ui.platform.LocalDensity
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.text.style.TextAlign
+ import androidx.compose.ui.text.style.TextOverflow
+@@ -272,12 +274,14 @@
+     }
+ }
+ 
++@OptIn(ExperimentalLayoutApi::class)
+ @Composable
+ private fun HonoursSummary(
+     summary: HonoursCohort?,
+     previous: HonoursCohort?,
+     showChange: Boolean
+ ) {
++    val stackedMetrics = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale >= 1.5f
+     Card(
+         modifier = Modifier.fillMaxWidth(),
+         shape = RoundedCornerShape(24.dp),
+@@ -291,11 +295,13 @@
+             )
+         )
+     ) {
+-        Row(
++        FlowRow(
+             modifier = Modifier
+                 .fillMaxWidth()
+                 .padding(12.dp),
+-            horizontalArrangement = Arrangement.spacedBy(8.dp)
++            horizontalArrangement = Arrangement.spacedBy(8.dp),
++            verticalArrangement = Arrangement.spacedBy(8.dp),
++            maxItemsInEachRow = if (stackedMetrics) 1 else 3
+         ) {
+             val total = summary?.total
+             val prevTotal = previous?.total
+@@ -736,6 +742,7 @@
+     }
+ }
+ 
++@OptIn(ExperimentalLayoutApi::class)
+ @Composable
+ private fun HonoursProgrammeCard(
+     entry: HonoursProgramme,
+@@ -747,6 +754,7 @@
+     showChange: Boolean,
+     modifier: Modifier = Modifier
+ ) {
++    val stackedHeading = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale >= 1.5f
+     val cohort = entry.years[selectedYear]
+     val older = entry.years[previousYear]
+     val pctVal = cohort?.pct ?: 0.0
+@@ -792,10 +800,11 @@
+             modifier = Modifier.padding(16.dp),
+             verticalArrangement = Arrangement.spacedBy(10.dp)
+         ) {
+-            Row(
++            FlowRow(
+                 modifier = Modifier.fillMaxWidth(),
+                 horizontalArrangement = Arrangement.SpaceBetween,
+-                verticalAlignment = Alignment.Top
++                verticalArrangement = Arrangement.spacedBy(8.dp),
++                maxItemsInEachRow = if (stackedHeading) 1 else 2
+             ) {
+                 Column(
+                     modifier = Modifier.weight(1f).padding(end = 8.dp),
+@@ -830,10 +839,10 @@
+                 }
+             }
+ 
+-            Row(
++            FlowRow(
+                 modifier = Modifier.fillMaxWidth(),
+                 horizontalArrangement = Arrangement.SpaceBetween,
+-                verticalAlignment = Alignment.Bottom
++                verticalArrangement = Arrangement.spacedBy(4.dp)
+             ) {
+                 Row(
+                     verticalAlignment = Alignment.CenterVertically,

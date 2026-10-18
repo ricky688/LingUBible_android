@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.ui.common.hapticClick
 
 import android.content.Context
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,7 +48,7 @@ fun CalendarScreen(
     val topBarState = LocalTopBarState.current
     val context = LocalContext.current
     val isDark = com.lingubible.app.core.theme.isAppDarkTheme()
-    val calendarState by calendarViewModel.uiState.collectAsState()
+    val calendarState by calendarViewModel.uiState.collectAsStateWithLifecycle()
 
     val containerBg = MaterialTheme.colorScheme.background
     val cardBg = MaterialTheme.colorScheme.surfaceContainer
@@ -107,7 +109,7 @@ fun CalendarScreen(
                         }
 
                         // Batch Export Button
-                        FilledTonalButton(shapes = ButtonDefaults.shapes(),
+                        FilledTonalButton(shapes = AppButtonDefaults.shapes(),
                             onClick = hapticClick { calendarViewModel.exportAllEventsToIcs(context) },
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             colors = ButtonDefaults.filledTonalButtonColors(

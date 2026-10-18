@@ -1,7 +1,18 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.AppButtonDefaults
+import com.lingubible.app.ui.components.FadingLazyColumn
+import com.lingubible.app.data.repository.SearchHistoryStore
+import com.lingubible.app.ui.components.RecentSearchesButton
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import com.lingubible.app.ui.common.hapticClick
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
+import com.lingubible.app.core.navigation.LocalScreenBottomClearance
 import com.lingubible.app.core.navigation.screenContentPadding
 import android.content.res.Configuration
 import androidx.compose.animation.*
@@ -10,10 +21,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,11 +70,19 @@ fun CoursesScreen(
     viewModel: CoursesViewModel = koinViewModel()
 ) {
     val isDark = isAppDarkTheme()
-    val uiState by viewModel.uiState.collectAsState()
-    var searchInput by remember { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val historyContext = LocalContext.current
+    val searchHistory = remember(historyContext) { SearchHistoryStore(historyContext) }
+    val keyboard = LocalSoftwareKeyboardController.current
+    val searchInput = uiState.searchQuery
+    var showFilters by remember { mutableStateOf(false) }
     var isGridExpanded by remember { mutableStateOf(false) }
-    val favoriteCourses = remember { mutableStateListOf<String>() }
     val listState = rememberLazyListState()
+
+    if (showFilters) com.lingubible.app.ui.components.CourseFilterSheet(
+        uiState.filters, uiState.availableTerms, uiState.isSignedIn, uiState.optionsError,
+        onRetry = viewModel::loadFilterOptions, onDismiss = { showFilters = false }, onApply = viewModel::applyFilters
+    )
 
     val cardBorder = if (isDark) md_theme_dark_outlineVariant else Color(0xFFE2E8F0)
     val textMuted = if (isDark) md_theme_dark_onSurfaceVariant else Color(0xFF64748B)
@@ -82,7 +99,6 @@ fun CoursesScreen(
         OutlinedTextField(
             value = searchInput,
             onValueChange = {
-                searchInput = it
                 viewModel.search(it)
             },
             placeholder = { Text("搜尋課程代碼、名稱或學系...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
@@ -94,16 +110,21 @@ fun CoursesScreen(
                 )
             },
             trailingIcon = {
+                Row {
+                    RecentSearchesButton(searchHistory, "courses", viewModel::search)
+                    IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { viewModel.loadFilterOptions(); showFilters = true }) {
+                        Icon(Icons.Filled.Tune, contentDescription = "篩選與排序 Filter and sort", tint = if (uiState.filters != com.lingubible.app.domain.model.CourseFilters()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 if (searchInput.isNotEmpty()) {
-                    IconButton(
+                    IconButton(shapes = AppButtonDefaults.iconShapes(),
                         onClick = hapticClick {
-                            searchInput = ""
                             viewModel.search("")
                         },
                         modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                     ) {
                         Icon(Icons.Filled.Clear, contentDescription = "Clear")
                     }
+                }
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(
@@ -114,7 +135,9 @@ fun CoursesScreen(
             ),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            singleLine = true
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { searchHistory.add("courses", searchInput); keyboard?.hide() }),
+                singleLine = true
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -139,8 +162,8 @@ fun CoursesScreen(
                     )
                 }
             }
-            val selectedSubjectIndex = remember(COURSE_CATEGORIES, uiState.selectedSubject) {
-                if (uiState.selectedSubject == null) 0
+            val selectedSubjectIndex = remember(COURSE_CATEGORIES, uiState.selectedSubject, uiState.filters.subjects) {
+                if (uiState.filters.subjects.size > 1) -1 else if (uiState.selectedSubject == null) 0
                 else COURSE_CATEGORIES.indexOfFirst { it.code.equals(uiState.selectedSubject, ignoreCase = true) }.coerceAtLeast(0)
             }
 
@@ -251,7 +274,7 @@ fun CoursesScreen(
                         ) {
                             val currentCat = COURSE_CATEGORIES.find { it.code.equals(uiState.selectedSubject ?: "ALL", ignoreCase = true) }
                             Text(
-                                text = "${currentCat?.nameZh ?: "全部"} (${uiState.selectedSubject ?: "ALL"})",
+                                text = if (uiState.filters.subjects.size > 1) "多個學系 Multiple (${uiState.filters.subjects.size})" else "${currentCat?.nameZh ?: "全部"} (${uiState.selectedSubject ?: "ALL"})",
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.labelSmall,
@@ -260,7 +283,7 @@ fun CoursesScreen(
                         }
                     }
 
-                    TextButton(shapes = ButtonDefaults.shapes(),
+                    TextButton(shapes = AppButtonDefaults.shapes(),
                         onClick = hapticClick { isGridExpanded = false },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                         modifier = Modifier
@@ -320,9 +343,9 @@ fun CoursesScreen(
                         ) {
                             rowCategories.forEach { category ->
                                 val isSelected = if (category.code == "ALL") {
-                                    uiState.selectedSubject == null || uiState.selectedSubject.equals("ALL", ignoreCase = true)
+                                    uiState.filters.subjects.isEmpty()
                                 } else {
-                                    uiState.selectedSubject.equals(category.code, ignoreCase = true)
+                                    category.code in uiState.filters.subjects
                                 }
 
                                 CourseCategoryGridChip(
@@ -377,7 +400,7 @@ fun CoursesScreen(
             )
 
             if (uiState.selectedSubject != null && !uiState.selectedSubject.equals("ALL", ignoreCase = true)) {
-                TextButton(shapes = ButtonDefaults.shapes(),
+                TextButton(shapes = AppButtonDefaults.shapes(),
                     onClick = hapticClick { viewModel.filterSubject(null) },
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
                     modifier = Modifier.height(26.dp)
@@ -392,6 +415,11 @@ fun CoursesScreen(
         }
 
         Spacer(modifier = Modifier.height(6.dp))
+
+        if (uiState.errorMessage != null) {
+            Text(uiState.errorMessage.orEmpty(), color = MaterialTheme.colorScheme.error)
+            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::loadCourses)) { Text("重試 Retry") }
+        }
 
         // Courses List
         if (uiState.isLoading && uiState.courses.isEmpty()) {
@@ -417,24 +445,21 @@ fun CoursesScreen(
                         )
                     }
                 } else {
-                    LazyColumn(
+                    FadingLazyColumn(
                         state = listState,
                         modifier = Modifier
                             .fillMaxSize()
                             .mouseScrollbar(listState),
                         contentPadding = screenContentPadding(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        items(uiState.courses, key = { it.code }) { course ->
-                            val isFav = favoriteCourses.contains(course.code)
+                        itemsIndexed(uiState.courses, key = { _, it -> it.code }) { index, course ->
                             PopularCourseCard(
                                 course = course,
-                                isFavorited = isFav,
-                                onFavoriteToggle = {
-                                    if (isFav) favoriteCourses.remove(course.code)
-                                    else favoriteCourses.add(course.code)
-                                },
-                                onClick = { onNavigateToCourse(course.code) }
+                                groupIndex = index,
+                                groupSize = uiState.courses.size,
+
+                                onClick = { searchHistory.add("courses", searchInput); onNavigateToCourse(course.code) }
                             )
                         }
                     }
@@ -457,13 +482,7 @@ private fun CourseCategoryGridChip(
 ) {
     val isDark = isAppDarkTheme()
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val corner by androidx.compose.animation.core.animateDpAsState(
-        targetValue = if (isPressed) 18.dp else 10.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "categoryPressedShape"
-    )
+    val corner by AppButtonDefaults.pressCorner(interactionSource, 10.dp)
     val chipShape = RoundedCornerShape(corner)
 
     Surface(

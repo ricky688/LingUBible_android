@@ -1,5 +1,6 @@
 package com.lingubible.app.core.navigation
 
+import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.ui.common.hapticClick
 
 import androidx.compose.animation.*
@@ -113,6 +114,7 @@ fun LingUBibleTopBar(
             destination?.hasRoute<Screen.Home>() == true -> 0
             destination?.hasRoute<Screen.AcademicTools>() == true ||
                 destination?.hasRoute<Screen.Planner>() == true ||
+                destination?.hasRoute<Screen.ImportTimetable>() == true ||
                 destination?.hasRoute<Screen.Calendar>() == true ||
                 destination?.hasRoute<Screen.GpaHons>() == true -> 1
             destination?.hasRoute<Screen.Profile>() == true -> 2
@@ -150,12 +152,13 @@ fun LingUBibleTopBar(
                 )
             destination?.hasRoute<Screen.AcademicTools>() == true ||
                 destination?.hasRoute<Screen.Planner>() == true ||
+                destination?.hasRoute<Screen.ImportTimetable>() == true ||
                 destination?.hasRoute<Screen.Calendar>() == true ||
                 destination?.hasRoute<Screen.GpaHons>() == true -> {
                 val effectiveSubTab = when {
                     destination?.hasRoute<Screen.Calendar>() == true -> 1
                     destination?.hasRoute<Screen.GpaHons>() == true -> 2
-                    destination?.hasRoute<Screen.Planner>() == true -> 0
+                    destination?.hasRoute<Screen.Planner>() == true || destination?.hasRoute<Screen.ImportTimetable>() == true -> 0
                     else -> academicSubTab
                 }
                 when (effectiveSubTab) {
@@ -193,6 +196,12 @@ fun LingUBibleTopBar(
                     primaryTitle = if (isZh) "講師名錄" else "Faculty & Instructors",
                     secondarySubtitle = if (isZh) "各學系教授與課程授課導師" else "Professors & Teaching Faculty",
                     key = "instructors"
+                )
+            destination?.hasRoute<Screen.Favorites>() == true ->
+                TopBarTitleInfo(
+                    primaryTitle = if (isZh) "我的收藏" else "Favourites",
+                    secondarySubtitle = if (isZh) "已儲存的課程與講師" else "Saved courses and instructors",
+                    key = "favorites"
                 )
             destination?.hasRoute<Screen.MyReviews>() == true ->
                 TopBarTitleInfo(
@@ -242,6 +251,18 @@ fun LingUBibleTopBar(
                     key = "auth_$mode"
                 )
             }
+            destination?.hasRoute<Screen.PasswordRecovery>() == true ->
+                TopBarTitleInfo(if (isZh) "找回密碼" else "Password Recovery", if (isZh) "電郵驗證與安全重設" else "Email verification & secure reset", "password_recovery")
+            destination?.hasRoute<Screen.Information>() == true -> {
+                val page = navBackStackEntry?.toRoute<Screen.Information>()?.page
+                TopBarTitleInfo(page?.title(isZh) ?: "LingUBible", page?.title(!isZh) ?: "Android", "information_$page")
+            }
+            destination?.hasRoute<Screen.Guide>() == true ->
+                TopBarTitleInfo(
+                    primaryTitle = if (isZh) "入門指南" else "Getting started",
+                    secondarySubtitle = if (isZh) "探索功能・隨時重看" else "Explore the app・Replay any time",
+                    key = "guide"
+                )
             destination?.hasRoute<Screen.Settings>() == true ->
                 TopBarTitleInfo(
                     primaryTitle = if (isZh) "外觀與設定" else "Appearance & Settings",
@@ -268,6 +289,7 @@ fun LingUBibleTopBar(
         !isTopLevelTab ||
         isFromHome ||
         destination.hasRoute<Screen.Planner>() ||
+        destination.hasRoute<Screen.ImportTimetable>() ||
         destination.hasRoute<Screen.Calendar>() ||
         destination.hasRoute<Screen.GpaHons>()
     )
@@ -351,7 +373,7 @@ fun LingUBibleTopBar(
                 ),
                 navigationIcon = {
                     if (canNavigateBack) {
-                        IconButton(
+                        IconButton(shapes = AppButtonDefaults.iconShapes(),
                             onClick = hapticClick { navController.popBackStack() },
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                         ) {
@@ -491,6 +513,10 @@ fun LingUBibleTopBar(
                     }
                 },
                 actions = {
+                    when {
+                        destination?.hasRoute<Screen.CourseDetail>() == true -> navBackStackEntry?.toRoute<Screen.CourseDetail>()?.let { com.lingubible.app.ui.components.DetailShareButton("courses", it.courseCode) }
+                        destination?.hasRoute<Screen.InstructorDetail>() == true -> navBackStackEntry?.toRoute<Screen.InstructorDetail>()?.let { com.lingubible.app.ui.components.DetailShareButton("instructors", it.name) }
+                    }
                     val isHome = destination?.hasRoute<Screen.Home>() == true
                     // Course details exposes writing only through the reviews tab's FAB.
                     val isReviewable = destination?.hasRoute<Screen.Reviews>() == true
@@ -507,7 +533,7 @@ fun LingUBibleTopBar(
                         ) { (home, reviewable) ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (home) {
-                                    IconButton(
+                                    IconButton(shapes = AppButtonDefaults.iconShapes(),
                                         onClick = hapticClick { navController.navigate(Screen.Courses) },
                                         modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                     ) {
@@ -518,7 +544,7 @@ fun LingUBibleTopBar(
                                         )
                                     }
                                 } else if (reviewable) {
-                                    IconButton(
+                                    IconButton(shapes = AppButtonDefaults.iconShapes(),
                                         onClick = hapticClick {
                                             val courseCode = try {
                                                 navBackStackEntry?.toRoute<Screen.CourseDetail>()?.courseCode

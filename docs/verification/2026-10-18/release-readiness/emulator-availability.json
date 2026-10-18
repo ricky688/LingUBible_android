@@ -1,0 +1,8 @@
+{
+  "avds": [],
+  "system_image_directories": {
+    "/opt/android-sdk/system-images": [],
+    "/home/ricky/Android/Sdk/system-images": []
+  },
+  "android_15_16_check": "pending; no images or AVDs installed"
+}

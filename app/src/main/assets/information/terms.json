@@ -1,0 +1,196 @@
+{
+  "title": {
+    "zh": "使用條款",
+    "en": "Terms of Service"
+  },
+  "subtitle": {
+    "zh": "使用本網站即表示您同意遵守這些服務條款。我們感謝您參與我們的社群，並鼓勵您仔細閱讀這些條款。",
+    "en": "By using this website, you agree to comply with these terms of service. We appreciate your participation in our community and encourage you to read these terms carefully."
+  },
+  "updated": {
+    "zh": "最後更新：2025年6月5日",
+    "en": "Last updated: June 5, 2025"
+  },
+  "sections": [
+    {
+      "id": "disclaimer",
+      "title": {
+        "zh": "評論準確性免責聲明",
+        "en": "Review Accuracy Disclaimer"
+      },
+      "paragraphs": [
+        {
+          "zh": "本網站不保證學生評論的準確性或正確性，對於用戶提交評論中包含的任何不正確、誤導性或虛假資訊概不負責。所有評論僅代表個別學生的意見和經歷，可能存在顯著差異。用戶在解讀評論內容時應自行判斷。",
+          "en": "This website does not guarantee the accuracy or correctness of student reviews and is not responsible for any incorrect, misleading, or false information contained in user-submitted reviews. All reviews represent individual student opinions and experiences, which may vary significantly. Users should exercise their own judgment when interpreting review content."
+        }
+      ]
+    },
+    {
+      "id": "conduct",
+      "title": {
+        "zh": "用戶行為準則",
+        "en": "User Conduct Guidelines"
+      },
+      "paragraphs": [
+        {
+          "zh": "為了維護良好的社區環境，用戶必須遵守以下行為準則：",
+          "en": "To maintain a positive community environment, users must follow these conduct guidelines:"
+        },
+        {
+          "zh": "• 禁止使用粗言穢語或不當言論",
+          "en": "• No profanity or inappropriate language"
+        },
+        {
+          "zh": "• 禁止人身攻擊或針對個人的惡意言論",
+          "en": "• No personal attacks or malicious comments targeting individuals"
+        },
+        {
+          "zh": "• 禁止發送垃圾信息或重複無意義的內容",
+          "en": "• No spam or repetitive meaningless content"
+        },
+        {
+          "zh": "• 保持尊重和建設性的討論態度",
+          "en": "• Maintain respectful and constructive discussion"
+        },
+        {
+          "zh": "違反上述準則可能導致帳戶被暫停或永久封禁",
+          "en": "Violation of these guidelines may result in account suspension or permanent ban"
+        }
+      ]
+    },
+    {
+      "id": "content",
+      "title": {
+        "zh": "內容政策",
+        "en": "Content Policy"
+      },
+      "paragraphs": [
+        {
+          "zh": "為了維護專注且相關的討論環境：",
+          "en": "To maintain a focused and relevant discussion environment:"
+        },
+        {
+          "zh": "• 不允許政治討論",
+          "en": "• Political discussions are not permitted"
+        },
+        {
+          "zh": "• 不允許宗教討論",
+          "en": "• Religious discussions are not permitted"
+        },
+        {
+          "zh": "• 不允許與網站目的無關的內容",
+          "en": "• Content unrelated to the site's purpose is not permitted"
+        },
+        {
+          "zh": "• 請將討論重點放在課程和講師評論上",
+          "en": "• Please keep discussions focused on course and lecturer reviews"
+        },
+        {
+          "zh": "無關或不當內容將在不通知的情況下被刪除",
+          "en": "Unrelated or inappropriate content will be removed without notice"
+        }
+      ]
+    },
+    {
+      "id": "username",
+      "title": {
+        "zh": "用戶名政策",
+        "en": "Username Policy"
+      },
+      "paragraphs": [
+        {
+          "zh": "用戶需對其選擇的用戶名負責：",
+          "en": "Users are responsible for their chosen usernames:"
+        },
+        {
+          "zh": "• 冒犯性、不當或誤導性的用戶名可能會在不通知的情況下被更改",
+          "en": "• Offensive, inappropriate, or misleading usernames may be changed without notice"
+        },
+        {
+          "zh": "• 用戶名更改由管理團隊自行決定",
+          "en": "• Username changes are at the discretion of the management team"
+        },
+        {
+          "zh": "• 用戶有責任確保其用戶名符合社區標準",
+          "en": "• Users are responsible for ensuring their usernames comply with community standards"
+        }
+      ]
+    },
+    {
+      "id": "moderation",
+      "title": {
+        "zh": "內容管理",
+        "en": "Content Moderation"
+      },
+      "paragraphs": [
+        {
+          "zh": "我們保留審核和管理平台內容的權利：",
+          "en": "We reserve the right to moderate and manage platform content:"
+        },
+        {
+          "zh": "• 不當評論將被刪除，且不會事先通知",
+          "en": "• Inappropriate comments will be removed without prior notice"
+        },
+        {
+          "zh": "• 我們致力於維護高質量的討論環境",
+          "en": "• We are committed to maintaining a high-quality discussion environment"
+        },
+        {
+          "zh": "• 管理決定將基於社區準則和管理團隊的判斷",
+          "en": "• Moderation decisions are based on community guidelines and management team judgment"
+        }
+      ]
+    },
+    {
+      "id": "privacy",
+      "title": {
+        "zh": "隱私保護",
+        "en": "Privacy Protection"
+      },
+      "paragraphs": [
+        {
+          "zh": "我們承諾保護您的隱私：",
+          "en": "We are committed to protecting your privacy:"
+        },
+        {
+          "zh": "• 評論者的身份將被嚴格保密",
+          "en": "• Commenter identities will be kept strictly confidential"
+        },
+        {
+          "zh": "• 我們不會向任何第三方披露用戶身份信息",
+          "en": "• We will not disclose user identity information to any third parties"
+        },
+        {
+          "zh": "• 詳細的數據收集政策請參閱隱私政策",
+          "en": "• For detailed data collection policies, please refer to our Privacy Policy"
+        }
+      ]
+    },
+    {
+      "id": "changes",
+      "title": {
+        "zh": "條款變更",
+        "en": "Terms Changes"
+      },
+      "paragraphs": [
+        {
+          "zh": "我們可能會不時更新這些條款。重大變更將通過網站公告通知用戶。",
+          "en": "We may update these terms from time to time. Major changes will be announced through website notifications."
+        }
+      ]
+    },
+    {
+      "id": "contact",
+      "title": {
+        "zh": "聯繫我們",
+        "en": "Contact Us"
+      },
+      "paragraphs": [
+        {
+          "zh": "如果您對這些條款有任何疑問，請通過網站聯繫功能與我們聯繫。",
+          "en": "If you have any questions about these terms, please contact us through the website contact feature."
+        }
+      ]
+    }
+  ]
+}

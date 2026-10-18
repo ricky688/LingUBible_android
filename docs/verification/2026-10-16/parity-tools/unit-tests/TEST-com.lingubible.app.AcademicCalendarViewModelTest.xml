@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.AcademicCalendarViewModelTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:02:38" hostname="Ricky" time="1.515">
+  <properties/>
+  <testcase name="testHiddenCategoriesToggleAndShowAll" classname="com.lingubible.app.AcademicCalendarViewModelTest" time="1.48"/>
+  <testcase name="testDateFilterSingleDayAndMultiDay" classname="com.lingubible.app.AcademicCalendarViewModelTest" time="0.004"/>
+  <testcase name="testInitialLoadingAndMonths" classname="com.lingubible.app.AcademicCalendarViewModelTest" time="0.003"/>
+  <testcase name="testSelectedDayEvents" classname="com.lingubible.app.AcademicCalendarViewModelTest" time="0.004"/>
+  <testcase name="testMonthFilter" classname="com.lingubible.app.AcademicCalendarViewModelTest" time="0.004"/>
+  <testcase name="testCategoryFilter" classname="com.lingubible.app.AcademicCalendarViewModelTest" time="0.003"/>
+  <testcase name="testJumpToTermStart" classname="com.lingubible.app.AcademicCalendarViewModelTest" time="0.012"/>
+  <testcase name="testMonthChangeClearsMismatchedDate" classname="com.lingubible.app.AcademicCalendarViewModelTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/home/ricky/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.17/e3c251a39dc90badaf71c83427ba46840f219d8d/byte-buddy-agent-1.14.17.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+</testsuite>

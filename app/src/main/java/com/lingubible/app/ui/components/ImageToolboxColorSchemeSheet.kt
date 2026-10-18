@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -76,6 +75,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -281,7 +281,7 @@ fun PaletteStyleDialog(
             }
         },
         text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Column(modifier = Modifier.fadingVerticalScroll(rememberScrollState())) {
                 PaletteStyle.entries.forEach { style ->
                     Row(
                         modifier = Modifier
@@ -318,7 +318,7 @@ fun PaletteStyleDialog(
             }
         },
         confirmButton = {
-            TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
+            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
                 Text("完成")
             }
         },
@@ -353,9 +353,10 @@ fun CustomColorPickerDialog(
         mutableStateOf(String.format("#%06X", (0xFFFFFF and colorInt)))
     }
 
-    val currentColor = remember(hue) {
-        val argb = android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.85f, 0.90f))
-        Color(argb)
+    val validHex = hexText.matches(Regex("#[0-9A-Fa-f]{6}"))
+    val currentColor = remember(hue, hexText) {
+        if (validHex) Color(android.graphics.Color.parseColor(hexText))
+        else Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.85f, 0.90f)))
     }
 
     AlertDialog(
@@ -393,7 +394,7 @@ fun CustomColorPickerDialog(
                 ) {
                     Text(
                         text = hexText,
-                        color = Color.White,
+                        color = if (androidx.core.graphics.ColorUtils.calculateLuminance(currentColor.toArgb()) < .179) Color.White else Color.Black,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -442,17 +443,18 @@ fun CustomColorPickerDialog(
         },
         confirmButton = {
             Button(
+                enabled = validHex,
                 onClick = hapticClick {
                     onColorSelected(currentColor)
                     onDismiss()
                 },
-                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
+                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
             ) {
                 Text("套用")
             }
         },
         dismissButton = {
-            TextButton(shapes = ButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
+            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
                 Text("取消")
             }
         },
@@ -527,7 +529,7 @@ fun ImageToolboxColorSchemeSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .fadingVerticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
                 .navigationBarsPadding()
         ) {
@@ -613,7 +615,7 @@ fun ImageToolboxColorSchemeSheet(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    IconButton(
+                    IconButton(shapes = AppButtonDefaults.iconShapes(),
                         onClick = hapticClick { showPaletteStyleDialog = true },
                         colors = IconButtonDefaults.iconButtonColors(
                             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -935,7 +937,7 @@ fun ImageToolboxColorSchemeSheet(
                 // Close button ("關閉")
                 Button(
                     onClick = hapticClick(onDismiss),
-                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(22.dp)),
+                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(22.dp)),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary

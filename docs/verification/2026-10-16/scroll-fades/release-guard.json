@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "version_code": 7,
+  "version_name": "1.0.6",
+  "apk_bytes": 4279523,
+  "aab_bytes": 7623859,
+  "uncompressed_dex_bytes": 4939740,
+  "renamed_application_types_present_in_dex": 862,
+  "matching_r8_mapping_embedded": true,
+  "sha256": {
+    "app-release.apk": "babd24c95782f48a73c52be59f1ecb78a54dcaad659fd962a82fbab227747b22",
+    "app-release.aab": "e892a744065e35e36332e3a856f5ed15f73574f31f58df2460310d2d5939915b"
+  },
+  "note": "Type count and size are local evidence, not Play Console coverage percentages."
+}

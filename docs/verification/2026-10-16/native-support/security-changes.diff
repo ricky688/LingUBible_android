@@ -1,0 +1,473 @@
+--- /dev/null
++++ app/src/main/java/com/lingubible/app/domain/model/SupportForms.kt
+@@ -0,0 +1,48 @@
++package com.lingubible.app.domain.model
++
++import com.lingubible.app.domain.util.EmailValidator
++import java.net.URI
++import java.net.URLDecoder
++
++internal class ResetCredentials(val userId: String, val token: String) {
++    override fun toString() = "ResetCredentials([redacted])"
++}
++
++internal fun parsePasswordResetLink(value: String): ResetCredentials? = runCatching {
++    require(value.length <= 2048)
++    val uri = URI(value.trim())
++    require(uri.scheme == "https" && uri.host in setOf("lingubible.com", "www.lingubible.com"))
++    require(uri.port in setOf(-1, 443) && uri.userInfo == null && uri.fragment == null && uri.path == "/reset-password")
++    val pairs = uri.rawQuery.orEmpty().split('&').map { part ->
++        val pair = part.split('=', limit = 2)
++        require(pair.size == 2)
++        URLDecoder.decode(pair[0], "UTF-8") to URLDecoder.decode(pair[1], "UTF-8")
++    }
++    require(pairs.size == 2 && pairs.map { it.first }.toSet() == setOf("userId", "token"))
++    val values = pairs.toMap()
++    val id = values.getValue("userId")
++    val token = values.getValue("token")
++    require(id.matches(Regex("[A-Za-z0-9][A-Za-z0-9._-]{0,35}")))
++    require(token.matches(Regex("[A-Za-z0-9_-]{64}")))
++    ResetCredentials(id, token)
++}.getOrNull()
++
++internal fun validRecoveryEmail(email: String) = email.trim().length <= 254 && EmailValidator.isValidLingnanEmail(email)
++
++// Matches the web reset form's required rules; the server still validates the token and password.
++internal fun validRecoveryPassword(password: String): Boolean {
++    val common = listOf("password", "123456", "123456789", "qwerty", "abc123", "admin", "letmein", "welcome", "monkey", "dragon", "master", "hello", "login", "root", "pass", "test", "guest", "user", "demo", "sample", "lingnan", "student", "university", "college", "school")
++    return password.length in 12..40 && password.any { it in 'A'..'Z' } && password.any { it in 'a'..'z' } &&
++        password.any { it in '0'..'9' } && password.any { it in "!@#$%^&*()_+-=[]{};':\"\\|,.<>/?" } &&
++        common.none { password.contains(it, ignoreCase = true) }
++}
++
++internal enum class SupportError { EMAIL, PASSWORD, MISMATCH, INVALID_LINK, RATE_LIMIT, CAPTCHA, CONTACT, NETWORK, SERVICE }
++internal class SupportException(val reason: SupportError) : Exception(reason.name)
++
++internal data class ContactDraft(val name: String = "", val email: String = "", val type: String = "general", val message: String = "")
++internal val CONTACT_TYPES = listOf("general", "bugReport", "commentReport", "accountIssue", "featureRequest", "other")
++internal fun validContact(draft: ContactDraft) = draft.name.trim().isNotEmpty() && draft.name.length <= 200 &&
++    draft.name.trim().split(Regex("\\s+")).size <= 10 && draft.email.length <= 254 &&
++    draft.email.trim().matches(Regex("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")) && draft.type in CONTACT_TYPES &&
++    draft.message.length <= 10000 && draft.message.trim().split(Regex("\\s+")).size >= 30
+--- /dev/null
++++ app/src/main/java/com/lingubible/app/data/repository/SupportRepository.kt
+@@ -0,0 +1,59 @@
++package com.lingubible.app.data.repository
++
++import com.lingubible.app.data.remote.AppwriteClientProvider
++import com.lingubible.app.domain.model.*
++import kotlinx.coroutines.CancellationException
++import kotlinx.serialization.json.*
++
++internal class SupportRepository(private val provider: AppwriteClientProvider) {
++    suspend fun requestRecovery(email: String, captcha: String, language: String, dark: Boolean): Result<Unit> {
++        if (!validRecoveryEmail(email)) return Result.failure(SupportException(SupportError.EMAIL))
++        if (captcha.isBlank() || captcha.length > 8192) return Result.failure(SupportException(SupportError.CAPTCHA))
++        return execute(buildJsonObject {
++            put("action", "sendPasswordReset"); put("email", email.trim().lowercase()); put("recaptchaToken", captcha)
++            put("language", language); put("theme", if (dark) "dark" else "light")
++        })
++    }
++    suspend fun validateReset(link: String): Result<Unit> {
++        val credentials = parsePasswordResetLink(link) ?: return Result.failure(SupportException(SupportError.INVALID_LINK))
++        return execute(buildJsonObject { put("action", "validatePasswordResetToken"); put("userId", credentials.userId); put("token", credentials.token) })
++    }
++    suspend fun completeReset(link: String, password: String, confirmation: String): Result<Unit> {
++        val credentials = parsePasswordResetLink(link) ?: return Result.failure(SupportException(SupportError.INVALID_LINK))
++        if (!validRecoveryPassword(password)) return Result.failure(SupportException(SupportError.PASSWORD))
++        if (password != confirmation) return Result.failure(SupportException(SupportError.MISMATCH))
++        return execute(buildJsonObject { put("action", "completePasswordReset"); put("userId", credentials.userId); put("token", credentials.token); put("password", password) })
++    }
++    suspend fun contact(draft: ContactDraft, captcha: String, language: String, dark: Boolean): Result<Unit> {
++        if (!validContact(draft)) return Result.failure(SupportException(SupportError.CONTACT))
++        if (captcha.isBlank() || captcha.length > 8192) return Result.failure(SupportException(SupportError.CAPTCHA))
++        return execute(buildJsonObject {
++            put("action", "sendContactForm"); put("name", draft.name.trim()); put("email", draft.email.trim()); put("type", draft.type)
++            put("message", draft.message.trim()); put("recaptchaToken", captcha); put("language", language); put("theme", if (dark) "dark" else "light")
++        })
++    }
++    private suspend fun execute(body: JsonObject): Result<Unit> = try {
++        val functions = provider.functions ?: throw SupportException(SupportError.SERVICE)
++        val execution = functions.createExecution(functionId = "send-verification-email", body = body.toString(), async = false)
++        checkSupportResponse(execution.responseStatusCode, execution.responseBody)
++        Result.success(Unit)
++    } catch (e: CancellationException) { throw e
++    } catch (e: SupportException) { Result.failure(e)
++    } catch (_: java.io.IOException) { Result.failure(SupportException(SupportError.NETWORK))
++    } catch (_: Exception) { Result.failure(SupportException(SupportError.SERVICE)) }
++}
++
++internal fun checkSupportResponse(status: Long, body: String) {
++    val result = runCatching { Json.parseToJsonElement(body).jsonObject }.getOrNull()
++    val success = result?.get("success") as? JsonPrimitive
++    if (status in 200..299 && success?.isString == false && success.booleanOrNull == true) return
++    val key = (result?.get("messageKey") as? JsonPrimitive)?.contentOrNull.orEmpty()
++    val reason = when {
++        status == 429L || key.contains("rateLimit", true) -> SupportError.RATE_LIMIT
++        key.contains("recaptcha", true) -> SupportError.CAPTCHA
++        key in setOf("password.invalidToken", "password.tokenExpired", "password.linkAlreadyUsed") -> SupportError.INVALID_LINK
++        key == "password.tooShort" -> SupportError.PASSWORD
++        else -> SupportError.SERVICE
++    }
++    throw SupportException(reason)
++}
+--- /dev/null
++++ app/src/main/java/com/lingubible/app/ui/components/SecurityVerification.kt
+@@ -0,0 +1,87 @@
++package com.lingubible.app.ui.components
++
++import android.annotation.SuppressLint
++import android.net.Uri
++import android.webkit.*
++import androidx.compose.foundation.layout.*
++import androidx.compose.material3.*
++import androidx.compose.runtime.*
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.viewinterop.AndroidView
++import kotlinx.coroutines.delay
++import java.io.ByteArrayInputStream
++
++// Public website key; secrets and verification decisions stay in the existing backend.
++private const val SITE_KEY = "6LevaFkrAAAAAF6zzK1djMY4Mik8xJbttS-BcMsT"
++private const val ORIGIN = "https://www.lingubible.com"
++
++@SuppressLint("SetJavaScriptEnabled")
++@Composable
++internal fun SecurityVerification(action: String, isZh: Boolean, onToken: (String) -> Unit, onError: () -> Unit) {
++    require(action in setOf("forgotPassword", "contact"))
++    val tokenCallback by rememberUpdatedState(onToken)
++    val errorCallback by rememberUpdatedState(onError)
++    val handshake = remember { java.util.UUID.randomUUID().toString() }
++    var completed by remember { mutableStateOf(false) }
++    var port by remember { mutableStateOf<WebMessagePort?>(null) }
++    fun finish(token: String?) {
++        if (completed) return
++        completed = true
++        if (token != null && token.length in 20..8192) tokenCallback(token) else errorCallback()
++    }
++    LaunchedEffect(Unit) { delay(30000); finish(null) }
++    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
++        Text(if (isZh) "正在進行安全驗證…" else "Verifying your request…", style = MaterialTheme.typography.bodyMedium)
++        AndroidView(modifier = Modifier.fillMaxWidth().height(100.dp), factory = { context ->
++            try { WebView(context).apply {
++                setBackgroundColor(android.graphics.Color.TRANSPARENT)
++                settings.javaScriptEnabled = true
++                settings.domStorageEnabled = true
++                settings.allowFileAccess = false
++                settings.allowContentAccess = false
++                settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
++                settings.setSupportMultipleWindows(false)
++                var channelConnected = false
++                webViewClient = object : WebViewClient() {
++                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest) = request.isForMainFrame
++                    override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
++                        val host = request.url.host.orEmpty()
++                        val allowed = request.url.scheme == "https" && (host == "www.google.com" || host == "www.gstatic.com" || host == "recaptcha.google.com")
++                        return if (allowed) null else WebResourceResponse("text/plain", "UTF-8", ByteArrayInputStream(ByteArray(0)))
++                    }
++                    override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
++                        if (request.isForMainFrame) finish(null)
++                    }
++                    override fun onPageFinished(view: WebView, url: String) {
++                        if (completed || channelConnected || url != "$ORIGIN/android-security-check") return
++                        channelConnected = true
++                        val channels = view.createWebMessageChannel()
++                        port?.close(); port = channels[0]
++                        channels[0].setWebMessageCallback(object : WebMessagePort.WebMessageCallback() {
++                            override fun onMessage(port: WebMessagePort, message: WebMessage?) { finish(message?.data?.takeUnless { it == "ERROR" }) }
++                        })
++                        view.postWebMessage(WebMessage(handshake, arrayOf(channels[1])), Uri.parse(ORIGIN))
++                    }
++                }
++                // Native messages have no web sender origin; bind this app-owned page with a nonce and exact target origin.
++                val html = """<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><script>
++                    window.addEventListener('message', function(e) {
++                        if(e.data !== '$handshake' || e.ports.length !== 1 || window.nativeConnected) return;
++                        window.nativeConnected=true;
++                        var p=e.ports[0];
++                        try { grecaptcha.ready(function(){ grecaptcha.execute('$SITE_KEY',{action:'$action'}).then(function(t){p.postMessage(t)},function(){p.postMessage('ERROR')}) }); }
++                        catch(e){p.postMessage('ERROR')}
++                    });
++                    </script><script src="https://www.google.com/recaptcha/api.js?render=$SITE_KEY&hl=${if (isZh) "zh-TW" else "en"}"></script></head><body></body></html>"""
++                loadDataWithBaseURL("$ORIGIN/android-security-check", html, "text/html", "UTF-8", "$ORIGIN/android-security-check")
++            } } catch (_: RuntimeException) {
++                finish(null)
++                android.widget.Space(context)
++            }
++        }, onRelease = { view ->
++            completed = true; port?.close(); port = null
++            (view as? WebView)?.let { it.stopLoading(); it.destroy() }
++        })
++    }
++}
+--- /dev/null
++++ app/src/main/java/com/lingubible/app/ui/viewmodels/PasswordRecoveryViewModel.kt
+@@ -0,0 +1,76 @@
++package com.lingubible.app.ui.viewmodels
++
++import androidx.lifecycle.ViewModel
++import androidx.lifecycle.viewModelScope
++import com.lingubible.app.data.repository.SupportRepository
++import com.lingubible.app.domain.model.*
++import kotlinx.coroutines.Job
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.asStateFlow
++import kotlinx.coroutines.flow.update
++import kotlinx.coroutines.launch
++
++internal enum class RecoveryStage { REQUEST, VERIFYING, SENDING, SENT, VALIDATING, RESET, COMPLETE }
++internal data class RecoveryState(val stage: RecoveryStage = RecoveryStage.REQUEST, val email: String = "", val error: SupportError? = null, val verificationId: Int = 0)
++
++internal class PasswordRecoveryViewModel(private val repository: SupportRepository) : ViewModel() {
++    private val state = MutableStateFlow(RecoveryState())
++    val uiState = state.asStateFlow()
++    private var resetLink: String? = null
++    private var job: Job? = null
++    private var generation = 0
++    private var verificationId = 0
++
++    fun newRequest() {
++        job?.cancel(); ++generation; resetLink = null
++        state.value = RecoveryState(email = state.value.email)
++    }
++    fun beginRequest(email: String) {
++        if (state.value.stage !in setOf(RecoveryStage.REQUEST, RecoveryStage.SENT)) return
++        if (!validRecoveryEmail(email)) { state.update { it.copy(error = SupportError.EMAIL) }; return }
++        state.value = RecoveryState(RecoveryStage.VERIFYING, email.trim().lowercase(), verificationId = ++verificationId)
++    }
++    fun verificationFailed() {
++        if (state.value.stage == RecoveryStage.VERIFYING) state.update { it.copy(stage = RecoveryStage.REQUEST, error = SupportError.CAPTCHA) }
++    }
++    fun send(captcha: String, language: String, dark: Boolean) {
++        if (state.value.stage != RecoveryStage.VERIFYING) return
++        val run = generation
++        state.update { it.copy(stage = RecoveryStage.SENDING) }
++        job = viewModelScope.launch {
++            val result = repository.requestRecovery(state.value.email, captcha, language, dark)
++            if (run == generation) state.update { it.copy(stage = if (result.isSuccess) RecoveryStage.SENT else RecoveryStage.REQUEST, error = result.exceptionOrNull()?.supportError()) }
++        }
++    }
++    fun openLink(link: String) {
++        job?.cancel(); val run = ++generation; resetLink = null
++        if (parsePasswordResetLink(link) == null) { state.value = RecoveryState(email = state.value.email, error = SupportError.INVALID_LINK); return }
++        resetLink = link.trim()
++        state.value = RecoveryState(stage = RecoveryStage.VALIDATING, email = state.value.email)
++        job = viewModelScope.launch {
++            val result = repository.validateReset(link)
++            if (run == generation) {
++                if (result.isFailure) resetLink = null
++                state.update { it.copy(stage = if (result.isSuccess) RecoveryStage.RESET else RecoveryStage.REQUEST, error = result.exceptionOrNull()?.supportError()) }
++            }
++        }
++    }
++    fun complete(password: String, confirmation: String) {
++        if (state.value.stage != RecoveryStage.RESET) return
++        val link = resetLink ?: return
++        val error = when { !validRecoveryPassword(password) -> SupportError.PASSWORD; password != confirmation -> SupportError.MISMATCH; else -> null }
++        if (error != null) { state.update { it.copy(error = error) }; return }
++        val run = generation
++        state.update { it.copy(stage = RecoveryStage.SENDING, error = null) }
++        job = viewModelScope.launch {
++            val result = repository.completeReset(link, password, confirmation)
++            if (run == generation) {
++                val failure = result.exceptionOrNull()?.supportError()
++                if (result.isSuccess || failure == SupportError.INVALID_LINK) resetLink = null
++                state.update { it.copy(stage = if (result.isSuccess) RecoveryStage.COMPLETE else if (failure == SupportError.INVALID_LINK) RecoveryStage.REQUEST else RecoveryStage.RESET, error = failure) }
++            }
++        }
++    }
++}
++
++internal fun Throwable.supportError() = (this as? SupportException)?.reason ?: SupportError.SERVICE
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index e405356..433c91c 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -41,6 +41,20 @@
+                 <action android:name="android.intent.action.MAIN" />
+                 <category android:name="android.intent.category.LAUNCHER" />
+             </intent-filter>
++            <intent-filter>
++                <action android:name="android.intent.action.VIEW" />
++                <category android:name="android.intent.category.DEFAULT" />
++                <category android:name="android.intent.category.BROWSABLE" />
++                <data android:scheme="https" android:host="www.lingubible.com" android:path="/planner" />
++                <data android:scheme="https" android:host="lingubible.com" android:path="/planner" />
++            </intent-filter>
++            <intent-filter>
++                <action android:name="android.intent.action.VIEW" />
++                <category android:name="android.intent.category.DEFAULT" />
++                <category android:name="android.intent.category.BROWSABLE" />
++                <data android:scheme="https" android:host="www.lingubible.com" android:path="/reset-password" />
++                <data android:scheme="https" android:host="lingubible.com" android:path="/reset-password" />
++            </intent-filter>
+         </activity>
+ 
+         <!-- Appwrite returns the completed OAuth session to this SDK activity. -->
+diff --git a/app/src/main/java/com/lingubible/app/core/navigation/NavGraph.kt b/app/src/main/java/com/lingubible/app/core/navigation/NavGraph.kt
+index 099349c..c49daf6 100644
+--- a/app/src/main/java/com/lingubible/app/core/navigation/NavGraph.kt
++++ b/app/src/main/java/com/lingubible/app/core/navigation/NavGraph.kt
+@@ -6,19 +6,55 @@ import androidx.compose.animation.core.Spring
+ import androidx.compose.animation.core.spring
+ import androidx.compose.animation.core.tween
+ import androidx.compose.runtime.Composable
++import androidx.compose.runtime.DisposableEffect
++import androidx.compose.runtime.LaunchedEffect
++import com.lingubible.app.domain.model.parsePasswordResetLink
++import com.lingubible.app.ui.viewmodels.PasswordRecoveryViewModel
++import org.koin.androidx.compose.koinViewModel
++import androidx.compose.runtime.getValue
++import androidx.lifecycle.compose.collectAsStateWithLifecycle
++import androidx.core.util.Consumer
++import com.lingubible.app.LocalComponentActivity
++import com.lingubible.app.domain.model.parseTimetableShare
+ import androidx.compose.ui.Modifier
+ import androidx.navigation.NavDestination.Companion.hasRoute
+ import androidx.navigation.NavHostController
+ import androidx.navigation.compose.NavHost
+ import androidx.navigation.compose.composable
+ import androidx.navigation.toRoute
++import androidx.navigation.navDeepLink
+ import com.lingubible.app.ui.screens.*
+ 
++private const val OPEN_INSTRUCTOR_REVIEWS = "openInstructorReviews"
++
+ @Composable
+ fun LingUBibleNavHost(
+     navController: NavHostController,
+     modifier: Modifier = Modifier
+ ) {
++    val activity = LocalComponentActivity.current
++    val recovery: PasswordRecoveryViewModel = koinViewModel()
++    fun consumeRecovery(incoming: android.content.Intent): Boolean {
++        val link = incoming.dataString.orEmpty()
++        if (incoming.action != android.content.Intent.ACTION_VIEW || parsePasswordResetLink(link) == null) return false
++        // Never place reset secrets in navigation arguments, saved state or retained Activity intents.
++        incoming.data = null
++        incoming.replaceExtras(android.os.Bundle())
++        recovery.openLink(link)
++        navController.navigate(Screen.PasswordRecovery) { launchSingleTop = true }
++        return true
++    }
++    LaunchedEffect(activity, navController) { activity?.intent?.let { consumeRecovery(it) } }
++    DisposableEffect(activity, navController) {
++        val listener = Consumer<android.content.Intent> { incoming ->
++            if (consumeRecovery(incoming)) return@Consumer
++            if (incoming.action == android.content.Intent.ACTION_VIEW && parseTimetableShare(incoming.dataString.orEmpty()).isSuccess) {
++                navController.handleDeepLink(incoming)
++            }
++        }
++        activity?.addOnNewIntentListener(listener)
++        onDispose { activity?.removeOnNewIntentListener(listener) }
++    }
+     NavHost(
+         navController = navController,
+         startDestination = Screen.Home,
+@@ -94,6 +130,14 @@ fun LingUBibleNavHost(
+             AcademicToolsScreen(initialTab = 0)
+         }
+ 
++        composable<Screen.ImportTimetable>(deepLinks = listOf(
++            navDeepLink { uriPattern = "https://www.lingubible.com/planner?term={term}&sections={sections}" },
++            navDeepLink { uriPattern = "https://lingubible.com/planner?term={term}&sections={sections}" }
++        )) { entry ->
++            val share = entry.toRoute<Screen.ImportTimetable>()
++            PlannerScreen(initialShareUrl = "https://www.lingubible.com/planner?term=${android.net.Uri.encode(share.term)}&sections=${android.net.Uri.encode(share.sections)}")
++        }
++
+         composable<Screen.Calendar> {
+             AcademicToolsScreen(initialTab = 1)
+         }
+@@ -114,6 +158,10 @@ fun LingUBibleNavHost(
+                 courseCode = route.courseCode,
+                 onNavigateBack = { navController.popBackStack() },
+                 onNavigateToWriteReview = { navController.navigate(Screen.WriteReview(route.courseCode)) },
++                onNavigateToInstructor = { name ->
++                    navController.navigate(Screen.InstructorDetail(name))
++                    navController.currentBackStackEntry?.savedStateHandle?.set(OPEN_INSTRUCTOR_REVIEWS, true)
++                },
+                 onNavigateToAuth = { navController.navigate(Screen.Auth("login")) }
+             )
+         }
+@@ -126,8 +174,11 @@ fun LingUBibleNavHost(
+ 
+         composable<Screen.InstructorDetail> { backStackEntry ->
+             val route = backStackEntry.toRoute<Screen.InstructorDetail>()
++            // Keep the existing route identity; save the requested section with this entry.
++            val showReviews by backStackEntry.savedStateHandle.getStateFlow(OPEN_INSTRUCTOR_REVIEWS, false).collectAsStateWithLifecycle()
+             InstructorDetailScreen(
+                 instructorName = route.name,
++                showReviews = showReviews,
+                 onNavigateBack = { navController.popBackStack() }
+             )
+         }
+@@ -139,6 +190,14 @@ fun LingUBibleNavHost(
+             )
+         }
+ 
++        composable<Screen.Favorites> {
++            FavoritesScreen(
++                onCourse = { navController.navigate(Screen.CourseDetail(it)) },
++                onInstructor = { navController.navigate(Screen.InstructorDetail(it)) },
++                onSignIn = { navController.navigate(Screen.Auth("login")) }
++            )
++        }
++
+         composable<Screen.MyReviews> {
+             ReviewsScreen(
+                 myReviewsOnly = true,
+@@ -152,6 +211,7 @@ fun LingUBibleNavHost(
+             val route = backStackEntry.toRoute<Screen.WriteReview>()
+             WriteReviewScreen(
+                 initialCourseCode = route.courseCode ?: "",
++                onNavigateToAuth = { navController.navigate(Screen.Auth("login")) },
+                 onNavigateBack = { navController.popBackStack() }
+             )
+         }
+@@ -160,6 +220,7 @@ fun LingUBibleNavHost(
+             val route = backStackEntry.toRoute<Screen.Auth>()
+             AuthScreen(
+                 initialMode = route.mode,
++                onForgotPassword = { recovery.newRequest(); navController.navigate(Screen.PasswordRecovery) },
+                 onAuthSuccess = { navController.popBackStack() },
+                 onNavigateBack = { navController.popBackStack() }
+             )
+@@ -169,13 +230,34 @@ fun LingUBibleNavHost(
+             ProfileScreen(
+                 onNavigateToAuth = { navController.navigate(Screen.Auth("login")) },
+                 onNavigateToReviews = { navController.navigate(Screen.MyReviews) },
+-                onNavigateToSettings = { navController.navigate(Screen.Settings) }
++                onNavigateToFavorites = { navController.navigate(Screen.Favorites) },
++                onNavigateToSettings = { navController.navigate(Screen.Settings) },
++                onNavigateToGuide = { navController.navigate(Screen.Guide) },
++                onNavigateToInformation = { navController.navigate(Screen.Information(it)) }
+             )
+         }
+ 
++        composable<Screen.PasswordRecovery> {
++            PasswordRecoveryScreen(recovery, onSignIn = {
++                if (!navController.popBackStack<Screen.Auth>(inclusive = false)) {
++                    navController.navigate(Screen.Auth("login")) { popUpTo<Screen.PasswordRecovery> { inclusive = true }; launchSingleTop = true }
++                }
++            }, onInfo = { navController.navigate(Screen.Information(it)) })
++        }
++
++        composable<Screen.Information> { entry ->
++            InformationScreen(entry.toRoute<Screen.Information>().page, onNavigate = { navController.navigate(Screen.Information(it)) })
++        }
++
++        composable<Screen.Guide> {
++            GuideScreen(onClose = { navController.popBackStack() }, onNavigate = { navController.navigate(it) })
++        }
++
+         composable<Screen.Settings> {
+             SettingsScreen(
+-                onNavigateBack = { navController.popBackStack() }
++                onNavigateBack = { navController.popBackStack() },
++                onNavigateToGuide = { navController.navigate(Screen.Guide) },
++                onNavigateToInformation = { navController.navigate(Screen.Information(it)) }
+             )
+         }
+     }

@@ -5,8 +5,8 @@ import com.lingubible.app.ui.common.hapticClick
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -103,15 +103,10 @@ fun ExpressiveReviewFab(
     shape: Shape = SquircleShape(cornerRadius = 24.dp, smoothness = 0.75f)
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
     val isHovered by interactionSource.collectIsHoveredAsState()
 
-    val pressCorner by animateDpAsState(
-        targetValue = if (isPressed) 16.dp else 24.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "reviewFabPressedShape"
-    )
-    val animatedShape = if (isPressed || pressCorner < 24.dp) RoundedCornerShape(pressCorner) else shape
+    val pressCorner by AppButtonDefaults.pressCorner(interactionSource, 24.dp)
+    val animatedShape = if (pressCorner < 24.dp) RoundedCornerShape(pressCorner) else shape
 
     // Fast, snappy Google M3 collapse (StiffnessHigh)
     // and smooth spring expand (StiffnessMedium)
@@ -221,8 +216,8 @@ fun ExpressiveInlineReviewButton(
     text: String = "搶先評價 Be First to Review"
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
     val isHovered by interactionSource.collectIsHoveredAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
 
     Button(
         onClick = hapticClick(onClick),
@@ -238,7 +233,7 @@ fun ExpressiveInlineReviewButton(
                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isHovered) 0.45f else 0.3f),
                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isHovered) 0.45f else 0.3f)
             ),
-        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(22.dp)),
+        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(22.dp)),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary

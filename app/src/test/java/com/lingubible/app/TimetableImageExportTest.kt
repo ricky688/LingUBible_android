@@ -195,5 +195,24 @@ class TimetableImageExportTest {
         assertNotNull(defaultGenerateBitmapSig)
         assertTrue(defaultGenerateBitmapSig!!.isOptional)
     }
+
+    @Test fun computeSummaryTextDeduplicatesMultiSectionCourses() {
+        val sections = listOf(
+            com.lingubible.app.domain.model.TimetableSection("1", "811", "LUE4002", "English", section = "4"),
+            com.lingubible.app.domain.model.TimetableSection("2", "401", "CLD9031", "Chinese", section = "1"),
+            com.lingubible.app.domain.model.TimetableSection("3", "405", "CLE9008", "Ethics LEC", section = "1"),
+            com.lingubible.app.domain.model.TimetableSection("4", "406", "cle9008", "Ethics TUT", section = "2"),
+            com.lingubible.app.domain.model.TimetableSection("5", "234", "CDS3004", "Data Science", section = "1"),
+            com.lingubible.app.domain.model.TimetableSection("6", "233", "CDS3001", "Algorithms", section = "1"),
+            com.lingubible.app.domain.model.TimetableSection("7", "381", "CLC9022", "Culture", section = "1")
+        )
+        // 7 sections belonging to 6 distinct courses, each 3 credits
+        val summary = TimetableImageExport.computeSummaryText(sections)
+        assertEquals("6 科課程 • 共 18 學分", summary)
+
+        // Empty list
+        val emptySummary = TimetableImageExport.computeSummaryText(emptyList())
+        assertEquals("0 科課程 • 共 0 學分", emptySummary)
+    }
 }
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.TimetableToolsTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:02:43" hostname="Ricky" time="0.033">
+  <properties/>
+  <testcase name="previewAndCancelNeverWriteAndConfirmMergesTargetTermAsOneUndoStep" classname="com.lingubible.app.TimetableToolsTest" time="0.011"/>
+  <testcase name="catalogueFailureDoesNotClearSavedSelectionsAndRetryRecovers" classname="com.lingubible.app.TimetableToolsTest" time="0.004"/>
+  <testcase name="slowOldTermCannotOverwriteNewTermOrItsSavedSelections" classname="com.lingubible.app.TimetableToolsTest" time="0.004"/>
+  <testcase name="addRemoveClearCanUndoRedoAndNewChangesDiscardRedo" classname="com.lingubible.app.TimetableToolsTest" time="0.002"/>
+  <testcase name="historyIsBoundedAndSeparateForEachTerm" classname="com.lingubible.app.TimetableToolsTest" time="0.004"/>
+  <testcase name="shareLinkRoundTripsAndDeduplicatesWebIds" classname="com.lingubible.app.TimetableToolsTest" time="0.001"/>
+  <testcase name="pdfFitsBothOrientationsWithMarginsAndPreservesImageAspect" classname="com.lingubible.app.TimetableToolsTest" time="0.001"/>
+  <testcase name="shareRejectsUntrustedAndMalformedLinks" classname="com.lingubible.app.TimetableToolsTest" time="0.001"/>
+  <testcase name="cancelledImportAndInvalidLinksNeverReplacePreviewOrSave" classname="com.lingubible.app.TimetableToolsTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

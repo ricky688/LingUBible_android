@@ -1,0 +1,42 @@
+{
+  "status": "SOURCE_AND_LOCAL_BUILD_VERIFIED",
+  "date": "2026-10-16",
+  "feature": "Native password recovery and information pages; Android-only changelog",
+  "unit_tests": {
+    "tests": 527,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "release_guard": "PASS",
+  "release_certificate_sha256": "9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e",
+  "version_name": "1.0.6",
+  "version_code": 7,
+  "artifacts": {
+    "app-release.apk": {
+      "path": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/native-support-2026-10-16/app-release.apk",
+      "bytes": 4430619,
+      "sha256": "f27c8cb0d6ea404aba3577be14748e945f3638f0f2a3b2dcfed26e0514aafa41",
+      "bilingual_policy_assets": "MATCH_SOURCE"
+    },
+    "app-release.aab": {
+      "path": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/native-support-2026-10-16/app-release.aab",
+      "bytes": 7882220,
+      "sha256": "f15f7961307c98bdedc40de6143c9fb44fc27e08c98d71d9cdcad0a2f7eae25c",
+      "bilingual_policy_assets": "MATCH_SOURCE"
+    }
+  },
+  "mapping": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/native-support-2026-10-16/mapping",
+  "build_log": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/native-support-2026-10-16/build.log",
+  "handshake_self_check": "PASS_SIMULATED_GOOGLE_CALLBACK",
+  "native_routing_source_check": "PASS",
+  "installed": false,
+  "device_validation": "DEFERRED_EXPLICIT_USER_CHOICE",
+  "live_email_reset_contact_validation": "NOT_PERFORMED",
+  "screenshots": [],
+  "ui_tests_authored": false,
+  "backend_changes": false,
+  "version_or_signing_changes": false,
+  "committed": false,
+  "published": false
+}

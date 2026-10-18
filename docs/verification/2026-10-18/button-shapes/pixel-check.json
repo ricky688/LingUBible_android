@@ -1,0 +1,38 @@
+{
+  "guide-dark-rest": {
+    "fill_bounds": [
+      179,
+      883,
+      298,
+      928
+    ],
+    "top_edge_width": 81
+  },
+  "guide-dark-press-early": {
+    "fill_bounds": [
+      179,
+      883,
+      298,
+      928
+    ],
+    "top_edge_width": 103
+  },
+  "guide-dark-press-held": {
+    "fill_bounds": [
+      179,
+      883,
+      298,
+      928
+    ],
+    "top_edge_width": 105
+  },
+  "guide-dark-press-held-late": {
+    "fill_bounds": [
+      179,
+      883,
+      298,
+      928
+    ],
+    "top_edge_width": 105
+  }
+}

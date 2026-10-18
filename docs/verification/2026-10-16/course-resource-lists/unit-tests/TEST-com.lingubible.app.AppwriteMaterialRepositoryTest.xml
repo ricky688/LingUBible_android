@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.AppwriteMaterialRepositoryTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:32:23" hostname="Ricky" time="0.57">
+  <properties/>
+  <testcase name="getSyllabus returns null when no matching syllabus exists" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.226"/>
+  <testcase name="getSyllabus filters non-PDF files and selects newest PDF syllabus" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.019"/>
+  <testcase name="getPastPapers extracts academic years, terms, and instructor names reliably" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.019"/>
+  <testcase name="getSyllabus resolves latest syllabus file by largest numeric suffix" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.007"/>
+  <testcase name="getSyllabus handles unversioned file without treating course code numbers as version suffix" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.011"/>
+  <testcase name="study materials paginate and match exact course prefix across file types" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.099"/>
+  <testcase name="getSyllabus enforces strict delimiter boundary to prevent course code prefix collisions" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.004"/>
+  <testcase name="getSyllabus supports space-separated course code and version suffix" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.004"/>
+  <testcase name="material catalog excludes filenames without valid leading course code" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.006"/>
+  <testcase name="getSyllabus handles exception from storage gracefully" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.004"/>
+  <testcase name="downloadFileBytes returns failure when storage throws exception" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.003"/>
+  <testcase name="storage null returns empty or null safely" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.002"/>
+  <testcase name="getSyllabus paginates across pages when bucket has more than 100 files" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.044"/>
+  <testcase name="getPastPapers includes space-separated past exam paper filenames" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.006"/>
+  <testcase name="downloadFileBytes delegates to storage getFileDownload successfully" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.006"/>
+  <testcase name="getPastPapers sorts newest term first, sinks unknown to bottom, and filters non-PDFs" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.007"/>
+  <testcase name="getPastPapers paginates and retrieves all papers beyond default 25 limit" classname="com.lingubible.app.AppwriteMaterialRepositoryTest" time="0.102"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

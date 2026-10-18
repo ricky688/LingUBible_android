@@ -53,7 +53,7 @@ class CourseDetailViewModelTest {
             Result.success(emptyList())
 
         override suspend fun submitReview(submission: ReviewSubmission): Result<Review> =
-            Result.success(Review("r2", submission.courseCode, comment = submission.comment))
+            Result.success(Review("r2", submission.form.courseCode, comment = submission.form.comment))
 
         override suspend fun voteReview(reviewId: String, voteType: String): Result<VoteState> =
             Result.success(VoteState(upvotes = 3, downvotes = 1, userVote = voteType))

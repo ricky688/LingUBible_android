@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.AppButtonDefaults
+import com.lingubible.app.ui.components.fadingVerticalScroll
 import com.lingubible.app.ui.common.hapticChange
 import com.lingubible.app.ui.common.hapticClick
 
@@ -19,7 +21,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -60,7 +61,10 @@ import org.koin.compose.koinInject
 fun ProfileScreen(
     onNavigateToAuth: () -> Unit,
     onNavigateToReviews: () -> Unit,
+    onNavigateToFavorites: () -> Unit,
     onNavigateToSettings: () -> Unit = {},
+    onNavigateToGuide: () -> Unit = {},
+    onNavigateToInformation: (com.lingubible.app.domain.model.InformationPage) -> Unit = {},
     viewModel: AuthViewModel = koinViewModel(),
     settingsManager: AppSettingsManager = koinInject()
 ) {
@@ -107,7 +111,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
+                .fadingVerticalScroll(rememberScrollState(), bottomInset = com.lingubible.app.core.navigation.LocalScreenBottomClearance.current)
                 .screenBottomPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -204,7 +208,7 @@ fun ProfileScreen(
 
                                 OutlinedButton(
                                     onClick = hapticClick { showAvatarModal = true },
-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                                 ) {
@@ -338,7 +342,7 @@ fun ProfileScreen(
                                             editUsernameValue = user.name
                                             isEditingUsername = true
                                         },
-                                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                                     ) {
@@ -385,7 +389,7 @@ fun ProfileScreen(
                                         horizontalArrangement = Arrangement.End,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        TextButton(shapes = ButtonDefaults.shapes(),
+                                        TextButton(shapes = AppButtonDefaults.shapes(),
                                             onClick = hapticClick { isEditingUsername = false },
                                             enabled = !uiState.isUpdatingUsername
                                         ) {
@@ -407,7 +411,7 @@ fun ProfileScreen(
                                                     }
                                                 )
                                             },
-                                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                             enabled = !uiState.isUpdatingUsername && editUsernameValue.isNotBlank()
                                         ) {
                                             if (uiState.isUpdatingUsername) {
@@ -457,7 +461,7 @@ fun ProfileScreen(
                                             confirmPasswordValue = ""
                                             isEditingPassword = true
                                         },
-                                        shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                                     ) {
@@ -524,7 +528,7 @@ fun ProfileScreen(
                                         }
 
                                         Row {
-                                            TextButton(shapes = ButtonDefaults.shapes(),
+                                            TextButton(shapes = AppButtonDefaults.shapes(),
                                                 onClick = hapticClick { isEditingPassword = false },
                                                 enabled = !uiState.isUpdatingPassword
                                             ) {
@@ -556,7 +560,7 @@ fun ProfileScreen(
                                                         }
                                                     )
                                                 },
-                                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                                 enabled = !uiState.isUpdatingPassword && currentPasswordValue.isNotBlank() && newPasswordValue.isNotBlank()
                                             ) {
                                                 if (uiState.isUpdatingPassword) {
@@ -691,7 +695,7 @@ fun ProfileScreen(
                                     )
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                 enabled = !uiState.isGoogleLoading
                             ) {
                                 if (uiState.isGoogleLoading) {
@@ -719,7 +723,7 @@ fun ProfileScreen(
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
                                 enabled = !uiState.isGoogleLoading
                             ) {
                                 if (uiState.isGoogleLoading) {
@@ -767,7 +771,7 @@ fun ProfileScreen(
 
                         OutlinedButton(
                             onClick = hapticClick { showAvatarModal = true },
-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
+                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
                         ) {
                             Icon(Icons.Default.Palette, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
@@ -789,7 +793,7 @@ fun ProfileScreen(
 
                         Button(
                             onClick = hapticClick(onNavigateToAuth),
-                            shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
+                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(Icons.Default.Login, contentDescription = null)
@@ -912,6 +916,9 @@ fun ProfileScreen(
 
                     HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
 
+                    com.lingubible.app.ui.components.GuideEntry(onNavigateToGuide, isZh)
+                    HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+
                     // Navigation to full Appearance & Settings Screen
                     ListItem(
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -937,6 +944,14 @@ fun ProfileScreen(
                             .pointerHoverIcon(PointerIcon.Hand)
                     )
 
+                    HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = { Text(if (isZh) "我的收藏" else "Favourites", fontWeight = FontWeight.Medium) },
+                        leadingContent = { Icon(Icons.Default.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                        modifier = Modifier.clip(RoundedCornerShape(10.dp)).clickable(onClick = hapticClick(onNavigateToFavorites))
+                    )
                     HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
 
                     // My Reviews
@@ -965,7 +980,7 @@ fun ProfileScreen(
                 OutlinedButton(
                     onClick = hapticClick { viewModel.logout {} },
                     modifier = Modifier.fillMaxWidth(),
-                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
+                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     ),
@@ -1052,12 +1067,12 @@ fun ProfileScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val links = listOf(
-                        Pair(if (isZh) "入門指南" else "Guide", "https://lingubible.com"),
-                        Pair(if (isZh) "更新日誌" else "Changelog", "https://lingubible.com"),
-                        Pair(if (isZh) "常見問題" else "FAQ", "https://lingubible.com"),
-                        Pair(if (isZh) "聯絡" else "Contact", "https://lingubible.com"),
-                        Pair(if (isZh) "條款" else "Terms", "https://lingubible.com"),
-                        Pair(if (isZh) "隱私" else "Privacy", "https://lingubible.com")
+                        Pair(if (isZh) "入門指南" else "Guide", onNavigateToGuide),
+                        Pair(if (isZh) "更新日誌" else "Changelog", { onNavigateToInformation(com.lingubible.app.domain.model.InformationPage.CHANGELOG) }),
+                        Pair(if (isZh) "常見問題" else "FAQ", { onNavigateToInformation(com.lingubible.app.domain.model.InformationPage.FAQ) }),
+                        Pair(if (isZh) "聯絡" else "Contact", { onNavigateToInformation(com.lingubible.app.domain.model.InformationPage.CONTACT) }),
+                        Pair(if (isZh) "條款" else "Terms", { onNavigateToInformation(com.lingubible.app.domain.model.InformationPage.TERMS) }),
+                        Pair(if (isZh) "隱私" else "Privacy", { onNavigateToInformation(com.lingubible.app.domain.model.InformationPage.PRIVACY) })
                     )
 
                     links.forEachIndexed { index, pair ->
@@ -1066,7 +1081,7 @@ fun ProfileScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
-                                .clickable (onClick = hapticClick { openUrl(pair.second) })
+                                .clickable (onClick = hapticClick(pair.second))
                                 .pointerHoverIcon(PointerIcon.Hand)
                         )
                         if (index < links.size - 1) {

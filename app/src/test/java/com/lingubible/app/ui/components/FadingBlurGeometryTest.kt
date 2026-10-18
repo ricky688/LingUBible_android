@@ -24,7 +24,7 @@ class FadingBlurGeometryTest {
     fun visibleBottomClearanceStrictlyTracksBottomBarOffset() {
         val fullBarClearance = 104f
         val systemBottom = 24f
-        val hideTranslation = 152f
+        val hideTranslation = fullBarClearance
 
         fun computeVisible(translationY: Float): Float {
             return (fullBarClearance - translationY).coerceAtLeast(systemBottom)

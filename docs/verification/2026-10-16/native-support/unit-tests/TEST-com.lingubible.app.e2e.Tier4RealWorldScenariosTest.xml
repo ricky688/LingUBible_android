@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-16T12:00:12" hostname="Ricky" time="0.001">
+  <properties/>
+  <testcase name="testScenario08_examPreparationAndPastPaperAccess" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.0"/>
+  <testcase name="testScenario05_reviewRetakeAfterFailingGradeException" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.0"/>
+  <testcase name="testScenario01_newStudentRegistrationAndOnboarding" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.0"/>
+  <testcase name="testScenario12_offlineDraftPersistenceAndRecovery" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.0"/>
+  <testcase name="testScenario09_multilingualStudentExperience" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.0"/>
+  <testcase name="testScenario07_communityInteractionAndReviewVotingCycle" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.001"/>
+  <testcase name="testScenario03_courseEvaluationAndGradeAnalysisWorkflow" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.0"/>
+  <testcase name="testScenario06_antiSpamTermCourseLoadLimitEnforcement" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.0"/>
+  <testcase name="testScenario11_darkModeLateNightStudySession" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.0"/>
+  <testcase name="testScenario04_endToEndReviewSubmissionFlow" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.0"/>
+  <testcase name="testScenario02_courseDiscoveryAndPrerequisiteInvestigation" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.0"/>
+  <testcase name="testScenario10_instructorEvaluationAndTeachingHistoryExploration" classname="com.lingubible.app.e2e.Tier4RealWorldScenariosTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

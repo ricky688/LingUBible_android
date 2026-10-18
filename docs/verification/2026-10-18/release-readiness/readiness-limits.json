@@ -1,0 +1,9 @@
+{
+  "android_15_16": "No system images or AVDs installed; pending",
+  "physical_samsung_pixel": "No physical devices connected; pending",
+  "app_links": "Live www JSON lacks native package; apex URL301redirect; pm verifier1024 for both; local matching JSON prepared, publication/routing/Play cert confirmation pending",
+  "favourites": "Empty state checked; no remote items created",
+  "study_materials": "ACT2201 empty state checked; populated file list not exercised",
+  "matrix": "Sampled light/dark/OLED,100/150/200 fonts,320dp narrow window and landscape; not every cross-product or OS navigation mode",
+  "outbound": "No review publication, downloads, recovery email, calendar insertion or messages"
+}

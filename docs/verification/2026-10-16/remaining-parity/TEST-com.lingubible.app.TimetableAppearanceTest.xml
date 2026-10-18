@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.TimetableAppearanceTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-16T14:27:38" hostname="Ricky" time="0.048">
+  <properties/>
+  <testcase name="customColorsRemainReadableAndResolutionIsBounded" classname="com.lingubible.app.TimetableAppearanceTest" time="0.0"/>
+  <testcase name="appearanceJsonSurvivesRepositoryRecreationWithoutChangingSavedCourses" classname="com.lingubible.app.TimetableAppearanceTest" time="0.045"/>
+  <testcase name="selectedFieldsAndDaysUseTheSameModelForScreenAndExport" classname="com.lingubible.app.TimetableAppearanceTest" time="0.001"/>
+  <testcase name="invalidOptionsCannotHideEverythingOrCreateInvalidExports" classname="com.lingubible.app.TimetableAppearanceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

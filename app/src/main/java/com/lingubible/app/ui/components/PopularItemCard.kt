@@ -37,14 +37,14 @@ fun PopularCourseCard(
     course: Course,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isFavorited: Boolean = false,
-    onFavoriteToggle: ((Boolean) -> Unit)? = null
+    groupIndex: Int = 0,
+    groupSize: Int = 1
 ) {
     val isDark = isAppDarkTheme()
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val shape = rememberCardPressShape(interactionSource)
+    val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize)
 
     val cardBg = MaterialTheme.colorScheme.surfaceContainer
     val cardBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
@@ -129,9 +129,8 @@ fun PopularCourseCard(
                             )
                         }
 
-                        // Default teaching language
-                        CategoryBadge(
-                            text = "English",
+                        if (course.teachingLanguages.isNotEmpty()) CategoryBadge(
+                            text = course.teachingLanguages.joinToString(" / ") { com.lingubible.app.domain.model.teachingLanguageLabel(it) },
                             bgColor = if (isDark) BadgeTheme.LanguageBgDark else BadgeTheme.LanguageBgLight,
                             textColor = if (isDark) BadgeTheme.LanguageTextDark else BadgeTheme.LanguageTextLight,
                             borderColor = if (isDark) BadgeTheme.LanguageBorderDark else BadgeTheme.LanguageBorderLight
@@ -182,8 +181,7 @@ fun PopularCourseCard(
                 }
 
                 FavoriteButton(
-                    isFavorited = isFavorited,
-                    onToggle = { onFavoriteToggle?.invoke(it) }
+                    type = "course", itemId = course.code
                 )
             }
         }
@@ -195,14 +193,14 @@ fun PopularInstructorCard(
     instructor: Instructor,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isFavorited: Boolean = false,
-    onFavoriteToggle: ((Boolean) -> Unit)? = null
+    groupIndex: Int = 0,
+    groupSize: Int = 1
 ) {
     val isDark = isAppDarkTheme()
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val shape = rememberCardPressShape(interactionSource)
+    val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize)
 
     val cardBg = MaterialTheme.colorScheme.surfaceContainer
     val cardBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
@@ -273,7 +271,7 @@ fun PopularInstructorCard(
 
                 // Average GPA / Score Display
                 AverageGPADisplay(
-                    gpaString = if (instructor.avgRating > 0) String.format(Locale.US, "%.1f", instructor.avgRating) else "N/A",
+                    gpaString = if (instructor.avgRating >= 0) String.format(Locale.US, "%.1f", instructor.avgRating) else "N/A",
                     reviewCount = instructor.reviewCount,
                     label = "SCORE"
                 )
@@ -286,8 +284,8 @@ fun PopularInstructorCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StatBox(label = "TEACHING", value = instructor.avgRating, modifier = Modifier.weight(1f))
-                StatBox(label = "GRADING", value = instructor.avgRating, modifier = Modifier.weight(1f))
+                StatBox(label = "TEACHING", value = instructor.avgRating, modifier = Modifier.weight(1f), zeroIsValid = true)
+                StatBox(label = "GRADING", value = instructor.avgGrading, modifier = Modifier.weight(1f), zeroIsValid = true)
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -317,8 +315,7 @@ fun PopularInstructorCard(
                 }
 
                 FavoriteButton(
-                    isFavorited = isFavorited,
-                    onToggle = { onFavoriteToggle?.invoke(it) }
+                    type = "instructor", itemId = instructor.name
                 )
             }
         }
@@ -377,12 +374,13 @@ fun AverageGPADisplay(
 fun StatBox(
     label: String,
     value: Double,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    zeroIsValid: Boolean = false
 ) {
     val isDark = isAppDarkTheme()
     val labelColor = if (isDark) Color(0xFF94A3B8) else Color(0xFF6B7280)
     val bgColor = getRatingGradientColor(value)
-    val displayValue = if (value > 0.0) String.format(Locale.US, "%.1f", value).removeSuffix(".0") else "N/A"
+    val displayValue = if (value > 0.0 || zeroIsValid && value == 0.0) String.format(Locale.US, "%.1f", value).removeSuffix(".0") else "N/A"
 
     Column(
         modifier = modifier,

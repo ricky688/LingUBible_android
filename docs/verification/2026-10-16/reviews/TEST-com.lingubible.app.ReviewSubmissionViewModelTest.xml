@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ReviewSubmissionViewModelTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-15T18:36:43" hostname="Ricky" time="0.07">
+  <properties/>
+  <testcase name="account switch never exposes or overwrites another account draft" classname="com.lingubible.app.ReviewSubmissionViewModelTest" time="0.035"/>
+  <testcase name="guest cannot load private draft or submit" classname="com.lingubible.app.ReviewSubmissionViewModelTest" time="0.004"/>
+  <testcase name="reselecting the same course or term never erases written answers" classname="com.lingubible.app.ReviewSubmissionViewModelTest" time="0.002"/>
+  <testcase name="failed submission retains full draft then retry clears it only on success and blocks duplicate taps" classname="com.lingubible.app.ReviewSubmissionViewModelTest" time="0.011"/>
+  <testcase name="draft save failure is visible and discard leaves another account alone" classname="com.lingubible.app.ReviewSubmissionViewModelTest" time="0.004"/>
+  <testcase name="validation prevents missing assessments and invalid restored sessions from reaching repository" classname="com.lingubible.app.ReviewSubmissionViewModelTest" time="0.005"/>
+  <testcase name="draft restores after model recreation without overwriting it with route defaults" classname="com.lingubible.app.ReviewSubmissionViewModelTest" time="0.003"/>
+  <testcase name="logout during submission cannot clear the new account draft or navigate it away" classname="com.lingubible.app.ReviewSubmissionViewModelTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

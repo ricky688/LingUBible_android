@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ui.components.CatFootstepsTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:22:27" hostname="Ricky" time="0.054">
+  <properties/>
+  <testcase name="zeroOrNegativeDimensionsReturnEmptySteps" classname="com.lingubible.app.ui.components.CatFootstepsTest" time="0.007"/>
+  <testcase name="tapCounterResetsIfTimeExceedsWindow" classname="com.lingubible.app.ui.components.CatFootstepsTest" time="0.036"/>
+  <testcase name="pruneRemovesOldStepsAndParticles" classname="com.lingubible.app.ui.components.CatFootstepsTest" time="0.007"/>
+  <testcase name="fiveTapsWithinWindowTriggersWalk" classname="com.lingubible.app.ui.components.CatFootstepsTest" time="0.003"/>
+  <testcase name="tappingActivePawSpawnsParticlesAndMarksTapped" classname="com.lingubible.app.ui.components.CatFootstepsTest" time="0.001"/>
+  <testcase name="generateStepsReturnsRealisticCountAndPacing" classname="com.lingubible.app.ui.components.CatFootstepsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

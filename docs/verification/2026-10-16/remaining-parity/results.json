@@ -1,0 +1,56 @@
+{
+  "completed_on": "2026-10-17",
+  "device": "192.168.240.112:5555",
+  "environment": {
+    "os": "Waydroid Android 13",
+    "size": "480x1000",
+    "density": 180,
+    "font_scale": 1.0,
+    "appearance": "existing red/dark/OLED"
+  },
+  "installed_apk_sha256": "e3d17a68227d87e46620c48be29517a1df85aeb7280a330389179e0c835d2e4a",
+  "unit_tests": {
+    "tests": 542,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "builds": {
+    "optimized_release_apk": "passed",
+    "release_aab": "passed",
+    "release_guard": "passed",
+    "matching_certificate_replacement_install": "passed; no clear/uninstall",
+    "installed_hash_rechecked_2026_10_17": "passed"
+  },
+  "device_checks": {
+    "instructor_history_filters": "passed on intermediate build: 14 -> 1 for 2026-T2; reset -> 14; same source in final5",
+    "instructor_grade_filters": "passed on intermediate build: filtered empty state and reset; same source in final5",
+    "instructor_history_and_grades_final5": "passed; grade mean 4.00, 3 submissions including 2 N/A",
+    "course_teacher_navigation_final5": "passed; CLC9022 teaching -> CHUNG Yu Ho Reviews",
+    "cold_course_grades_link_final5": "passed with explicitly targeted VIEW intent",
+    "warm_course_teaching_link_final5": "passed with explicitly targeted VIEW intent",
+    "warm_instructor_grades_link_final5": "passed with explicitly targeted VIEW intent",
+    "calendar_week_and_three_day_final5": "passed; restored Month",
+    "recent_course_history_final5": "passed; revisit ACT2200, open result, restart/persistence, remove test entry; no other entry cleared",
+    "exact_hex_final5": "passed; #FFFF00 retained after apply/reopen, readable dark block text; restored default appearance",
+    "timetable_customization_and_restart": "passed on pre-final build; custom title/days/fields/high resolution retained after restart; same renderer/settings source in final5",
+    "png_export": "passed on pre-final build; actual saved file 3600x2100, visually inspected",
+    "pdf_export": "passed on pre-final build; actual saved file one A4 landscape page, valid PDF",
+    "share": "native external share target opened on earlier build; cancelled without recipient/message"
+  },
+  "preserved": {
+    "timetable": "same three CRNs 5403, 5404, 5405; 9-credit summary",
+    "appearance": "reset to pre-test defaults",
+    "search_history": "only own ACT2200 removed",
+    "device_configuration": "not changed",
+    "account_gpa_preferences": "no reset, sign-out or migration"
+  },
+  "automation": "ARTEMIS observations plus guarded ADB. Autonomous Flash trace 82490180-f616-4325-908d-6c70c8cde3e3 stopped after diagnosed provider 429 quota. No new instrumentation tests authored.",
+  "pending": [
+    "Automatic browser-to-app association: deploy web assetlinks source to both hosts and verify Play App Signing fingerprint.",
+    "Physical Samsung/Pixel; Android 15/16, navigation/cutout/theme/font-size matrix and performance measurements.",
+    "Instructor recent-search UI round-trip (separate preference key covered by JVM tests).",
+    "Calendar view restoration through true Activity recreation; invalid-sheet/empty-ICS UI messages covered by JVM tests, not device paths.",
+    "Review publishing, actual calendar insertion and outbound share delivery intentionally not performed."
+  ]
+}

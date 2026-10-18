@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.CourseDetailViewModelTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-16T06:44:31" hostname="Ricky" time="0.018">
+  <properties/>
+  <testcase name="resolveAndOpenSyllabus fetches on-demand when syllabus is not yet loaded" classname="com.lingubible.app.CourseDetailViewModelTest" time="0.003"/>
+  <testcase name="loadCourseDetail handles course with no syllabus as null fallback state" classname="com.lingubible.app.CourseDetailViewModelTest" time="0.003"/>
+  <testcase name="voteReview updates review in state" classname="com.lingubible.app.CourseDetailViewModelTest" time="0.002"/>
+  <testcase name="resolveAndOpenSyllabus triggers callback immediately when syllabus is cached" classname="com.lingubible.app.CourseDetailViewModelTest" time="0.001"/>
+  <testcase name="CourseDetailViewModel observes currentUser changes from AuthRepository" classname="com.lingubible.app.CourseDetailViewModelTest" time="0.003"/>
+  <testcase name="loadCourseDetail loads course, past papers, and syllabus successfully" classname="com.lingubible.app.CourseDetailViewModelTest" time="0.002"/>
+  <testcase name="loadCourseDetail resets loading states and captures error when unexpected exception occurs" classname="com.lingubible.app.CourseDetailViewModelTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

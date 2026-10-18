@@ -1,0 +1,3 @@
+List of devices attached
+192.168.240.112:5555   device product:lineage_waydroid_x86_64 model:WayDroid_x86_64_Device device:waydroid_x86_64 transport_id:1
+

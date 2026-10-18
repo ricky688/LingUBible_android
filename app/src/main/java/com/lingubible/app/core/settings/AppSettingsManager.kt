@@ -133,6 +133,14 @@ class AppSettingsManager(context: Context) {
     )
     val isHapticsEnabled: StateFlow<Boolean> = _isHapticsEnabled.asStateFlow()
 
+    private val _hasSeenGuide = MutableStateFlow(prefs.getBoolean(KEY_GUIDE_SEEN, false))
+    val hasSeenGuide: StateFlow<Boolean> = _hasSeenGuide.asStateFlow()
+
+    fun markGuideSeen() {
+        prefs.edit().putBoolean(KEY_GUIDE_SEEN, true).apply()
+        _hasSeenGuide.value = true
+    }
+
     fun setThemeMode(mode: ThemeMode) {
         _themeMode.value = mode
         prefs.edit().putString(KEY_THEME_MODE, mode.code).apply()
@@ -220,6 +228,7 @@ class AppSettingsManager(context: Context) {
     }
 
     companion object {
+        private const val KEY_GUIDE_SEEN = "getting_started_seen"
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_APP_LANGUAGE = "app_language"
         private const val KEY_OLED_BLACK = "oled_black"

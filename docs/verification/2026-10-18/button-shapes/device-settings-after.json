@@ -1,0 +1,12 @@
+{
+  "size": "Physical size: 480x1000",
+  "density": "Physical density: 180",
+  "font_scale": "1.0",
+  "rotation": "0",
+  "accelerometer_rotation": "0",
+  "animation_scales": {
+    "animator_duration_scale": "1",
+    "transition_animation_scale": "1.0",
+    "window_animation_scale": "1.0"
+  }
+}

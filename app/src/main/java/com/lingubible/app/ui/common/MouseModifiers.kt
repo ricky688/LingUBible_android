@@ -6,7 +6,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -61,20 +60,17 @@ fun Modifier.mouseClickable(
 }
 
 /**
- * Hover spring elevation and scale feedback for interactive cards and buttons.
+ * Hover feedback; press outlines are owned by the shared button/card styles.
  */
 fun Modifier.mouseHoverSpring(
     hoverScale: Float = 1.015f,
-    pressScale: Float = 0.98f,
     interactionSource: MutableInteractionSource? = null
 ): Modifier = composed {
     val source = interactionSource ?: remember { MutableInteractionSource() }
     val isHovered by source.collectIsHoveredAsState()
-    val isPressed by source.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
         targetValue = when {
-            isPressed -> pressScale
             isHovered -> hoverScale
             else -> 1.0f
         },

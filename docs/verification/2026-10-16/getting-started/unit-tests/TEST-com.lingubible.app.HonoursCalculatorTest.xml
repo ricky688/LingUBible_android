@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.HonoursCalculatorTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-16T06:44:33" hostname="Ricky" time="0.001">
+  <properties/>
+  <testcase name="testYearAwardClassification" classname="com.lingubible.app.HonoursCalculatorTest" time="0.001"/>
+  <testcase name="testGradePoints" classname="com.lingubible.app.HonoursCalculatorTest" time="0.0"/>
+  <testcase name="testHonoursClassification" classname="com.lingubible.app.HonoursCalculatorTest" time="0.0"/>
+  <testcase name="testRequiredRemainingAvg" classname="com.lingubible.app.HonoursCalculatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,12 @@
+  com.lingubible.app:
+    ID: 6f1fc5f9-bd5d-4e67-99c8-57d4e8f97cfb
+    Signatures: [9C:01:DC:C1:0F:EA:A3:AB:E2:69:6B:FF:3D:03:08:0A:53:F2:B7:FD:8E:8C:A1:60:D3:E7:C1:64:23:CE:70:7E]
+    Domain verification state:
+      www.lingubible.com: 1024
+      lingubible.com: 1024
+    User 0:
+      Verification link handling allowed: true
+      Selection state:
+        Disabled:
+          www.lingubible.com
+          lingubible.com

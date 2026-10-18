@@ -1,0 +1,14 @@
+[
+  {
+    "text": "上一步 Previous",
+    "bounds": "[41,894][152,917]",
+    "enabled": "true",
+    "clickable": "false"
+  },
+  {
+    "text": "下一步 Next",
+    "bounds": "[197,894][280,917]",
+    "enabled": "true",
+    "clickable": "false"
+  }
+]

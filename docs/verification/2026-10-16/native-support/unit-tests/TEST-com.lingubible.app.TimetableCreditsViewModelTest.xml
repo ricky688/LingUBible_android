@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.TimetableCreditsViewModelTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-16T12:00:11" hostname="Ricky" time="0.084">
+  <properties/>
+  <testcase name="catalogFailureDoesNotBlockSavedTimetable" classname="com.lingubible.app.TimetableCreditsViewModelTest" time="0.07"/>
+  <testcase name="catalogCreditsMatchNormalizedCodesAndPreserveZero" classname="com.lingubible.app.TimetableCreditsViewModelTest" time="0.004"/>
+  <testcase name="termChangeRetainsCreditsWithoutReloadingCatalog" classname="com.lingubible.app.TimetableCreditsViewModelTest" time="0.005"/>
+  <testcase name="multiSectionCourseDoesNotDoubleCountCreditsOrCourses" classname="com.lingubible.app.TimetableCreditsViewModelTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.e2e.Tier3CrossFeatureTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-10-16T06:44:35" hostname="Ricky" time="0.005">
+  <properties/>
+  <testcase name="testCross21_studyMaterialsListToDocumentDownloadUrl" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross23_navigationToUserProfileAvatarUpdate" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross02_authSessionToReviewSubmission" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.001"/>
+  <testcase name="testCross22_multilingualLocalizationToMaterialThemeSwitch" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross05_authSessionToDocumentDownloadUrl" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross08_searchAndFilterAndSortingPipeline" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross18_antiSpamRetakeRuleToReviewFeedDisplay" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross07_courseBrowsingToMultiCriteriaFilter" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross17_reviewWizardToAntiSpamWordCountValidation" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross11_courseDetailTeachingHistoryToInstructorDetail" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.001"/>
+  <testcase name="testCross20_pastPapersListToDocumentViewUrl" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross06_courseBrowsingToKeywordSearch" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross12_reviewFeedDisplayToVotingReaction" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.001"/>
+  <testcase name="testCross10_instructorCatalogToInstructorDetailTransition" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross04_authSessionToPastPapersBucketAccess" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross24_courseDetailTabSwitching" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross15_gradeChartBarClickToReviewFeedFilter" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross03_authSessionToReviewVotingGuard" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross01_emailAuthToLoginToProfile" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.001"/>
+  <testcase name="testCross13_reviewFeedToGradeStatsAggregation" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross09_courseCatalogToCourseDetailTransition" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross14_gradeStatsToParetoCurveChartSeries" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.001"/>
+  <testcase name="testCross19_antiSpamTermLimitToWizardStepBlock" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <testcase name="testCross16_reviewWizardToHalfStarRatingsValidation" classname="com.lingubible.app.e2e.Tier3CrossFeatureTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

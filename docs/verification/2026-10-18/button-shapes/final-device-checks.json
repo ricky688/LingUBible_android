@@ -1,0 +1,28 @@
+{
+  "preview_cancel_bounds": "[35,852][208,906]",
+  "preview_cancel_dismissed": true,
+  "home_cta_bounds": "[156,417][325,472]",
+  "home_cta_opened_courses": true,
+  "returned_home": true,
+  "export_not_saved": true,
+  "home_cta_pixel_check": {
+    "rest": {
+      "fill_bounds": [
+        156,
+        417,
+        325,
+        472
+      ],
+      "top_edge_width": 125
+    },
+    "held": {
+      "fill_bounds": [
+        156,
+        417,
+        325,
+        472
+      ],
+      "top_edge_width": 157
+    }
+  }
+}

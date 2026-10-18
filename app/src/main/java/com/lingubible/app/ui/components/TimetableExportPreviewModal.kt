@@ -44,7 +44,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AspectRatio
@@ -112,11 +111,16 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.lingubible.app.core.theme.isAppDarkTheme
+import androidx.compose.material3.FilterChip
+import com.lingubible.app.core.util.TimetableExportFormat
 import com.lingubible.app.core.util.TimetableExportOrientation
 import com.lingubible.app.core.util.TimetableImageExport
 import com.lingubible.app.domain.model.TimeConflict
 import com.lingubible.app.domain.model.TimetableSection
 import com.lingubible.app.domain.model.TimetableTerm
+import com.lingubible.app.domain.model.TimetableAppearance
+import com.lingubible.app.core.util.TimetableExportColors
+import androidx.compose.ui.graphics.toArgb
 import com.lingubible.app.ui.common.hapticClick
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -138,22 +142,25 @@ fun TimetableExportPreviewModal(
     conflicts: List<TimeConflict>,
     creditsByCode: Map<String, Int>,
     onDismiss: () -> Unit,
-    onConfirmSave: (TimetableExportOrientation, Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    onConfirmSave: (TimetableExportOrientation, Boolean, TimetableExportFormat) -> Unit,
+    modifier: Modifier = Modifier,
+    appearance: TimetableAppearance? = null
 ) {
     val isDark = isAppDarkTheme()
+    val exportColors = TimetableExportColors(MaterialTheme.colorScheme.background.toArgb(), MaterialTheme.colorScheme.surfaceContainer.toArgb(), MaterialTheme.colorScheme.onSurface.toArgb(), MaterialTheme.colorScheme.outlineVariant.toArgb())
 
     // Default orientation is Landscape as specified
     var selectedOrientation by remember { mutableStateOf(TimetableExportOrientation.LANDSCAPE) }
 
     // Calendar grid lines toggle (Default ON as requested)
     var showGridLines by remember { mutableStateOf(true) }
+    var format by remember { mutableStateOf(TimetableExportFormat.PNG) }
 
     var previewBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isRendering by remember { mutableStateOf(true) }
     var showFullscreenViewer by remember { mutableStateOf(false) }
 
-    LaunchedEffect(selectedOrientation, showGridLines, term, selectedSections, conflicts, isDark) {
+    LaunchedEffect(selectedOrientation, showGridLines, term, selectedSections, conflicts, isDark, appearance, exportColors) {
         isRendering = true
         withContext(Dispatchers.Default) {
             val bmp = TimetableImageExport.generateBitmap(
@@ -163,7 +170,10 @@ fun TimetableExportPreviewModal(
                 conflicts = conflicts,
                 isDark = isDark,
                 creditsByCode = creditsByCode,
-                showGridLines = showGridLines
+                showGridLines = showGridLines,
+                // Preview stays small; the saved file uses the selected full resolution.
+                appearance = appearance?.copy(resolution = 1),
+                colors = exportColors
             )
             withContext(Dispatchers.Main) {
                 previewBitmap = bmp
@@ -195,7 +205,7 @@ fun TimetableExportPreviewModal(
             Column(
                 modifier = Modifier
                     .padding(20.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .fadingVerticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -241,7 +251,6 @@ fun TimetableExportPreviewModal(
                     ExpressiveMorphIconButton(
                         onClick = onDismiss,
                         restingCorner = 18.dp,
-                        pressedCorner = 8.dp,
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.65f),
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         size = 36.dp,
@@ -253,6 +262,12 @@ fun TimetableExportPreviewModal(
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
+                    }
+                }
+
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TimetableExportFormat.entries.forEach { choice ->
+                        FilterChip(selected = format == choice, onClick = hapticClick { format = choice }, label = { Text(if (choice == TimetableExportFormat.PNG) "圖片 PNG" else "列印 PDF") }, modifier = Modifier.weight(1f))
                     }
                 }
 
@@ -491,9 +506,9 @@ fun TimetableExportPreviewModal(
                             Column {
                                 Text(
                                     text = if (orientation == TimetableExportOrientation.LANDSCAPE) {
-                                        "2400 × 1400 · 寬螢幕橫向比例 (16:9)"
+                                        "${2400 * (appearance?.resolution ?: 2) / 2} × ${1400 * (appearance?.resolution ?: 2) / 2} · 橫向 Landscape"
                                     } else {
-                                        "1440 × 2560 · 標準手機比例 (9:16)"
+                                        "${1440 * (appearance?.resolution ?: 2) / 2} × ${2560 * (appearance?.resolution ?: 2) / 2} · 直向 Portrait"
                                     },
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
@@ -520,11 +535,10 @@ fun TimetableExportPreviewModal(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Expressive Outlined Button: Cancel (Morphs from 16dp to 28dp pill on press)
+                    // Cancel uses the shared press shape.
                     ExpressiveMorphButton(
                         onClick = onDismiss,
                         restingCorner = 16.dp,
-                        pressedCorner = 28.dp,
                         containerColor = Color.Transparent,
                         contentColor = MaterialTheme.colorScheme.onSurface,
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
@@ -537,11 +551,10 @@ fun TimetableExportPreviewModal(
                         )
                     }
 
-                    // Expressive Primary Button: Save (Morphs from 16dp to 28dp pill on press)
+                    // Save uses the shared press shape.
                     ExpressiveMorphButton(
-                        onClick = { onConfirmSave(selectedOrientation, showGridLines) },
+                        onClick = { onConfirmSave(selectedOrientation, showGridLines, format) },
                         restingCorner = 16.dp,
-                        pressedCorner = 28.dp,
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.weight(1.3f)
@@ -553,7 +566,7 @@ fun TimetableExportPreviewModal(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "儲存圖片 Save",
+                            text = "儲存 ${format.name} Save",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -571,7 +584,7 @@ fun TimetableExportPreviewModal(
             onDismiss = { showFullscreenViewer = false },
             onConfirmSave = {
                 showFullscreenViewer = false
-                onConfirmSave(selectedOrientation, showGridLines)
+                onConfirmSave(selectedOrientation, showGridLines, format)
             }
         )
     }
@@ -812,7 +825,6 @@ private fun ExpressiveToolbarIconButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     restingCorner: Dp = 20.dp,
-    pressedCorner: Dp = 10.dp,
     size: Dp = 40.dp,
     contentDescription: String? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
@@ -820,11 +832,7 @@ private fun ExpressiveToolbarIconButton(
 ) {
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) pressedCorner else restingCorner,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "tbIconCorner"
-    )
+    val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, restingCorner)
     val animatedShape = RoundedCornerShape(cornerRadius)
 
     val containerColor by animateColorAsState(
@@ -868,11 +876,7 @@ private fun ExpressiveZoomResetButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) 10.dp else 20.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "zoomResetCorner"
-    )
+    val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, 20.dp)
     val animatedShape = RoundedCornerShape(cornerRadius)
 
     val containerColor by animateColorAsState(
@@ -936,13 +940,8 @@ private fun ExpressiveSaveButton(
     modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
 
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) 10.dp else 20.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "saveBtnCorner"
-    )
+    val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, 20.dp)
     val animatedShape = RoundedCornerShape(cornerRadius)
 
     Surface(
@@ -954,7 +953,7 @@ private fun ExpressiveSaveButton(
         modifier = modifier
             .clip(animatedShape)
             .shadow(
-                elevation = if (isPressed) 1.dp else 4.dp,
+                elevation = 4.dp,
                 shape = animatedShape,
                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
@@ -992,7 +991,6 @@ private fun ExpressiveMorphButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     restingCorner: Dp = 16.dp,
-    pressedCorner: Dp = 28.dp,
     containerColor: Color = MaterialTheme.colorScheme.primary,
     contentColor: Color = MaterialTheme.colorScheme.onPrimary,
     border: BorderStroke? = null,
@@ -1000,14 +998,7 @@ private fun ExpressiveMorphButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable RowScope.() -> Unit
 ) {
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    // Smooth spring shape morph replacing traditional scale/elevation drop
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) pressedCorner else restingCorner,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "btnCornerMorph"
-    )
+    val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, restingCorner)
     val animatedShape = RoundedCornerShape(cornerRadius)
 
     Surface(
@@ -1041,7 +1032,6 @@ private fun ExpressiveMorphIconButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     restingCorner: Dp = 18.dp,
-    pressedCorner: Dp = 8.dp,
     containerColor: Color = Color.Transparent,
     contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     border: BorderStroke? = null,
@@ -1050,13 +1040,8 @@ private fun ExpressiveMorphIconButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable () -> Unit
 ) {
-    val isPressed by interactionSource.collectIsPressedAsState()
 
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) pressedCorner else restingCorner,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "iconBtnCornerMorph"
-    )
+    val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, restingCorner)
     val animatedShape = RoundedCornerShape(cornerRadius)
 
     Surface(

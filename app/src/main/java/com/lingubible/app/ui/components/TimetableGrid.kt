@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.domain.model.*
+import com.lingubible.app.core.util.TimetableExportColors
 import com.lingubible.app.ui.common.hapticClick
 
 import android.widget.Toast
@@ -9,11 +11,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -71,14 +73,7 @@ val DAYS_SUN_TO_SAT = listOf(
     DayInfo("SAT", "週六", "Sat")
 )
 
-private const val START_HOUR = 8
-private const val START_MINUTE = 30 // 08:30 -> 510 min
-private const val END_HOUR = 21
-private const val END_MINUTE = 30   // 21:30 -> 1290 min
-private const val TOTAL_MINUTES = (END_HOUR * 60 + END_MINUTE) - (START_HOUR * 60 + START_MINUTE) // 780 min
-
 private val HOUR_HEIGHT = 64.dp
-private val TOTAL_GRID_HEIGHT = HOUR_HEIGHT * 13 // 13 hours (08:30 to 21:30)
 
 @Composable
 fun TimetableGrid(
@@ -90,9 +85,15 @@ fun TimetableGrid(
     onNavigateToAddCourse: () -> Unit,
     onAddMeetingToCalendar: (TimetableSection, TimetableMeeting) -> Unit,
     onExportMeetingIcs: (TimetableSection, TimetableMeeting) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    appearance: TimetableAppearance = TimetableAppearance()
 ) {
     val isDark = isAppDarkTheme()
+    val visibleDays = appearance.orderedDays.map { code -> DAYS_SUN_TO_SAT.first { it.code == code } }
+    val (rangeStart, rangeEnd) = remember(selectedSections, appearance) { timetableMinuteRange(selectedSections, appearance) }
+    val gridMinutes = rangeEnd - rangeStart
+    val naturalGridHeight = HOUR_HEIGHT * (gridMinutes / 60f)
+    val exportColors = TimetableExportColors(MaterialTheme.colorScheme.background.toArgb(), MaterialTheme.colorScheme.surfaceContainer.toArgb(), MaterialTheme.colorScheme.onSurface.toArgb(), MaterialTheme.colorScheme.outlineVariant.toArgb())
     var selectedMeetingForDialog by remember { mutableStateOf<Pair<TimetableSection, TimetableMeeting>?>(null) }
     var isDirectView by remember { mutableStateOf(true) }
 
@@ -112,7 +113,8 @@ fun TimetableGrid(
     var exportingImage by remember { mutableStateOf(false) }
     var pendingImagePath by rememberSaveable { mutableStateOf<String?>(null) }
     var showExportPreviewDialog by remember { mutableStateOf(false) }
-    val saveImage = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
+    val saveImage = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val uri = result.data?.data?.takeIf { result.resultCode == android.app.Activity.RESULT_OK }
         val file = pendingImagePath?.let(::File)
         pendingImagePath = null
         if (file != null) {
@@ -121,12 +123,12 @@ fun TimetableGrid(
                 try {
                     if (uri != null) {
                         withContext(Dispatchers.IO) { TimetableImageExport.saveToDocument(context, file, uri) }
-                        Toast.makeText(context, "已匯出課表圖片 / Timetable image saved", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "已匯出課表 / Timetable saved", Toast.LENGTH_SHORT).show()
                     }
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (_: Exception) {
-                    Toast.makeText(context, "無法儲存圖片，請重試 / Could not save image; please retry", Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    if (uri != null) withContext(kotlinx.coroutines.NonCancellable + Dispatchers.IO) { runCatching { android.provider.DocumentsContract.deleteDocument(context.contentResolver, uri) } }
+                    if (e is CancellationException) throw e
+                    Toast.makeText(context, "無法儲存課表，請重試 / Could not save timetable; please retry", Toast.LENGTH_LONG).show()
                 } finally {
                     file.delete()
                     exportingImage = false
@@ -180,7 +182,7 @@ fun TimetableGrid(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
-                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(20.dp)),
+                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(20.dp)),
                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                 ) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -210,7 +212,7 @@ fun TimetableGrid(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "每週課表 (週日 – 週六)",
+                    text = appearance.title.ifBlank { "每週課表 Weekly timetable" },
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (isDark) Color.White else Color(0xFF1E293B)
@@ -241,7 +243,7 @@ fun TimetableGrid(
                 }
             }
             FilledTonalButton(
-                shapes = ButtonDefaults.shapes(),
+                shapes = AppButtonDefaults.shapes(),
                 enabled = !exportingImage && pendingImagePath == null,
                 contentPadding = PaddingValues(horizontal = 10.dp),
                 onClick = hapticClick {
@@ -250,21 +252,23 @@ fun TimetableGrid(
             ) {
                 Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("匯出圖片 Image")
+                Text("匯出 PNG/PDF")
             }
         }
 
         // Timetable Matrix with BoxWithConstraints for Direct Left-to-Right Viewing
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val gridHeight = if (constraints.hasBoundedHeight) maxOf(naturalGridHeight, (maxHeight - 45.dp).coerceAtLeast(0.dp)) else naturalGridHeight
+            val hourHeight = gridHeight * (60f / gridMinutes)
             val totalWidth = maxWidth
             val timeColWidth = if (isDirectView) 38.dp else 48.dp
             val availableWidth = (totalWidth - timeColWidth).coerceAtLeast(0.dp)
             val dayColWidth = if (isDirectView) {
-                (availableWidth / DAYS_SUN_TO_SAT.size).coerceAtLeast(44.dp)
+                (availableWidth / visibleDays.size).coerceAtLeast(44.dp)
             } else {
                 135.dp
             }
-            val needsHorizontalScroll = !isDirectView || (dayColWidth * DAYS_SUN_TO_SAT.size + timeColWidth > totalWidth)
+            val needsHorizontalScroll = !isDirectView || (dayColWidth * visibleDays.size + timeColWidth > totalWidth)
 
             Box(
                 modifier = Modifier
@@ -303,7 +307,7 @@ fun TimetableGrid(
                         }
 
                         // 7 Day columns: Sunday to Saturday
-                        DAYS_SUN_TO_SAT.forEach { day ->
+                        visibleDays.forEach { day ->
                             Box(
                                 modifier = Modifier
                                     .width(dayColWidth)
@@ -337,7 +341,7 @@ fun TimetableGrid(
                     // Grid Body with vertical scroll
                     Box(
                         modifier = Modifier
-                            .height(TOTAL_GRID_HEIGHT)
+                            .height(gridHeight)
                             .fadingBlurEdges(
                                 scrollState = verticalScrollState,
                                 surfaceColor = fadeSurface,
@@ -352,16 +356,16 @@ fun TimetableGrid(
                         }) {
                             // Time Column (08:30 to 20:30)
                             Column(modifier = Modifier.width(timeColWidth)) {
-                                for (h in START_HOUR until END_HOUR) {
+                                for (h in 0 until ((gridMinutes + 59) / 60)) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(HOUR_HEIGHT)
+                                            .height(hourHeight)
                                             .border(0.5.dp, gridBorder),
                                         contentAlignment = Alignment.TopCenter
                                     ) {
                                         Text(
-                                            text = String.format("%02d:30", h),
+                                            text = timetableClock(rangeStart + h * 60),
                                             style = MaterialTheme.typography.labelSmall,
                                             fontSize = if (isDirectView) 9.sp else 10.sp,
                                             color = textMuted,
@@ -372,21 +376,21 @@ fun TimetableGrid(
                             }
 
                             // Day Columns with Course Blocks: Sunday to Saturday
-                            DAYS_SUN_TO_SAT.forEach { day ->
+                            visibleDays.forEach { day ->
                                 Box(
                                     modifier = Modifier
                                         .width(dayColWidth)
-                                        .height(TOTAL_GRID_HEIGHT)
+                                        .height(gridHeight)
                                         .background(gridBg)
                                         .border(0.5.dp, gridBorder)
                                 ) {
                                     // Background hour grid lines
-                                    for (h in 0 until (END_HOUR - START_HOUR)) {
+                                    for (h in 0 until ((gridMinutes + 59) / 60)) {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .offset(y = HOUR_HEIGHT * h)
-                                                .height(HOUR_HEIGHT)
+                                                .offset(y = hourHeight * h)
+                                                .height(hourHeight)
                                                 .border(0.25.dp, gridBorder.copy(alpha = 0.5f))
                                         )
                                     }
@@ -402,18 +406,19 @@ fun TimetableGrid(
                                     }
 
                                     dayMeetings.forEach { (section, meeting) ->
-                                        val startMin = (meeting.startMinutes - (START_HOUR * 60 + START_MINUTE)).coerceAtLeast(0)
-                                        val durationMin = (meeting.endMinutes - meeting.startMinutes + 1).coerceAtLeast(30)
+                                        if (meeting.endMinutes + 1 <= rangeStart || meeting.startMinutes >= rangeEnd) return@forEach
+                                        val startMin = (meeting.startMinutes - rangeStart).coerceAtLeast(0)
+                                        val durationMin = minOf(meeting.endMinutes + 1, rangeEnd) - maxOf(meeting.startMinutes, rangeStart)
 
-                                        val topOffset = (startMin.toFloat() / TOTAL_MINUTES.toFloat()) * TOTAL_GRID_HEIGHT.value
-                                        val blockHeight = (durationMin.toFloat() / TOTAL_MINUTES.toFloat()) * TOTAL_GRID_HEIGHT.value
+                                        val topOffset = (startMin.toFloat() / gridMinutes.toFloat()) * gridHeight.value
+                                        val blockHeight = (durationMin.toFloat() / gridMinutes.toFloat()) * gridHeight.value
 
                                         val isClashing = conflicts.any {
                                             (it.sectionA.id == section.id || it.sectionB.id == section.id) && it.day.equals(day.code, ignoreCase = true)
                                         }
 
                                         val blockColor = try {
-                                            Color(android.graphics.Color.parseColor(section.colorHex))
+                                            Color(android.graphics.Color.parseColor(appearance.colors[section.courseCode] ?: section.colorHex))
                                         } catch (e: Exception) {
                                             MaterialTheme.colorScheme.primary
                                         }
@@ -436,104 +441,13 @@ fun TimetableGrid(
                                             shape = RoundedCornerShape(6.dp),
                                             shadowElevation = 2.dp
                                         ) {
-                                            Column(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .padding(3.dp),
-                                                verticalArrangement = Arrangement.SpaceBetween
-                                            ) {
-                                                Column {
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                                        modifier = Modifier.fillMaxWidth()
-                                                    ) {
-                                                        Text(
-                                                            text = section.courseCode,
-                                                            style = MaterialTheme.typography.labelSmall,
-                                                            fontWeight = FontWeight.ExtraBold,
-                                                            fontSize = if (isDirectView) 8.5.sp else 11.sp,
-                                                            color = Color.White,
-                                                            maxLines = 1,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                            modifier = Modifier.weight(1f, fill = false)
-                                                        )
-                                                        if (isClashing) {
-                                                            Surface(
-                                                                shape = RoundedCornerShape(3.dp),
-                                                                color = Color(0xFFDC2626),
-                                                                shadowElevation = 1.dp
-                                                            ) {
-                                                                Row(
-                                                                    verticalAlignment = Alignment.CenterVertically,
-                                                                    modifier = Modifier.padding(horizontal = 2.dp, vertical = 0.5.dp)
-                                                                ) {
-                                                                    Icon(
-                                                                        imageVector = Icons.Default.Warning,
-                                                                        contentDescription = "Conflict",
-                                                                        tint = Color.White,
-                                                                        modifier = Modifier.size(if (isDirectView) 8.dp else 10.dp)
-                                                                    )
-                                                                    if (!isDirectView) {
-                                                                        Spacer(modifier = Modifier.width(2.dp))
-                                                                        Text(
-                                                                            text = "衝堂",
-                                                                            fontSize = 7.5.sp,
-                                                                            fontWeight = FontWeight.Bold,
-                                                                            color = Color.White
-                                                                        )
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    val courseName = section.courseTitle.ifBlank { section.courseTitleZh }
-                                                    if (courseName.isNotBlank() && (!isDirectView || blockHeight >= 42f)) {
-                                                        Text(
-                                                            text = courseName,
-                                                            style = MaterialTheme.typography.labelSmall,
-                                                            fontSize = if (isDirectView) 7.sp else 8.5.sp,
-                                                            fontWeight = FontWeight.Medium,
-                                                            color = Color.White.copy(alpha = 0.92f),
-                                                            maxLines = 1,
-                                                            overflow = TextOverflow.Ellipsis
-                                                        )
-                                                    }
-                                                    val sectionSubtitle = if (section.crn.isNotBlank()) {
-                                                        "S${section.section} • CRN ${section.crn} • ${meeting.type}"
-                                                    } else {
-                                                        "S${section.section} • ${meeting.type}"
-                                                    }
-                                                    Text(
-                                                        text = sectionSubtitle,
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        fontSize = if (isDirectView) 7.5.sp else 9.sp,
-                                                        color = Color.White.copy(alpha = 0.9f),
-                                                        maxLines = 1,
-                                                        overflow = TextOverflow.Ellipsis
-                                                    )
-                                                }
-
-                                                Column {
-                                                    if (meeting.venue.isNotBlank()) {
-                                                        Text(
-                                                            text = meeting.venue,
-                                                            style = MaterialTheme.typography.labelSmall,
-                                                            fontSize = if (isDirectView) 7.5.sp else 9.sp,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = Color.White.copy(alpha = 0.95f),
-                                                            maxLines = 1,
-                                                            overflow = TextOverflow.Ellipsis
-                                                        )
-                                                    }
-                                                    Text(
-                                                        text = "${meeting.start}-${meeting.end}",
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        fontSize = if (isDirectView) 7.sp else 8.5.sp,
-                                                        color = Color.White.copy(alpha = 0.8f),
-                                                        maxLines = 1,
-                                                        overflow = TextOverflow.Ellipsis
-                                                    )
+                                            val hex = appearance.colors[section.courseCode] ?: section.colorHex
+                                            val foreground = if (timetableUsesLightText(hex)) Color.White else Color.Black
+                                            Column(Modifier.fillMaxSize().padding(3.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                                timetableBlockLines(section, meeting, appearance, creditsByCode[section.courseCode.uppercase()]).forEachIndexed { index, line ->
+                                                    Text(line, style = MaterialTheme.typography.labelSmall, fontSize = if (isDirectView) 9.sp else 12.sp,
+                                                        fontWeight = if (index == 0) FontWeight.Bold else FontWeight.Normal, color = foreground,
+                                                        maxLines = 1, overflow = TextOverflow.Ellipsis)
                                                 }
                                             }
                                         }
@@ -561,7 +475,7 @@ fun TimetableGrid(
                     imageVector = if (sectionConflicts.isNotEmpty()) Icons.Default.Warning else Icons.Default.School,
                     contentDescription = null,
                     tint = if (sectionConflicts.isNotEmpty()) Color(0xFFDC2626) else try {
-                        Color(android.graphics.Color.parseColor(section.colorHex))
+                        Color(android.graphics.Color.parseColor(appearance.colors[section.courseCode] ?: section.colorHex))
                     } catch (e: Exception) { MaterialTheme.colorScheme.primary }
                 )
             },
@@ -575,7 +489,7 @@ fun TimetableGrid(
                 }
             },
             text = {
-                Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(modifier = Modifier.fillMaxWidth().fadingVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     // Expressive conflict warning callout if clashing
                     if (sectionConflicts.isNotEmpty()) {
                         Surface(
@@ -678,7 +592,7 @@ fun TimetableGrid(
             confirmButton = {
                 Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
-                        shapes = ButtonDefaults.shapes(),
+                        shapes = AppButtonDefaults.shapes(),
                         modifier = Modifier.fillMaxWidth(),
                         onClick = hapticClick { onAddMeetingToCalendar(section, meeting) }
                     ) {
@@ -687,7 +601,7 @@ fun TimetableGrid(
                         Text("加至日曆 Add to calendar", textAlign = TextAlign.Center)
                     }
                     OutlinedButton(
-                        shapes = ButtonDefaults.shapes(),
+                        shapes = AppButtonDefaults.shapes(),
                         modifier = Modifier.fillMaxWidth(),
                         onClick = hapticClick { onExportMeetingIcs(section, meeting) }
                     ) { Text("匯出此時段 Export meeting (.ics)", textAlign = TextAlign.Center) }
@@ -697,7 +611,7 @@ fun TimetableGrid(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         TextButton(
-                            shapes = ButtonDefaults.shapes(),
+                            shapes = AppButtonDefaults.shapes(),
                             onClick = hapticClick {
                                 onRemoveSection(section.id)
                                 selectedMeetingForDialog = null
@@ -710,7 +624,7 @@ fun TimetableGrid(
                             Text("移除 Remove")
                         }
                         TextButton(
-                            shapes = ButtonDefaults.shapes(),
+                            shapes = AppButtonDefaults.shapes(),
                             onClick = hapticClick { selectedMeetingForDialog = null },
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                         ) { Text("關閉 Close") }
@@ -726,8 +640,9 @@ fun TimetableGrid(
             selectedSections = selectedSections,
             conflicts = conflicts,
             creditsByCode = creditsByCode,
+            appearance = appearance,
             onDismiss = { showExportPreviewDialog = false },
-            onConfirmSave = { orientation, showGridLines ->
+            onConfirmSave = { orientation, showGridLines, format ->
                 showExportPreviewDialog = false
                 exportingImage = true
                 scope.launch {
@@ -740,11 +655,18 @@ fun TimetableGrid(
                             conflicts = conflicts,
                             isDark = isDark,
                             creditsByCode = creditsByCode,
-                            showGridLines = showGridLines
+                            showGridLines = showGridLines,
+                            format = format,
+                            appearance = appearance,
+                            colors = exportColors
                         )
                         pendingImagePath = file.absolutePath
                         val suffix = if (orientation == TimetableExportOrientation.LANDSCAPE) "Landscape" else "Portrait"
-                        saveImage.launch("LingUBible_${term.short}_Timetable_${suffix}.png")
+                        saveImage.launch(android.content.Intent(android.content.Intent.ACTION_CREATE_DOCUMENT).apply {
+                            addCategory(android.content.Intent.CATEGORY_OPENABLE)
+                            type = format.mime
+                            putExtra(android.content.Intent.EXTRA_TITLE, "LingUBible_${term.short}_Timetable_${suffix}.${format.extension}")
+                        })
                     } catch (cancelled: CancellationException) {
                         throw cancelled
                     } catch (_: Exception) {

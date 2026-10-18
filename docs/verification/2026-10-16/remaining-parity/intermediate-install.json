@@ -1,0 +1,5 @@
+{
+  "apk_sha256": "9627834b7ee09cb28020474cd7c7869ec664fae3c35aa91e5b11461b3f5cb9a0",
+  "certificate": "9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e",
+  "note": "Intermediate build for initial runtime checks; final artifact will be reinstalled."
+}

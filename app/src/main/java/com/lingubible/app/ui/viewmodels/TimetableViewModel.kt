@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 
 data class TimetableUiState(
     val selectedTerm: TimetableTerm = DEFAULT_TERMS.first(),
@@ -26,11 +28,27 @@ data class TimetableUiState(
     val conflicts: List<TimeConflict> = emptyList(),
     val searchQuery: String = "",
     val selectedDepartment: String = "ALL",
-    val isLoading: Boolean = false
+    val canUndo: Boolean = false,
+    val canRedo: Boolean = false,
+    val importLoading: Boolean = false,
+    val importPreview: TimetableImportPreview? = null,
+    val importError: String? = null,
+    val errorMessage: String? = null,
+    val isLoading: Boolean = false,
+    val appearance: TimetableAppearance = TimetableAppearance()
 ) {
+    val distinctCourseCodes: List<String>
+        get() = selectedSections
+            .map { it.courseCode.trim().uppercase(Locale.ROOT) }
+            .filter { it.isNotBlank() }
+            .distinct()
+
     val totalCredits: Int
         // shortcut: uncatalogued courses keep the three-credit estimate until credit metadata is available.
-        get() = selectedSections.sumOf { creditsByCode[it.courseCode.trim().uppercase(Locale.ROOT)] ?: 3 }
+        get() = distinctCourseCodes.sumOf { creditsByCode[it] ?: 3 }
+
+    val distinctCourseCount: Int
+        get() = distinctCourseCodes.size
 
     val filteredSections: List<TimetableSection>
         get() {
@@ -59,6 +77,13 @@ class TimetableViewModel(
     private val _uiState = MutableStateFlow(TimetableUiState())
     val uiState: StateFlow<TimetableUiState> = _uiState.asStateFlow()
 
+    private var termJob: Job? = null
+    private var termGeneration = 0
+    private var importJob: Job? = null
+    private var importGeneration = 0
+    private val undoHistory = mutableMapOf<String, MutableList<Set<String>>>()
+    private val redoHistory = mutableMapOf<String, MutableList<Set<String>>>()
+
     init {
         loadTermData(_uiState.value.selectedTerm)
         viewModelScope.launch {
@@ -72,80 +97,108 @@ class TimetableViewModel(
 
     fun selectTerm(term: TimetableTerm) {
         if (_uiState.value.selectedTerm.id == term.id) return
-        _uiState.update { it.copy(selectedTerm = term) }
+        _uiState.update { it.copy(selectedTerm = term, allSections = emptyList(), selectedSectionIds = emptySet(), selectedSections = emptyList(), conflicts = emptyList(), canUndo = false, canRedo = false) }
         loadTermData(term)
     }
 
-    private fun loadTermData(term: TimetableTerm) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val sections = repository.getSectionsForTerm(term)
-            val savedIds = repository.getSelectedSectionIds(term.id)
-            val selected = sections.filter { savedIds.contains(it.id) }
-            val conflicts = repository.findConflicts(selected)
+    fun retry() = loadTermData(_uiState.value.selectedTerm)
 
-            _uiState.update {
-                it.copy(
-                    allSections = sections,
-                    selectedSectionIds = savedIds,
-                    selectedSections = selected,
-                    conflicts = conflicts,
-                    isLoading = false
-                )
+    private fun loadTermData(term: TimetableTerm) {
+        termJob?.cancel()
+        val run = ++termGeneration
+        termJob = viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            try {
+                val sections = repository.getSectionsForTerm(term)
+                val savedIds = repository.getSelectedSectionIds(term.id).toSet()
+                val selected = sections.filter { it.id in savedIds }
+                if (run == termGeneration) _uiState.update { it.copy(allSections = sections,
+                    selectedSectionIds = savedIds, selectedSections = selected, conflicts = repository.findConflicts(selected),
+                    appearance = repository.getAppearance(term.id),
+                    canUndo = undoHistory[term.id].orEmpty().isNotEmpty(), canRedo = redoHistory[term.id].orEmpty().isNotEmpty(), isLoading = false) }
+            } catch (e: CancellationException) { throw e
+            } catch (e: Exception) {
+                if (run == termGeneration) _uiState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "課表載入失敗 · Could not load timetable") }
             }
         }
     }
 
+    private fun push(history: MutableMap<String, MutableList<Set<String>>>, term: String, ids: Set<String>) {
+        val entries = history.getOrPut(term) { mutableListOf() }
+        entries.add(ids.toSet())
+        if (entries.size > 10) entries.removeAt(0)
+    }
+
+    private fun applySelection(ids: Set<String>, recordHistory: Boolean = true) {
+        val state = _uiState.value
+        if (state.isLoading || ids == state.selectedSectionIds) return
+        repository.saveSelectedSectionIds(state.selectedTerm.id, ids.toSet())
+        if (recordHistory) {
+            push(undoHistory, state.selectedTerm.id, state.selectedSectionIds)
+            redoHistory.remove(state.selectedTerm.id)
+        }
+        val selected = state.allSections.filter { it.id in ids }
+        _uiState.update { it.copy(selectedSectionIds = ids.toSet(), selectedSections = selected, conflicts = repository.findConflicts(selected),
+            canUndo = undoHistory[state.selectedTerm.id].orEmpty().isNotEmpty(), canRedo = redoHistory[state.selectedTerm.id].orEmpty().isNotEmpty()) }
+    }
+
     fun toggleSection(section: TimetableSection) {
-        val currentIds = _uiState.value.selectedSectionIds.toMutableSet()
-        if (currentIds.contains(section.id)) {
-            currentIds.remove(section.id)
-        } else {
-            currentIds.add(section.id)
-        }
-        val termId = _uiState.value.selectedTerm.id
-        repository.saveSelectedSectionIds(termId, currentIds)
-
-        val selected = _uiState.value.allSections.filter { currentIds.contains(it.id) }
-        val conflicts = repository.findConflicts(selected)
-
-        _uiState.update {
-            it.copy(
-                selectedSectionIds = currentIds,
-                selectedSections = selected,
-                conflicts = conflicts
-            )
-        }
+        val state = _uiState.value
+        if (state.allSections.none { it.id == section.id }) return
+        applySelection(if (section.id in state.selectedSectionIds) state.selectedSectionIds - section.id else state.selectedSectionIds + section.id)
+    }
+    fun removeSection(sectionId: String) = applySelection(_uiState.value.selectedSectionIds - sectionId)
+    fun clearAll() = applySelection(emptySet())
+    fun undo() {
+        val state = _uiState.value
+        if (state.isLoading) return
+        val previous = undoHistory[state.selectedTerm.id]?.removeLastOrNull() ?: return
+        push(redoHistory, state.selectedTerm.id, state.selectedSectionIds)
+        applySelection(previous, recordHistory = false)
+    }
+    fun redo() {
+        val state = _uiState.value
+        if (state.isLoading) return
+        val next = redoHistory[state.selectedTerm.id]?.removeLastOrNull() ?: return
+        push(undoHistory, state.selectedTerm.id, state.selectedSectionIds)
+        applySelection(next, recordHistory = false)
     }
 
-    fun removeSection(sectionId: String) {
-        val currentIds = _uiState.value.selectedSectionIds.toMutableSet()
-        currentIds.remove(sectionId)
-        val termId = _uiState.value.selectedTerm.id
-        repository.saveSelectedSectionIds(termId, currentIds)
-
-        val selected = _uiState.value.allSections.filter { currentIds.contains(it.id) }
-        val conflicts = repository.findConflicts(selected)
-
-        _uiState.update {
-            it.copy(
-                selectedSectionIds = currentIds,
-                selectedSections = selected,
-                conflicts = conflicts
-            )
+    fun cancelImport() {
+        importJob?.cancel(); ++importGeneration
+        _uiState.update { it.copy(importLoading = false, importPreview = null, importError = null) }
+    }
+    fun prepareImport(link: String) {
+        cancelImport()
+        val share = parseTimetableShare(link).getOrElse { error ->
+            _uiState.update { it.copy(importError = error.localizedMessage) }; return
+        }
+        val run = ++importGeneration
+        _uiState.update { it.copy(importLoading = true) }
+        importJob = viewModelScope.launch {
+            try {
+                val sections = repository.getSectionsForTerm(share.term)
+                val found = sections.filter { it.id in share.sectionIds }.map { it.id }.toSet()
+                check(found.isNotEmpty()) { "找不到連結中的課程 · No matching sections found" }
+                val existing = repository.getSelectedSectionIds(share.term.id)
+                val preview = TimetableImportPreview(share.term, sections, found, (found - existing).size,
+                    (found intersect existing).size, share.sectionIds - found,
+                    repository.findConflicts(sections.filter { it.id in existing || it.id in found }).size)
+                if (run == importGeneration) _uiState.update { it.copy(importLoading = false, importPreview = preview) }
+            } catch (e: CancellationException) { throw e
+            } catch (e: Exception) { if (run == importGeneration) _uiState.update { it.copy(importLoading = false, importError = e.localizedMessage ?: "匯入失敗 · Import failed") } }
         }
     }
-
-    fun clearAll() {
-        val termId = _uiState.value.selectedTerm.id
-        repository.saveSelectedSectionIds(termId, emptySet())
-        _uiState.update {
-            it.copy(
-                selectedSectionIds = emptySet(),
-                selectedSections = emptyList(),
-                conflicts = emptyList()
-            )
-        }
+    fun confirmImport() {
+        val preview = _uiState.value.importPreview ?: return
+        termJob?.cancel(); ++termGeneration
+        val existing = repository.getSelectedSectionIds(preview.term.id).toSet()
+        val selected = preview.sections.filter { it.id in existing }
+        _uiState.update { it.copy(selectedTerm = preview.term, allSections = preview.sections, selectedSectionIds = existing,
+            selectedSections = selected, conflicts = repository.findConflicts(selected), isLoading = false, appearance = repository.getAppearance(preview.term.id),
+            canUndo = undoHistory[preview.term.id].orEmpty().isNotEmpty(), canRedo = redoHistory[preview.term.id].orEmpty().isNotEmpty()) }
+        applySelection(existing + preview.incomingIds)
+        cancelImport()
     }
 
     fun setSearchQuery(q: String) {
@@ -156,23 +209,36 @@ class TimetableViewModel(
         _uiState.update { it.copy(selectedDepartment = dept) }
     }
 
+    fun updateAppearance(appearance: TimetableAppearance): Boolean {
+        val state = _uiState.value
+        if (state.isLoading || timetableAppearanceError(appearance, state.selectedTerm) != null) return false
+        repository.saveAppearance(state.selectedTerm.id, appearance)
+        _uiState.update { it.copy(appearance = appearance) }
+        return true
+    }
+
     fun exportTimetableIcs(context: Context) {
         val state = _uiState.value
         if (state.selectedSections.isEmpty()) return
 
         val icsText = IcsExporter.buildTimetableIcs(
             sections = state.selectedSections,
-            startYmd = state.selectedTerm.startDate,
-            endYmd = state.selectedTerm.endDate,
-            calendarName = "LingUBible ${state.selectedTerm.name}"
+            startYmd = state.appearance.icsStart.ifBlank { state.selectedTerm.startDate },
+            endYmd = state.appearance.icsEnd.ifBlank { state.selectedTerm.endDate },
+            calendarName = state.appearance.title.ifBlank { "LingUBible ${state.selectedTerm.name}" }
         )
+        if (!icsText.contains("BEGIN:VEVENT")) {
+            Toast.makeText(context, "所選日期內沒有課堂 No meetings in the selected dates", Toast.LENGTH_LONG).show()
+            return
+        }
         val fileName = "LingUBible_${state.selectedTerm.short}_Timetable.ics"
         IcsExporter.shareIcs(context, icsText, fileName)
     }
 
     fun exportMeetingIcs(context: Context, section: TimetableSection, meeting: TimetableMeeting) {
         runCatching {
-            val term = _uiState.value.selectedTerm
+            val state = _uiState.value
+            val term = state.selectedTerm.copy(startDate = state.appearance.icsStart.ifBlank { state.selectedTerm.startDate }, endDate = state.appearance.icsEnd.ifBlank { state.selectedTerm.endDate })
             val text = IcsExporter.buildTimetableMeetingIcs(section, meeting, term)
             val code = section.courseCode.replace(Regex("[^A-Za-z0-9_-]"), "_")
             IcsExporter.shareIcs(context, text, "${code}_${term.short}_${meeting.day}_${meeting.startMinutes}.ics").getOrThrow()
@@ -183,7 +249,9 @@ class TimetableViewModel(
 
     fun addMeetingToCalendar(context: Context, section: TimetableSection, meeting: TimetableMeeting) {
         try {
-            context.startActivity(IcsExporter.createTimetableMeetingInsertIntent(section, meeting, _uiState.value.selectedTerm))
+            val state = _uiState.value
+            val term = state.selectedTerm.copy(startDate = state.appearance.icsStart.ifBlank { state.selectedTerm.startDate }, endDate = state.appearance.icsEnd.ifBlank { state.selectedTerm.endDate })
+            context.startActivity(IcsExporter.createTimetableMeetingInsertIntent(section, meeting, term))
         } catch (_: ActivityNotFoundException) {
             Toast.makeText(context, "未安裝日曆程式，改為匯出 .ics / No calendar app; exporting .ics", Toast.LENGTH_LONG).show()
             exportMeetingIcs(context, section, meeting)

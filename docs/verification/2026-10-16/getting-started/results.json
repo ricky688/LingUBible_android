@@ -1,0 +1,33 @@
+{
+  "status": "SOURCE_AND_LOCAL_BUILD_VERIFIED",
+  "date": "2026-10-16",
+  "feature": "Native first-launch and Settings guide",
+  "unit_tests": {
+    "tests": 513,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "release_guard": "PASS",
+  "release_certificate_sha256": "9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e",
+  "artifacts": {
+    "app-release.apk": {
+      "path": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/getting-started-2026-10-16/app-release.apk",
+      "bytes": 4329148,
+      "sha256": "a0608346fb130de6bcdaa2628c9076d8b495e06f5e212e0d36ba9aed23976c23"
+    },
+    "app-release.aab": {
+      "path": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/getting-started-2026-10-16/app-release.aab",
+      "bytes": 7672848,
+      "sha256": "5e226a90eb492a0aee96b9dc6be202d979002989a2fdc6ebf7e519d4d6cba477"
+    }
+  },
+  "mapping_directory": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/getting-started-2026-10-16/mapping",
+  "build_log": "/home/ricky/Antigravity_project/lingUbible/LingUBible/LingUBible_android/build/getting-started-2026-10-16/build.log",
+  "installed": false,
+  "device_validation": "DEFERRED_EXPLICIT_USER_CHOICE",
+  "screenshots": [],
+  "ui_tests_authored": false,
+  "publishing": false,
+  "committed": false
+}

@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.AppButtonDefaults
+import com.lingubible.app.ui.components.FadingLazyColumn
 import com.lingubible.app.ui.common.hapticClick
 
 import com.lingubible.app.core.navigation.screenContentPadding
@@ -11,8 +13,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,10 +35,14 @@ import com.lingubible.app.ui.components.M3LoadingIndicator
 import com.lingubible.app.ui.components.M3LoadingState
 import com.lingubible.app.ui.components.M3PullToRefreshBox
 import com.lingubible.app.ui.components.ReviewCard
+import com.lingubible.app.ui.components.ReviewBrowserControls
+import com.lingubible.app.ui.components.rememberReviewFilters
+import com.lingubible.app.domain.model.filterReviews
 import com.lingubible.app.ui.viewmodels.ReviewsViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +56,38 @@ fun ReviewsScreen(
     val isDark = isAppDarkTheme()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    val repository = org.koin.compose.koinInject<com.lingubible.app.domain.repository.ReviewRepository>()
+    val scope = rememberCoroutineScope()
+    var editingId by remember { mutableStateOf<String?>(null) }
+    var deleting by remember { mutableStateOf<com.lingubible.app.domain.model.Review?>(null) }
+    var mutationBusy by remember { mutableStateOf(false) }
+    var mutationError by remember { mutableStateOf<String?>(null) }
+    val auth = org.koin.compose.koinInject<com.lingubible.app.domain.repository.AuthRepository>()
+    val account by auth.currentUser.collectAsStateWithLifecycle()
+    LaunchedEffect(account?.id) { editingId = null; deleting = null; mutationError = null }
+    editingId?.let { id ->
+        com.lingubible.app.ui.components.ReviewEditor(id, onDismiss = { editingId = null }, onSaved = { editingId = null; viewModel.loadReviews() })
+    }
+    deleting?.let { review ->
+        AlertDialog(
+            onDismissRequest = { if (!mutationBusy) deleting = null },
+            title = { Text("刪除此評價？ Delete review?") },
+            text = { Text(mutationError ?: "${review.courseCode} · 刪除後無法復原。 This cannot be undone.") },
+            confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick {
+                mutationBusy = true; mutationError = null
+                scope.launch {
+                    repository.deleteReview(review.id).onSuccess { deleting = null; viewModel.loadReviews() }
+                        .onFailure { mutationError = it.localizedMessage }
+                    mutationBusy = false
+                }
+            }, enabled = !mutationBusy) { Text("刪除 Delete", color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { deleting = null }, enabled = !mutationBusy) { Text("取消 Cancel") } }
+        )
+    }
+
+    var filters by rememberReviewFilters(if (myReviewsOnly) account?.id.orEmpty() else "latest")
+    val filtered = remember(uiState.reviews, filters) { filterReviews(uiState.reviews, filters) }
+    var visibleCount by rememberSaveable(filters) { mutableIntStateOf(30) }
     val listState = rememberLazyListState()
     val density = LocalDensity.current
     var fabHeight by remember { mutableStateOf(0.dp) }
@@ -85,7 +122,7 @@ fun ReviewsScreen(
             ) {
                 Text("登入以查看我的評價 · Sign in to view your reviews")
                 Spacer(Modifier.height(16.dp))
-                Button(onClick = hapticClick(onNavigateToAuth), shapes = ButtonDefaults.shapes()) {
+                Button(onClick = hapticClick(onNavigateToAuth), shapes = AppButtonDefaults.shapes()) {
                     Text("登入 · Sign in")
                 }
             }
@@ -122,22 +159,40 @@ fun ReviewsScreen(
                         )
                     }
                 } else {
-                    LazyColumn(
+                    FadingLazyColumn(
                         state = listState,
                         modifier = Modifier
                             .fillMaxSize()
                             .mouseScrollbar(listState),
                         contentPadding = screenContentPadding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = fabHeight + 40.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        items(uiState.reviews, key = { it.id }) { review ->
+                        item(key = "review-filters") {
+                            ReviewBrowserControls(uiState.reviews, filters, { filters = it }, filtered.size)
+                            uiState.errorMessage?.let { Text("更新失敗 · Refresh failed: $it", color = MaterialTheme.colorScheme.error) }
+                        }
+                        if (filtered.isEmpty()) item { Text("沒有符合篩選的評價 · No matching reviews") }
+                        itemsIndexed(filtered.take(visibleCount), key = { _, it -> it.id }) { index, review ->
                             ReviewCard(
                                 review = review,
+                                groupIndex = index,
+                                groupSize = minOf(visibleCount, filtered.size),
                                 onVote = { voteType ->
                                     viewModel.voteReview(review.id, voteType)
                                 },
                                 onClick = { onNavigateToCourse(review.courseCode) }
                             )
+                            if (myReviewsOnly) {
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { editingId = review.id }) { Text("修改 Edit") }
+                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { mutationError = null; deleting = review }) { Text("刪除 Delete", color = MaterialTheme.colorScheme.error) }
+                                }
+                            }
+                        }
+                        if (visibleCount < filtered.size) item(key = "more-reviews") {
+                            OutlinedButton(onClick = hapticClick { visibleCount += 30 }, modifier = Modifier.fillMaxWidth(), shapes = AppButtonDefaults.shapes()) {
+                                Text("載入更多 Load more · ${minOf(visibleCount, filtered.size)}/${filtered.size}")
+                            }
                         }
                     }
                 }

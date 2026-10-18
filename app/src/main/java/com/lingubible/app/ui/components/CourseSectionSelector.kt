@@ -12,10 +12,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -28,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -92,7 +89,8 @@ fun CourseSectionSelector(
                 )
             }
         } else {
-            LazyColumn(
+            FadingLazyColumn(
+                bottomInset = 0.dp,
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
@@ -100,10 +98,11 @@ fun CourseSectionSelector(
                     // Planner owns the measured bottom navigation/system clearance.
                     bottom = 16.dp
                 ),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(sections, key = { it.id }) { section ->
+                itemsIndexed(sections, key = { _, section -> section.id }) { index, section ->
+                    val shape = getGroupedItemShape(index, sections.size, outerRadius = 14.dp)
                     val isSelected = selectedSectionIds.contains(section.id)
 
                     // Check for potential conflict if not yet selected
@@ -123,10 +122,10 @@ fun CourseSectionSelector(
                             .border(
                                 width = if (isSelected) 1.5.dp else 1.dp,
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else cardBorder,
-                                shape = RoundedCornerShape(14.dp)
+                                shape = shape
                             ),
                         colors = CardDefaults.cardColors(containerColor = cardBg),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = shape,
                         elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 3.dp else 1.dp)
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
@@ -198,7 +197,7 @@ fun CourseSectionSelector(
                                             contentColor = MaterialTheme.colorScheme.onPrimary
                                         )
                                     },
-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(18.dp)),
+                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(18.dp)),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                 ) {
@@ -353,7 +352,7 @@ fun CourseSectionSelector(
                     },
                     trailingIcon = {
                         if (searchQuery.isNotBlank()) {
-                            IconButton(onClick = hapticClick { onSearchQueryChange("") }) {
+                            IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { onSearchQueryChange("") }) {
                                 Icon(imageVector = Icons.Default.Clear, contentDescription = "Clear")
                             }
                         }
@@ -505,7 +504,7 @@ fun CourseSectionSelector(
                                 }
                             }
 
-                            TextButton(shapes = ButtonDefaults.shapes(),
+                            TextButton(shapes = AppButtonDefaults.shapes(),
                                 onClick = hapticClick { isGridExpanded = false },
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                                 modifier = Modifier
@@ -598,15 +597,8 @@ private fun CategoryGridChip(
 ) {
     val isDark = isAppDarkTheme()
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.94f else 1.0f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "chipPressScale"
-    )
-
-    val chipShape = RoundedCornerShape(10.dp)
+    val corner by AppButtonDefaults.pressCorner(interactionSource, 10.dp)
+    val chipShape = RoundedCornerShape(corner)
 
     Surface(
         onClick = hapticClick(onClick),
@@ -628,7 +620,6 @@ private fun CategoryGridChip(
         ),
         shadowElevation = if (isSelected) 3.dp else 0.dp,
         modifier = modifier
-            .scale(scale)
             .semantics {
                 selected = isSelected
                 role = Role.RadioButton

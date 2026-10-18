@@ -1,12 +1,16 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.AppButtonDefaults
+import com.lingubible.app.ui.components.FadingLazyColumn
+import com.lingubible.app.ui.common.hapticClick
+
 import com.lingubible.app.core.navigation.screenContentPadding
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,6 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.theme.*
+import com.lingubible.app.domain.model.*
+import com.lingubible.app.ui.components.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.lingubible.app.domain.model.Instructor
 import com.lingubible.app.domain.model.Review
 import com.lingubible.app.domain.model.TeachingRecord
@@ -40,18 +47,33 @@ import org.koin.compose.koinInject
 @Composable
 fun InstructorDetailScreen(
     instructorName: String,
+    initialTab: Int = 0,
     onNavigateBack: () -> Unit,
+    showReviews: Boolean = false,
+    onCourse: (String) -> Unit = {},
     instructorRepository: InstructorRepository = koinInject(),
     reviewRepository: ReviewRepository = koinInject()
 ) {
     val isDark = isAppDarkTheme()
+    val listState = rememberLazyListState()
+    var reviewsFocused by androidx.compose.runtime.saveable.rememberSaveable(instructorName, showReviews) { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
     var instructor by remember { mutableStateOf<Instructor?>(null) }
     var teachingRecords by remember { mutableStateOf<List<TeachingRecord>>(emptyList()) }
     var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
+    var tab by rememberSaveable(instructorName) { mutableIntStateOf(if (showReviews) 1 else initialTab.coerceIn(0, 2)) }
+    var historyFilters by rememberTeachingHistoryFilters(instructorName)
+    val history = remember(teachingRecords, historyFilters) { filterTeachingHistory(teachingRecords, historyFilters) }
+    val distribution = remember(reviews, instructorName, teachingRecords, historyFilters) { instructorGradeDistribution(reviews, instructorName, teachingRecords, historyFilters) }
+    var historyError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    var reviewFilters by com.lingubible.app.ui.components.rememberReviewFilters(instructorName)
+    val filteredReviews = remember(reviews, reviewFilters) { com.lingubible.app.domain.model.filterReviews(reviews, reviewFilters) }
+    var reviewLimit by androidx.compose.runtime.saveable.rememberSaveable(reviewFilters) { mutableIntStateOf(30) }
+    var reviewError by remember { mutableStateOf<String?>(null) }
+    var retry by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(instructorName) {
+    LaunchedEffect(instructorName, retry) {
         isLoading = true
         val instRes = instructorRepository.getInstructorByName(instructorName)
         val recRes = instructorRepository.getInstructorTeachingRecords(instructorName)
@@ -59,8 +81,18 @@ fun InstructorDetailScreen(
 
         instructor = instRes.getOrNull()
         teachingRecords = recRes.getOrDefault(emptyList())
+        historyError = recRes.exceptionOrNull()?.localizedMessage
         reviews = revRes.getOrDefault(emptyList())
+        reviewError = revRes.exceptionOrNull()?.localizedMessage
         isLoading = false
+    }
+
+    LaunchedEffect(isLoading, showReviews) {
+        if (!isLoading && showReviews && !reviewsFocused) {
+            tab = 1
+            listState.scrollToItem(0)
+            reviewsFocused = true
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -72,10 +104,11 @@ fun InstructorDetailScreen(
                 message = "正在載入講師資料..."
             )
         } else {
-                LazyColumn(
+                FadingLazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = screenContentPadding(start = 16.dp, top = 16.dp, end = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     // Profile Header Card
                     item {
@@ -173,51 +206,39 @@ fun InstructorDetailScreen(
                         }
                     }
 
-                    // Courses Taught
-                    if (teachingRecords.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "任教課程 Courses Taught",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                    item(key = "detail-tabs") {
+                        ScrollableM3ButtonGroup(tab, listOf("任教記錄 History", "學生評價 Reviews", "成績分佈 Grades").mapIndexed { index, label ->
+                            M3ButtonGroupItem(label, onClick = { tab = index })
+                        })
+                    }
+                    if (tab != 1) {
+                        item(key = "history-filters") {
+                            TeachingHistoryControls(teachingRecords, historyFilters) { historyFilters = it }
+                            historyError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
                         }
-
-                        items(teachingRecords.distinctBy { it.courseCode }) { record ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                                ),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f))
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(14.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = record.courseCode,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isDark) Color.White else MaterialTheme.colorScheme.primary
-                                    )
-                                    Text(
-                                        text = "${record.term} (${record.academicYear})",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                        if (tab == 2) {
+                            item(key = "grades") {
+                                reviewError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
+                                if (distribution.isEmpty()) Text("沒有符合篩選的成績 · No matching grades")
+                                else GradeDistributionChart(distribution)
+                            }
+                        } else {
+                            item(key = "history-count") { Text("${history.size} / ${teachingRecords.size} 筆任教記錄 Teaching records") }
+                            if (history.isEmpty()) item { Text("沒有符合篩選的任教記錄 · No matching teaching records") }
+                            itemsIndexed(history, key = { _, it -> "teaching:${it.id}" }) { index, record ->
+                                Surface(shape = com.lingubible.app.ui.components.getGroupedItemShape(index, history.size, outerRadius = 16.dp), color = MaterialTheme.colorScheme.surfaceContainerLow,
+                                    onClick = hapticClick { onCourse(record.courseCode) }) {
+                                    ListItem(headlineContent = { Text(record.courseCode, style = MaterialTheme.typography.titleMedium) },
+                                        supportingContent = { Column {
+                                            Text(teachingTermLabel(record))
+                                            Text(listOf(teachingSessionLabel(record.section), teachingLanguageLabel(record.teachingLanguage).ifBlank { "語言未知 Unknown language" }).filter { it.isNotBlank() }.joinToString(" · "))
+                                        } }, colors = ListItemDefaults.colors(containerColor = Color.Transparent))
                                 }
                             }
                         }
-                    }
-
+                    } else {
                     // Student Reviews Header
-                    item {
+                    item(key = "student-reviews") {
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = "學生評價 Student Reviews (${reviews.size})",
@@ -227,18 +248,24 @@ fun InstructorDetailScreen(
                         )
                     }
 
-                    if (reviews.isEmpty()) {
+                    item(key = "review-filters") {
+                        com.lingubible.app.ui.components.ReviewBrowserControls(reviews, reviewFilters, { reviewFilters = it }, filteredReviews.size)
+                        reviewError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
+                    }
+                    if (filteredReviews.isEmpty()) {
                         item {
                             Text(
-                                text = "此講師暫無學生評價記錄。",
+                                text = "沒有符合篩選的評價 · No matching reviews",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     } else {
-                        items(reviews) { review ->
+                        itemsIndexed(filteredReviews.take(reviewLimit), key = { _, it -> it.id }) { index, review ->
                             ReviewCard(
                                 review = review,
+                                groupIndex = index,
+                                groupSize = minOf(reviewLimit, filteredReviews.size),
                                 onVote = { voteType ->
                                     scope.launch {
                                         val voteRes = reviewRepository.voteReview(review.id, voteType)
@@ -258,6 +285,8 @@ fun InstructorDetailScreen(
                                 }
                             )
                         }
+                    }
+                    if (reviewLimit < filteredReviews.size) item { OutlinedButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { reviewLimit += 30 }) { Text("載入更多 Load more") } }
                     }
             }
         }

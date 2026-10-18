@@ -1,0 +1,16 @@
+{
+  "app_pid": "61165",
+  "fatal_exceptions_after_cold_restart": 0,
+  "final_screen": "Android Changelog",
+  "width_px": 480,
+  "height_px": 1000,
+  "density_dpi": 180,
+  "font_scale": "1.0",
+  "theme_preferences_changed": false,
+  "account_signed_in_after_restart": true,
+  "contact_temporary_draft_cleared": true,
+  "recovery_emails_requested": 1,
+  "recovery_email_receipt_user_confirmed": true,
+  "password_changed": false,
+  "contact_message_sent": false
+}

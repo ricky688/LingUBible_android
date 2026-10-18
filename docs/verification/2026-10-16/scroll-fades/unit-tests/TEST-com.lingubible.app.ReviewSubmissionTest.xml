@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ReviewSubmissionTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:22:27" hostname="Ricky" time="0.003">
+  <properties/>
+  <testcase name="compulsory service learning requires description while optional may be empty" classname="com.lingubible.app.ReviewSubmissionTest" time="0.001"/>
+  <testcase name="legacy instructor fields and new flags are read without inventing ratings" classname="com.lingubible.app.ReviewSubmissionTest" time="0.0"/>
+  <testcase name="prefer not to disclose grade uses the existing web sentinel" classname="com.lingubible.app.ReviewSubmissionTest" time="0.0"/>
+  <testcase name="legacy unescaped newlines do not hide instructor evaluations" classname="com.lingubible.app.ReviewSubmissionTest" time="0.001"/>
+  <testcase name="payload preserves multiple session evaluations and explicit zero or NA" classname="com.lingubible.app.ReviewSubmissionTest" time="0.0"/>
+  <testcase name="unanswered ratings and invalid scores cannot be published" classname="com.lingubible.app.ReviewSubmissionTest" time="0.001"/>
+  <testcase name="course term grade language and signed in owner are required" classname="com.lingubible.app.ReviewSubmissionTest" time="0.0"/>
+  <testcase name="each instructor needs assessment ratings and own comment" classname="com.lingubible.app.ReviewSubmissionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

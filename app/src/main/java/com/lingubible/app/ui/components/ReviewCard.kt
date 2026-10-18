@@ -31,23 +31,50 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.domain.model.Review
+import com.lingubible.app.domain.model.REVIEW_REQUIREMENTS
 import com.lingubible.app.ui.common.mousePointer
 import com.lingubible.app.ui.common.rememberCardPressShape
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewCard(
     review: Review,
     modifier: Modifier = Modifier,
     onVote: ((voteType: String) -> Unit)? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    groupIndex: Int = 0,
+    groupSize: Int = 1
 ) {
     val isDark = isAppDarkTheme()
     val bgColor = MaterialTheme.colorScheme.surfaceContainer
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
 
-    var isExpanded by remember { mutableStateOf(false) }
+    var isExpanded by remember(review.id) { mutableStateOf(false) }
+    var showDetails by remember(review.id) { mutableStateOf(false) }
+    if (showDetails) ModalBottomSheet(onDismissRequest = { showDetails = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(Modifier.fillMaxWidth().weight(1f, fill = false).fadingVerticalScroll(androidx.compose.foundation.rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("${review.courseCode} · ${if (review.grade == "-1") "N/A" else review.grade}", style = MaterialTheme.typography.headlineSmall)
+            Text("${review.term} · ${review.language}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("課程評價 Course comments", style = MaterialTheme.typography.titleMedium)
+            Text(review.comment)
+            Text("工作量 Workload: ${review.workloadRating.displayRating()} · 難度 Difficulty: ${review.difficultyRating.displayRating()} · 實用性 Usefulness: ${review.usefulnessRating.displayRating()}")
+            review.instructors.forEach { instructor ->
+                HorizontalDivider()
+                Text("${instructor.name} · ${instructor.session}", style = MaterialTheme.typography.titleMedium)
+                Text("教學 Teaching: ${if (instructor.notAttended) "未曾上課 Not attended" else (instructor.teaching ?: -1.0).displayRating()} · 給分 Grading: ${(instructor.grading ?: -1.0).displayRating()}")
+                if (instructor.requirements.isNotEmpty()) Text(instructor.requirements.mapNotNull { REVIEW_REQUIREMENTS[it] }.joinToString(" · "))
+                Text(instructor.comment)
+                if (instructor.serviceLearning != "none") {
+                    Text("服務學習 Service learning · ${if (instructor.serviceLearning == "compulsory") "必修 Compulsory" else "選修 Optional"}", style = MaterialTheme.typography.titleSmall)
+                    if (instructor.serviceDescription.isNotBlank()) Text(instructor.serviceDescription)
+                }
+            }
+            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showDetails = false }, modifier = Modifier.align(Alignment.End)) { Text("關閉 Close") }
+            Spacer(Modifier.height(16.dp))
+        }
+    }
     val interactionSource = remember { MutableInteractionSource() }
-    val shape = rememberCardPressShape(interactionSource)
+    val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize)
 
     Card(
         modifier = modifier.fillMaxWidth()
@@ -165,7 +192,7 @@ fun ReviewCard(
 
             // Ratings Row: Teaching, Grading, Workload, Difficulty
             Surface(
-                color = if (isDark) Color(0xFF1E242B) else Color(0xFFF3F4F6),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -212,6 +239,7 @@ fun ReviewCard(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
+            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showDetails = true }) { Text("完整評價 Full review · ${review.instructors.size} 講師／課節") }
             HorizontalDivider(
                 color = borderColor.copy(alpha = 0.6f),
                 thickness = 0.5.dp
@@ -310,10 +338,9 @@ private fun RatingItem(label: String, rating: Double) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(2.dp))
-        RatingBar(
-            rating = rating,
-            starSize = 12.dp,
-            starColor = StarGold
-        )
+        if (rating < 0) Text("N/A", style = MaterialTheme.typography.labelSmall)
+        else RatingBar(rating = rating, starSize = 12.dp, starColor = StarGold)
     }
 }
+
+private fun Double.displayRating(): String = if (this < 0) "N/A" else toString()

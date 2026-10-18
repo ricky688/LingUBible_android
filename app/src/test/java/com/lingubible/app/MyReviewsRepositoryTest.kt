@@ -25,6 +25,7 @@ class MyReviewsRepositoryTest {
         every { Log.e(any(), any(), any()) } returns 0
         every { provider.databaseId } returns "lingubible"
         every { provider.databases } returns database
+        coEvery { database.listDocuments("lingubible", "review_votes", any()) } returns DocumentList(0, emptyList())
         repository = AppwriteReviewRepository(provider)
     }
     @After fun cleanup() { unmockkStatic(Log::class) }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.GpaBackupViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-16T05:02:41" hostname="Ricky" time="0.698">
+  <properties/>
+  <testcase name="invalidOrUnreadableImportDoesNotChangeExistingEntries" classname="com.lingubible.app.GpaBackupViewModelTest" time="0.597"/>
+  <testcase name="previewCancelRestoreUndoRedoAndRestartPreserveData" classname="com.lingubible.app.GpaBackupViewModelTest" time="0.042"/>
+  <testcase name="exportedJsonIsRestorableAndFailedWriteReportsFailure" classname="com.lingubible.app.GpaBackupViewModelTest" time="0.059"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

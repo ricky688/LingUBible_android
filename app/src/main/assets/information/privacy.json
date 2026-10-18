@@ -1,0 +1,225 @@
+{
+  "title": {
+    "zh": "隱私政策",
+    "en": "Privacy Policy"
+  },
+  "subtitle": {
+    "zh": "本隱私政策說明我們如何收集、使用和保護您的個人信息。",
+    "en": "This privacy policy explains how we collect, use and protect your personal information."
+  },
+  "updated": {
+    "zh": "最後更新：2025年6月5日",
+    "en": "Last updated: June 5, 2025"
+  },
+  "sections": [
+    {
+      "id": "dataCollection",
+      "title": {
+        "zh": "數據收集",
+        "en": "Data Collection"
+      },
+      "paragraphs": [
+        {
+          "zh": "為了提供更好的服務和維護平台安全，我們會收集以下信息：",
+          "en": "To provide better services and maintain platform security, we collect the following information:"
+        },
+        {
+          "zh": "會話時間：用於分析用戶活躍度和改善服務質量",
+          "en": "Session time: Used to analyze user activity and improve service quality"
+        },
+        {
+          "zh": "IP 地址：用於安全監控和防止濫用行為",
+          "en": "IP address: Used for security monitoring and preventing abuse"
+        },
+        {
+          "zh": "瀏覽器信息：用於優化網站兼容性和用戶體驗",
+          "en": "Browser information: Used to optimize website compatibility and user experience"
+        },
+        {
+          "zh": "收集這些信息的目的是為了：",
+          "en": "The purpose of collecting this information is to:"
+        },
+        {
+          "zh": "• 維護平台安全，防止惡意攻擊和濫用",
+          "en": "• Maintain platform security and prevent malicious attacks and abuse"
+        },
+        {
+          "zh": "• 分析用戶行為，改善服務質量",
+          "en": "• Analyze user behavior to improve service quality"
+        },
+        {
+          "zh": "• 提供技術支援和故障排除",
+          "en": "• Provide technical support and troubleshooting"
+        },
+        {
+          "zh": "• 遵守法律法規要求",
+          "en": "• Comply with legal and regulatory requirements"
+        }
+      ]
+    },
+    {
+      "id": "dataSecurity",
+      "title": {
+        "zh": "數據安全",
+        "en": "Data Security"
+      },
+      "paragraphs": [
+        {
+          "zh": "我們採用多重安全措施保護您的數據：",
+          "en": "We employ multiple security measures to protect your data:"
+        },
+        {
+          "zh": "• 使用 HTTPS 加密傳輸所有數據",
+          "en": "• Use HTTPS encryption for all data transmission"
+        },
+        {
+          "zh": "• 實施嚴格的訪問控制和權限管理",
+          "en": "• Implement strict access control and permission management"
+        },
+        {
+          "zh": "• 24/7 安全監控和異常檢測",
+          "en": "• 24/7 security monitoring and anomaly detection"
+        },
+        {
+          "zh": "• 定期更新安全措施和系統補丁",
+          "en": "• Regular security updates and system patches"
+        }
+      ]
+    },
+    {
+      "id": "anonymity",
+      "title": {
+        "zh": "匿名性保護",
+        "en": "Anonymity Protection"
+      },
+      "paragraphs": [
+        {
+          "zh": "我們高度重視用戶的匿名性：",
+          "en": "We highly value user anonymity:"
+        },
+        {
+          "zh": "評論者的身份資訊將被嚴格保密",
+          "en": "Commenter identity information will be kept strictly confidential"
+        },
+        {
+          "zh": "我們承諾不會向任何個人、組織或第三方披露用戶的真實身份",
+          "en": "We promise not to disclose user real identities to any individuals, organizations, or third parties"
+        },
+        {
+          "zh": "只有授權的技術人員在必要時才能訪問用戶數據，且僅用於技術維護",
+          "en": "Only authorized technical personnel can access user data when necessary, and only for technical maintenance"
+        },
+        {
+          "zh": "除非法律明確要求，否則我們不會主動披露用戶資訊",
+          "en": "Unless explicitly required by law, we will not proactively disclose user information"
+        }
+      ]
+    },
+    {
+      "id": "dataRetention",
+      "title": {
+        "zh": "數據保留",
+        "en": "Data Retention"
+      },
+      "paragraphs": [
+        {
+          "zh": "我們的數據保留政策如下：",
+          "en": "Our data retention policy is as follows:"
+        },
+        {
+          "zh": "• 會話數據：保留 30 天後自動刪除",
+          "en": "• Session data: Automatically deleted after 30 days"
+        },
+        {
+          "zh": "• 日誌數據：保留 90 天用於安全分析",
+          "en": "• Log data: Retained for 90 days for security analysis"
+        },
+        {
+          "zh": "• 用戶內容：根據用戶要求可隨時刪除",
+          "en": "• User content: Can be deleted at any time upon user request"
+        }
+      ]
+    },
+    {
+      "id": "cookies",
+      "title": {
+        "zh": "Cookie 使用",
+        "en": "Cookie Usage"
+      },
+      "paragraphs": [
+        {
+          "zh": "我們使用 Cookie 來改善您的瀏覽體驗。詳細資訊請參閱我們的 Cookie 政策。",
+          "en": "We use cookies to improve your browsing experience. For detailed information, please refer to our Cookie Policy."
+        }
+      ]
+    },
+    {
+      "id": "userRights",
+      "title": {
+        "zh": "用戶權利",
+        "en": "User Rights"
+      },
+      "paragraphs": [
+        {
+          "zh": "您擁有以下權利：",
+          "en": "You have the following rights:"
+        },
+        {
+          "zh": "• 查詢我們收集的關於您的資訊",
+          "en": "• Query information we have collected about you"
+        },
+        {
+          "zh": "• 要求更正不準確的個人資訊",
+          "en": "• Request correction of inaccurate personal information"
+        },
+        {
+          "zh": "• 要求刪除您的個人資料",
+          "en": "• Request deletion of your personal data"
+        },
+        {
+          "zh": "• 要求匯出您的資料",
+          "en": "• Request export of your data"
+        }
+      ]
+    },
+    {
+      "id": "changes",
+      "title": {
+        "zh": "政策變更",
+        "en": "Policy Changes"
+      },
+      "paragraphs": [
+        {
+          "zh": "我們可能會不時更新此隱私政策。重大變更將通過網站通知公告。",
+          "en": "We may update this privacy policy from time to time. Major changes will be announced through website notifications."
+        }
+      ]
+    },
+    {
+      "id": "contact",
+      "title": {
+        "zh": "聯繫我們",
+        "en": "Contact Us"
+      },
+      "paragraphs": [
+        {
+          "zh": "如果您對此隱私政策有任何疑問或需要行使您的權利，請通過網站聯繫功能與我們聯繫。",
+          "en": "If you have any questions about this privacy policy or need to exercise your rights, please contact us through the website contact feature."
+        }
+      ]
+    },
+    {
+      "id": "recaptcha",
+      "title": {
+        "zh": "reCAPTCHA 保護",
+        "en": "reCAPTCHA Protection"
+      },
+      "paragraphs": [
+        {
+          "zh": "本平台受 reCAPTCHA 保護，並適用 Google 隱私政策及服務條款。",
+          "en": "This platform is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply."
+        }
+      ]
+    }
+  ]
+}

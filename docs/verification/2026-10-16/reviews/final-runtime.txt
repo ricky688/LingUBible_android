@@ -1,0 +1,83 @@
+--------- beginning of main
+10-16 02:40:08.432 50626 50626 E libprocessgroup: Failed to make and chown /sys/fs/cgroup/uid_10167: Read-only file system
+10-16 02:40:08.432 50626 50626 W Zygote  : createProcessGroup failed, kernel missing CONFIG_CGROUP_CPUACCT?
+10-16 02:40:08.433 50626 50626 W .lingubible.app: Unexpected CPU variant for x86: x86_64.
+10-16 02:40:08.433 50626 50626 W .lingubible.app: Known variants: atom, sandybridge, silvermont, kabylake, default
+10-16 02:40:08.435 50626 50626 E .lingubible.app: Not starting debugger since process cannot load the jdwp agent.
+10-16 02:40:08.440 50626 50626 D CompatibilityChangeReporter: Compat change id reported: 171979766; UID 10167; state: ENABLED
+10-16 02:40:08.445 50626 50626 W .lingubible.app: ClassLoaderContext classpath element mismatch. expected=/system_ext/framework/androidx.window.extensions.jar, found=/system/system_ext/framework/androidx.window.extensions.jar (PCL[]{PCL[/system_ext/framework/androidx.window.extensions.jar*1341008790]#PCL[/system_ext/framework/androidx.window.sidecar.jar*498821022]} | PCL[]{PCL[/system/system_ext/framework/androidx.window.extensions.jar*1341008790]#PCL[/system/system_ext/framework/androidx.window.sidecar.jar*498821022]})
+10-16 02:40:08.449 50626 50626 V GraphicsEnvironment: ANGLE Developer option for 'com.lingubible.app' set to: 'default'
+10-16 02:40:08.450 50626 50626 V GraphicsEnvironment: ANGLE GameManagerService for com.lingubible.app: false
+10-16 02:40:08.450 50626 50626 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+10-16 02:40:08.450 50626 50626 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+10-16 02:40:08.450 50626 50626 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+10-16 02:40:08.480 50626 50626 I android_os_HwBinder: HwBinder: Starting hwbinderthread pool for getting: vendor.waydroid.window@1.1::IWaydroidWindow/default
+10-16 02:40:08.486 50626 50626 D CompatibilityChangeReporter: Compat change id reported: 237531167; UID 10167; state: DISABLED
+10-16 02:40:08.487 50626 50649 W Parcel  : Expecting binder but got null!
+10-16 02:40:08.500 50626 50626 D CompatibilityChangeReporter: Compat change id reported: 193247900; UID 10167; state: ENABLED
+10-16 02:40:08.525 50626 50626 D AppwriteClient: Initialized: client=true, databases=true, endpoint=https://appwrite.lingubible.com/v1, projectId=6a1097400037a55f6472
+10-16 02:40:08.576 50626 50662 D TrafficStats: tagSocket(71) with statsTag=0xffffffff, statsUid=-1
+10-16 02:40:08.576 50626 50663 D TrafficStats: tagSocket(73) with statsTag=0xffffffff, statsUid=-1
+10-16 02:40:08.576 50626 50664 D TrafficStats: tagSocket(76) with statsTag=0xffffffff, statsUid=-1
+10-16 02:40:08.577 50626 50665 D TrafficStats: tagSocket(78) with statsTag=0xffffffff, statsUid=-1
+10-16 02:40:08.578 50626 50626 D CourseRepo: getCourses called: search=null, subject=null
+10-16 02:40:08.578 50626 50663 D TrafficStats: tagSocket(74) with statsTag=0xffffffff, statsUid=-1
+10-16 02:40:08.579 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:08.625 50626 50649 I MESA    : Using gralloc0 CrOS API
+10-16 02:40:08.626 50626 50649 W EGL-MAIN: failed to get driver name for fd -1
+10-16 02:40:08.627 50626 50649 W EGL-MAIN: MESA-LOADER: failed to retrieve device information
+10-16 02:40:08.627 50626 50649 W EGL-MAIN: failed to get driver name for fd -1
+10-16 02:40:08.629 50626 50649 E OpenGLRenderer: Device claims wide gamut support, cannot find matching config, error = EGL_SUCCESS
+10-16 02:40:08.629 50626 50649 W OpenGLRenderer: Failed to initialize 101010-2 format, error = EGL_SUCCESS
+10-16 02:40:08.632 50626 50649 E OpenGLRenderer: Unable to match the desired swap behavior.
+10-16 02:40:09.393 50626 50626 D StatsRepo: PlatformStats loaded successfully: PlatformStats(verifiedStudentsCount=587, verifiedStudentsLast30Days=22, reviewsCount=1323, reviewsLast30Days=42, coursesCount=1083, coursesLast30Days=8, instructorsCount=791, instructorsLast30Days=5)
+10-16 02:40:09.430 50626 50626 D ReviewRepo: Loaded 5 reviews
+10-16 02:40:09.430 50626 50626 D CourseRepo: getCourses called: search=null, subject=null
+10-16 02:40:10.663 50626 50626 D InstructorRepo: Loaded 50 instructors (department: null, search: null)
+10-16 02:40:11.444 50626 50667 D CourseRepo: Cached 1083 courses in memory
+10-16 02:40:11.444 50626 50626 D CourseRepo: Loaded 1083 courses (subject: null, search: null)
+10-16 02:40:11.445 50626 50626 D CourseRepo: Loaded 1083 courses (subject: null, search: null)
+10-16 02:40:14.481 50626 50703 D ProfileInstaller: Installing profile for com.lingubible.app
+10-16 02:40:36.400 50626 50626 W OnBackInvokedCallback: OnBackInvokedCallback is not enabled for the application.
+10-16 02:40:36.400 50626 50626 W OnBackInvokedCallback: Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+10-16 02:40:36.416 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:36.970 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:36.970 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:37.456 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:37.457 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:37.947 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:37.947 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:38.409 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:38.409 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:38.835 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:38.835 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:39.355 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:39.355 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:39.861 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:39.861 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:40.370 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:40.370 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:40.603 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:40.603 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:41.111 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:41.111 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:41.611 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:41.611 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:41.843 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:41.843 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:42.266 50626 50626 D ReviewRepo: Loaded 100 reviews
+10-16 02:40:42.266 50626 50626 D ReviewRepo: Fetching reviews
+10-16 02:40:42.668 50626 50626 D ReviewRepo: Loaded 23 reviews
+10-16 02:40:42.668 50626 50626 D CourseRepo: getCourses called: search=null, subject=null
+10-16 02:40:42.668 50626 50626 D CourseRepo: Loaded 1083 courses (subject: null, search: null)
+10-16 02:41:41.849 50626 50626 D InsetsController: show(ime(), fromIme=false)
+10-16 02:41:41.849 50626 50626 D InputMethodManager: showSoftInput() view=X0.s{a6bec6a VFED..... .F....ID 0,0-480,1000 aid=1073741824} flags=0 reason=SHOW_SOFT_INPUT_BY_INSETS_API
+10-16 02:41:41.854 50626 50626 I AssistStructure: Flattened final assist data: 484 bytes, containing 1 windows, 3 views
+10-16 02:41:41.857 50626 50626 D InputMethodManager: showSoftInput() view=X0.s{a6bec6a VFED..... .F....ID 0,0-480,1000 aid=1073741824} flags=0 reason=SHOW_SOFT_INPUT
+10-16 02:41:41.943 50626 50626 D InsetsController: show(ime(), fromIme=true)
+10-16 02:41:54.147 50626 50626 I android_os_HwBinder: HwBinder: Starting hwbinderthread pool for getting: vendor.waydroid.window@1.1::IWaydroidWindow/default
+10-16 02:41:54.148 50626 50626 W OnBackInvokedCallback: OnBackInvokedCallback is not enabled for the application.
+10-16 02:41:54.148 50626 50626 W OnBackInvokedCallback: Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+10-16 02:41:54.149 50626 50649 W Parcel  : Expecting binder but got null!
+10-16 02:41:54.161 50626 50649 E OpenGLRenderer: Unable to match the desired swap behavior.
+10-16 02:42:04.135 50626 50626 D CompatibilityChangeReporter: Compat change id reported: 171228096; UID 10167; state: ENABLED

@@ -442,8 +442,8 @@ class DomainAndViewModelTest {
         override suspend fun submitReview(submission: ReviewSubmission): Result<Review> {
             val r = Review(
                 id = "rev_${reviews.size + 1}",
-                courseCode = submission.courseCode,
-                comment = submission.comment
+                courseCode = submission.form.courseCode,
+                comment = submission.form.comment
             )
             reviews.add(r)
             return Result.success(r)
@@ -532,25 +532,14 @@ class DomainAndViewModelTest {
     }
 
     @Test
-    fun `write review viewmodel validates word count before submission`() = runTest {
-        val repo = FakeReviewRepository()
-        val vm = WriteReviewViewModel(repo)
-
-        vm.setInitialCourse("CLC9001")
-        vm.updateComment("Too short")
-        assertFalse(vm.uiState.value.isWordCountValid)
-
-        var submitted = false
-        vm.submitReview { submitted = true }
-        assertFalse(submitted)
-        assertNotNull(vm.uiState.value.errorMessage)
-
-        vm.updateComment("This is a valid review with more than five words.")
-        assertTrue(vm.uiState.value.isWordCountValid)
-
-        vm.submitReview { submitted = true }
-        testScheduler.advanceUntilIdle()
-        assertTrue(submitted)
-        assertEquals(2, repo.reviews.size)
+    fun `write review form validates word count before submission`() {
+        val instructor = InstructorEvaluation("Lecturer", "Lecture", 3.0, 4.0,
+            "The lecturer explained each topic clearly", setOf("has_final"))
+        val form = ReviewForm("CLC9001", "202610", "A", 3.0, 3.0, 4.0,
+            "Too short", instructors = listOf(instructor))
+        assertTrue(runCatching { form.validate() }.isFailure)
+        val valid = form.copy(comment = "This is a valid review with more than five words.")
+        valid.validate()
+        assertEquals("CLC9001", valid.documentData("owner", "Student", "now")["course_code"])
     }
 }

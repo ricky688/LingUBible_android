@@ -1,0 +1,12 @@
+{
+  "disabled_previous_did_not_advance": true,
+  "held_next_advances_once": true,
+  "outlined_previous_returns_to_first_step": true,
+  "next_button_bounds": "[179,879][298,933]",
+  "hold_ms": 1800,
+  "sample_seconds": [
+    0.15,
+    0.45,
+    0.9
+  ]
+}

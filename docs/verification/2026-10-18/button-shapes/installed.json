@@ -1,0 +1,10 @@
+{
+  "apk_sha256": "1b60c6fca26778b06b5609d4bb3caba7cd06f1618d88ee2270f4fcd96c0852eb",
+  "aab_sha256": "c7ad9d67b6fee66d9d64d33613f31b7a94669dc34b74904d8fd3f6655f984c37",
+  "certificate_sha256": "9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e",
+  "installed_hash_matches": true,
+  "apk_bytes": 4463519,
+  "aab_bytes": 7974612,
+  "serial": "192.168.240.112:5555",
+  "data_preserving_update": true
+}

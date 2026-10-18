@@ -1,0 +1,11 @@
+{
+  "serial": "192.168.240.112:5555",
+  "variant": "release",
+  "version": "1.0.6",
+  "versionCode": 7,
+  "apk_sha256": "ace348fe150e7534d0c7476bdd038213ff9c00ccab77ad9851f31049f5e09dfb",
+  "certificate_compatible": true,
+  "data_cleared": false,
+  "launch": "success",
+  "build_log": "/tmp/lingubible-course-search-fade-signed-release.log"
+}

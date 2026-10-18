@@ -1,0 +1,14 @@
+{
+  "device_serial": "192.168.240.112:5555",
+  "android_version": 13,
+  "theme": "existing red/dark/OLED",
+  "installation": "replacement; certificate matches; no data clear",
+  "installed_apk_sha256": "f1eb0fa0f3a62574ddcc14bb5affcae46a9be256b2f101fd2baf8d0cfc80a9fb",
+  "course_top_idle": "bottom fade retained; top clear",
+  "course_middle_after_3_seconds_idle": "both fades retained",
+  "changelog_top_idle": "bottom fade retained; top clear",
+  "changelog_bottom_after_3_seconds_idle": "top fade retained; bottom clear; footer reachable",
+  "extra_bottom_swipe_content_pixels_unchanged": true,
+  "signed_in_state": "preserved; profile opened without login",
+  "final_screen": "course list, middle, idle"
+}

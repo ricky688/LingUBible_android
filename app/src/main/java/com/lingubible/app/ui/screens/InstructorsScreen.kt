@@ -1,18 +1,29 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.AppButtonDefaults
+import com.lingubible.app.ui.components.FadingLazyColumn
+import com.lingubible.app.data.repository.SearchHistoryStore
+import com.lingubible.app.ui.components.RecentSearchesButton
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import com.lingubible.app.ui.common.hapticClick
 
 import com.lingubible.app.core.navigation.screenContentPadding
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tune
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lingubible.app.ui.components.InstructorFilterSheet
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,22 +52,14 @@ fun InstructorsScreen(
     viewModel: InstructorsViewModel = koinViewModel()
 ) {
     val isDark = isAppDarkTheme()
-    val uiState by viewModel.uiState.collectAsState()
-    var searchInput by remember { mutableStateOf("") }
-    val departments = listOf(
-        "ALL" to "全部 ALL",
-        "CHI" to "中文 CHI",
-        "ENG" to "英文 ENG",
-        "BUS" to "商學 BUS",
-        "ACCT" to "會計 ACCT",
-        "FIN" to "金融 FIN",
-        "MKT" to "市場 MKT",
-        "ECON" to "經濟 ECON",
-        "PHILO" to "哲學 PHILO",
-        "SOCSP" to "社會 SOCSP",
-        "CS" to "計算機 CS"
-    )
-    val favoriteInstructors = remember { mutableStateListOf<String>() }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val historyContext = LocalContext.current
+    val searchHistory = remember(historyContext) { SearchHistoryStore(historyContext) }
+    val keyboard = LocalSoftwareKeyboardController.current
+    val searchInput = uiState.searchQuery
+    var showFilters by remember { mutableStateOf(false) }
+    if (showFilters) InstructorFilterSheet(uiState.filters, uiState.allInstructors, uiState.terms,
+        onDismiss = { showFilters = false }, onApply = viewModel::applyFilters)
     val listState = rememberLazyListState()
 
     Column(
@@ -71,7 +74,6 @@ fun InstructorsScreen(
             OutlinedTextField(
                 value = searchInput,
                 onValueChange = {
-                    searchInput = it
                     viewModel.search(it)
                 },
                 placeholder = { Text("搜尋講師姓名...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
@@ -83,9 +85,11 @@ fun InstructorsScreen(
                     )
                 },
                 trailingIcon = {
+                    Row {
+                    RecentSearchesButton(searchHistory, "instructors", viewModel::search)
+                    IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { showFilters = true }) { Icon(Icons.Default.Tune, "篩選與排序 Filter and sort instructors") }
                     if (searchInput.isNotEmpty()) {
-                        IconButton(onClick = hapticClick {
-                            searchInput = ""
+                        IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick {
                             viewModel.search("")
                         }) {
                             Icon(
@@ -94,6 +98,7 @@ fun InstructorsScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
                     }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
@@ -104,37 +109,19 @@ fun InstructorsScreen(
                 ),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { searchHistory.add("instructors", searchInput); keyboard?.hide() }),
                 singleLine = true
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Department Filter Connected Button Group
-            val departmentItems = remember(departments, uiState.selectedDepartment) {
-                departments.map { (code, label) ->
-                    M3ButtonGroupItem(
-                        label = label,
-                        onClick = {
-                            if (code == "ALL") viewModel.filterDepartment(null)
-                            else viewModel.filterDepartment(code)
-                        }
-                    )
-                }
+            Text("${uiState.instructors.size} / ${uiState.allInstructors.size} 位講師 Instructors", style = MaterialTheme.typography.labelLarge)
+            (uiState.errorMessage ?: uiState.optionsError)?.let { message ->
+                Text(message, color = MaterialTheme.colorScheme.error)
+                TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::loadInstructors)) { Text("重試 Retry") }
             }
-            val selectedDepartmentIndex = remember(departments, uiState.selectedDepartment) {
-                if (uiState.selectedDepartment == null) 0
-                else departments.indexOfFirst { it.first == uiState.selectedDepartment }.coerceAtLeast(0)
-            }
-
-            ScrollableM3ButtonGroup(
-                selectedIndex = selectedDepartmentIndex,
-                items = departmentItems,
-                modifier = Modifier.fillMaxWidth(),
-                height = 36.dp,
-                spacing = 5.dp
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(Modifier.height(8.dp))
 
             // List
             if (uiState.isLoading && uiState.instructors.isEmpty()) {
@@ -160,24 +147,21 @@ fun InstructorsScreen(
                             )
                         }
                     } else {
-                        LazyColumn(
+                        FadingLazyColumn(
                             state = listState,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .mouseScrollbar(listState),
                             contentPadding = screenContentPadding(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            items(uiState.instructors) { instructor ->
-                                val isFav = favoriteInstructors.contains(instructor.name)
+                            itemsIndexed(uiState.instructors, key = { _, it -> it.id }) { index, instructor ->
                                 PopularInstructorCard(
                                     instructor = instructor,
-                                    isFavorited = isFav,
-                                    onFavoriteToggle = {
-                                        if (isFav) favoriteInstructors.remove(instructor.name)
-                                        else favoriteInstructors.add(instructor.name)
-                                    },
-                                    onClick = { onNavigateToInstructor(instructor.name) }
+                                    groupIndex = index,
+                                    groupSize = uiState.instructors.size,
+
+                                    onClick = { searchHistory.add("instructors", searchInput); onNavigateToInstructor(instructor.name) }
                                 )
                             }
                         }

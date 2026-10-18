@@ -1,0 +1,29 @@
+{
+  "device": "192.168.240.112:5555",
+  "os": "Waydroid Android 13",
+  "new_build_installed": true,
+  "apk_sha256": "84b8d45100a579f1d06dfe55878dace8e092eaab9f307636b6e61192ec99d684",
+  "certificate_matches_previous": true,
+  "install": "replacement; no uninstall/clear",
+  "exploration": "ARTEMIS observations and guarded ADB interactions",
+  "verified": [
+    "Instructor history first/middle/last grouped corners",
+    "Single filtered result fully rounded; reset 1/14 back to 14/14",
+    "Teaching-history item still opens course",
+    "Instructor review group corners",
+    "Course directory group corners and ACT1110 opens correct course",
+    "Timetable picker group/border shapes; no selections toggled",
+    "Three courses/nine credits retained; returned to Grid"
+  ],
+  "device_configuration": {
+    "size": "480x1000",
+    "density": 180,
+    "font_scale": 1.0,
+    "theme": "existing red/dark/OLED"
+  },
+  "pending": [
+    "Other affected Home/favourites/resource/calendar/honours lists not individually rechecked on this installed build",
+    "Full font/theme/resize matrix and physical Samsung/Pixel checks",
+    "Motion timing/haptic feel not measured"
+  ]
+}

@@ -2,6 +2,8 @@ package com.lingubible.app.data.repository
 
 import android.util.Log
 import com.lingubible.app.data.remote.AppwriteClientProvider
+import com.lingubible.app.domain.model.CourseTerm
+import com.lingubible.app.domain.model.parseCourseStringList
 import com.lingubible.app.domain.model.Course
 import com.lingubible.app.domain.model.TeachingRecord
 import com.lingubible.app.domain.repository.CourseRepository
@@ -166,16 +168,19 @@ class AppwriteCourseRepository(
             ?: return Result.success(emptyList())
 
         return try {
-            val response = databases.listDocuments(
-                databaseId = dbId,
-                collectionId = recordsCol,
-                queries = listOf(
-                    Query.equal("course_code", courseCode.trim().uppercase()),
-                    Query.limit(100)
-                )
-            )
+            val documents = mutableListOf<io.appwrite.models.Document<Map<String, Any>>>()
+            var cursor: String? = null
+            do {
+                val response = databases.listDocuments(dbId, recordsCol, buildList {
+                    add(Query.equal("course_code", courseCode.trim().uppercase()))
+                    add(Query.limit(100)); add(Query.orderAsc("\$id"))
+                    cursor?.let { add(Query.cursorAfter(it)) }
+                })
+                documents += response.documents
+                cursor = response.documents.lastOrNull()?.id
+            } while (response.documents.size == 100)
 
-            val records = response.documents.map { doc ->
+            val records = documents.map { doc ->
                 val data = doc.data
                 val termCode = (data["term_code"] as? String) ?: (data["term"] as? String) ?: ""
                 TeachingRecord(
@@ -184,7 +189,9 @@ class AppwriteCourseRepository(
                     instructorName = (data["instructor_name"] as? String) ?: "",
                     term = termCode,
                     academicYear = if (termCode.length >= 4) termCode.take(4) else "",
-                    section = (data["session_type"] as? String) ?: (data["section"] as? String) ?: ""
+                    section = (data["session_type"] as? String) ?: (data["section"] as? String) ?: "",
+                    serviceLearning = (data["service_learning"] as? String)?.takeIf { it in setOf("none", "optional", "compulsory") },
+                    teachingLanguage = (data["teaching_language"] as? String).orEmpty().trim()
                 )
             }
 
@@ -194,6 +201,41 @@ class AppwriteCourseRepository(
             Result.failure(e)
         }
     }
+
+    override suspend fun getTerms(): Result<List<CourseTerm>> = try {
+        val db = requireNotNull(clientProvider.databases)
+        val terms = mutableListOf<Pair<String, CourseTerm>>()
+        var cursor: String? = null
+        do {
+            val rows = db.listDocuments(dbId, "terms", buildList {
+                add(Query.limit(100)); add(Query.orderAsc("\$id")); cursor?.let { add(Query.cursorAfter(it)) }
+            }).documents
+            rows.forEach { row ->
+                val code = row.data["term_code"] as? String ?: return@forEach
+                terms += (row.data["start_date"] as? String ?: code) to CourseTerm(code, row.data["name"] as? String ?: row.data["term_name"] as? String ?: code)
+            }
+            cursor = rows.lastOrNull()?.id
+        } while (rows.size == 100)
+        Result.success(terms.sortedByDescending { it.first }.map { it.second })
+    } catch (e: kotlinx.coroutines.CancellationException) { throw e
+    } catch (e: Exception) { Result.failure(e) }
+
+    override suspend fun getCourseCodesForTerms(terms: Set<String>): Result<Set<String>> = try {
+        require(terms.isNotEmpty())
+        val db = requireNotNull(clientProvider.databases)
+        val codes = mutableSetOf<String>()
+        var cursor: String? = null
+        do {
+            val rows = db.listDocuments(dbId, recordsCol, buildList {
+                add(Query.equal("term_code", terms.toList())); add(Query.select(listOf("course_code")))
+                add(Query.limit(100)); add(Query.orderAsc("\$id")); cursor?.let { add(Query.cursorAfter(it)) }
+            }).documents
+            rows.forEach { (it.data["course_code"] as? String)?.uppercase()?.let(codes::add) }
+            cursor = rows.lastOrNull()?.id
+        } while (rows.size == 100)
+        Result.success(codes)
+    } catch (e: kotlinx.coroutines.CancellationException) { throw e
+    } catch (e: Exception) { Result.failure(e) }
 
     override suspend fun getGradeDistribution(courseCode: String): Result<Map<String, Int>> {
         val databases = clientProvider.databases
@@ -258,7 +300,12 @@ class AppwriteCourseRepository(
             avgRating = if (rawRating > 0) rawRating else 0.0,
             avgWorkload = if (rawWorkload > 0) rawWorkload else 0.0,
             avgDifficulty = if (rawDifficulty > 0) rawDifficulty else 0.0,
-            avgGrade = avgGrade
+            avgGrade = avgGrade,
+            avgGpa = if ((data["stats_avg_gpa_count"] as? Number)?.toInt() == 0) -1.0 else (data["stats_avg_gpa"] as? Number)?.toDouble() ?: -1.0,
+            avgUsefulness = (data["stats_avg_usefulness"] as? Number)?.toDouble() ?: 0.0,
+            teachingLanguages = parseCourseStringList(data["teaching_languages"]),
+            serviceLearningTypes = parseCourseStringList(data["service_learning_types"]),
+            readings = data["readings"] as? String ?: ""
         )
     }
 }

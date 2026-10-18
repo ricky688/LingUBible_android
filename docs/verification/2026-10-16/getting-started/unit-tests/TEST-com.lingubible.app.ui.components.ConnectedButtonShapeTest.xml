@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.lingubible.app.ui.components.ConnectedButtonShapeTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-16T06:44:35" hostname="Ricky" time="0.078">
+  <properties/>
+  <testcase name="quickTapAndHeldPressCompleteTheSameInwardAnimation" classname="com.lingubible.app.ui.components.ConnectedButtonShapeTest" time="0.065"/>
+  <testcase name="rapidPressesFinishWithoutAQueueOfStaleAnimations" classname="com.lingubible.app.ui.components.ConnectedButtonShapeTest" time="0.008"/>
+  <testcase name="shapeReachesTheNativePressedOutlineAndReturnsToTheCurrentSelection" classname="com.lingubible.app.ui.components.ConnectedButtonShapeTest" time="0.003"/>
+  <testcase name="collapsedHeaderCanHaveAZeroSizedOutline" classname="com.lingubible.app.ui.components.ConnectedButtonShapeTest" time="0.001"/>
+  <testcase name="lightColorSpringTakesAboutHalfThePreviousDuration" classname="com.lingubible.app.ui.components.ConnectedButtonShapeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

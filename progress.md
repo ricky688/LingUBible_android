@@ -1,3 +1,176 @@
+## 2026-10-18 — Global button press corner morph
+
+- Added `AppButtonDefaults`: standard buttons and icon actions now share an 8 dp pressed shape; 192 native button call sites use it. Eleven custom Surface press sites share its stiffness-only spring, including Home CTA, category grids, syllabus, review FABs and timetable export controls.
+- Replaced category press shrink and home/export shadow drops. Resting shapes, selected colors, haptics and disabled behavior preserved. Connected groups/split buttons keep their full quick-tap morph and light-only dual ripple; their implementation files are unchanged.
+- Validation: 546 unit tests pass; optimized release APK/AAB build and release guard PASS. Same-certificate update installed on Waydroid; pulled APK hash matches. Final APK SHA-256: `1b60c6fca26778b06b5609d4bb3caba7cd06f1618d88ee2270f4fcd96c0852eb`.
+- ARTEMIS explored guide Next/Previous and timetable export controls before manual captures. Checked disabled/held/released controls, dark/OLED and light mode, and final Home/Cancel interactions. Pixel checks confirm button size remains fixed while corners change. No export saved or app data cleared. Theme/device settings restored; left Home.
+- Handoff: `docs/button-shapes-2026-10-18.md`; evidence `docs/verification/2026-10-18/button-shapes/`; final artifacts/mapping `build/button-shapes-2026-10-18/`.
+- Pending: physical Samsung/Pixel and Android 15/16 checks; representative controls only, not every screen. No publishing/version/signing changes.
+
+## 2026-10-18 — UI stress checks, four fixes, optimized release installed
+
+User authorized remaining list/theme/font/landscape/keyboard and release checks; explicitly reserved Waydroid after VibeFinance was foreground. ARTEMIS ready/credentials valid; observation + guarded ADB used. Checked Home course/teacher groups, favourites empty state, ACT2201 real required/recommended reading groups and study-files empty state, October19 calendar holiday/hostel groups (restored Today), honours lists, Light100/150/200, Dark/OLED and320dp/200% stress cases.
+
+**Fixed actual failures in four existing UI files:** MainActivity exposes/rendered header expanded only when requested, no keyboard and height>=480dp (input was hidden in landscape200%). Honours programme titles/faculty now stack at small widths/large fonts; cohort/percentage wrap. GPA tabs use single-line bilingual labels; bottom navigation has centered ellipsis/full accessibility labels. Summary metric tiles stack at small widths/large fonts so13.2% remains one line. No backend/dependency/toolchain/signing/version/preference migrations.
+
+**Final verification:** 546 JVM tests passed, zero failures/errors/skips; optimized APK/AAB and release guard pass.992renamed app types, mapping matched, InformationPage enum kept. Same-certificate replacement installed; pulled APK hash matches `509ad1b6eb65ea7e20f164ca4a2454518f11d3d75b95563546c2a9538c7c6946`. Final input bounds y119–203 above keyboard222, query survives rotate/Back; Back hides IME before leaving. At320dp/200%, title widths372px and13.2% is one line. Device configuration matches original480×1000/density180/font1.0/rotation0/system-night-no; Dark/OLED/red/Tonal Spot and wallpaper-off retained. Same three courses/nine credits. Test ACT query cleared without history submission. No current-process AndroidRuntime fatal exception. No account/GPA/favourite edits, course toggles, outbound actions, commit or publishing.
+
+**Artifacts:** [readiness summary](docs/release-readiness-2026-10-18.md), [detailed report/screenshots](docs/verification/2026-10-18/release-readiness/report.md), source.patch/source-hashes.json and results/guard/assertion JSON beside it. APK/AAB/mapping/log in `build/release-readiness-2026-10-18/`. Screens marked final use installed509ad…; layoutfix-intermediate=b536…; headerfix-intermediate=b98…; unlabelled captures baseline84b8…. Prior b536 artifacts retained in `build/release-readiness-2026-10-18-before-summary-fix/`.
+
+**External blockers:** Live www assetlinks declares only old TWA; apex assetlinks returns301 to www. Valid native JSON already in `../public/.well-known/assetlinks.json`, prepared copy in evidence folder; keep existing TWA entries and confirm Play App Signing SHA256 before deployment. Both hosts need direct HTTPS JSON; final device reports1024 (verifier-specific failure). No force approval/default change. No Android15/16 images/AVDs or physical Samsung/Pixel; those edge-to-edge/navigation/cutout/haptic/performance checks and Play Console confirmation remain pending. Favourites and ACT2201 study files were empty; populated groups not tested. Matrix sampled, not exhaustive; no new instrumentation test code authored.
+
+## 2026-10-17 — Stacked cards use grouped list corners
+
+User requested less rounding where vertically adjacent cards meet. Reused `getGroupedItemShape` with 4 dp facing corners and 4 dp gaps; exposed corners retain component radius, and single-card groups remain fully rounded. `rememberCardPressShape` and reusable course/instructor/review cards accept defaulted group index/count; existing stiffness-only press springs, haptics, elevation and theme colors retained. Indexed groups match filtered/loaded counts and reset at headers. Applied to directory/Home/favourite/review lists, instructor teaching history, timetable section picker (same border/clip shape), calendar-day events, course readings/material files and honours programme cards. Existing course-resource grouped rows reuse the same policy. Standalone sections and side-by-side grids unchanged.
+
+**Verified:** 546 JVM tests passed, including four focused corner cases. Initial outline-based tests hit unmocked Android RectF; corrected to measure CornerSize directly with density 2, without dependencies. Optimized release APK/AAB builds and release guard pass (991 renamed types, mapping matched, required InformationPage enum kept). APK SHA256 `84b8d45100a579f1d06dfe55878dace8e092eaab9f307636b6e61192ec99d684`; version/signing unchanged. Artifacts/mapping/log: `build/grouped-cards-2026-10-17/`; evidence: `docs/verification/2026-10-17/grouped-cards/`; [scope and verification](docs/grouped-cards-2026-10-17.md).
+
+**Device follow-up completed:** User reserved Waydroid; installed archived release by matching-certificate replacement, pulled installed APK and verified hash above. ARTEMIS observations + guarded ADB confirmed instructor history top/middle/bottom and fully rounded single filtered result, reset1/14→14/14, history→course navigation, review/courses groups and course-card navigation, timetable picker matching border shape. Same three courses/nine credits retained; returned to Grid. Original480×1000/density180/font1.0/red-dark-OLED unchanged. [Device report/screenshots](docs/verification/2026-10-17/grouped-cards/report.md). Other affected Home/favourites/resources/calendar/honours lists and full theme/font/resize/physical-device matrix not individually rechecked; motion/haptic timing not measured. No account/GPA/history/preference reset, course toggle, uninstall, outbound action, commit or publishing.
+
+## 2026-10-17 — Remaining web parity delivered and Waydroid follow-up
+
+User requested all five remaining parity areas. Implemented complete paginated instructor history with term/language/session/course filters and Grades tab; improved existing calendar Week/Three-day controls and saved mode state; per-term timetable title/colors/fields/days/time bounds/PNG-PDF resolution/ICS dates; bounded local course/instructor recent searches; native public sharing and validated detail links with web-tab routing. Calendar week/three-day rendering already existed and was retained, not duplicated. Android-only changelog updated.
+
+**Validation:** 542 JVM tests passed (zero failures/errors/skips); optimized signed release APK/AAB built; release guard passed, mapping archived, InformationPage enum retained. Certificate-compatible replacement install preserved data. October 17 installed hash recheck matches APK `e3d17a68227d87e46620c48be29517a1df85aeb7280a330389179e0c835d2e4a`. APK 4,463,525 bytes; AAB 7,960,736 bytes; DEX 5,189,216 bytes. No publishing/signing/version/backend/dependency migration.
+
+**Waydroid:** Android 13, 480×1000, density180/font1.0, original red/dark/OLED. User authorized October17 exclusive use after another app was foreground. Verified instructor History/Grades, earlier 14→1/reset filters, course teacher→Reviews, cold/warm native detail tabs, calendar Week/Three-day, recent query revisit/restart/removal, exact #FFFF00 retention with dark readable block text. Earlier custom timetable persistence and actual PNG (3600×2100)/PDF (A4 landscape) saves verified. Restored appearance defaults and Month view; kept same three selected CRNs 5403/5404/5405 and nine-credit summary. Removed only our ACT2200 history entry and two own exported device Downloads files. Preserved sessions/GPA/other settings. No review publication, password/email operation, calendar insertion or outbound share send.
+
+**Handoff:** [implementation](docs/remaining-parity-2026-10-16.md), [device report/screenshots](docs/verification/2026-10-16/remaining-parity/report.md), machine results.json/unit XML/release-guard.json in same folder. Signed artifacts, mapping and build log at `build/remaining-parity-2026-10-16/`. Final5 names are current APK evidence; build3/pre-final/intermediate labels explicitly identify earlier build evidence. No new instrumentation tests: ARTEMIS exploration/observations and guarded ADB used; autonomous Flash diagnosed429 provider quota and stopped.
+
+**Remaining:** web `../public/.well-known/assetlinks.json` now includes native release certificate while preserving TWA entries; deploy both hosts separately and verify Play App Signing fingerprint before automatic browser-link claims. Physical Samsung/Pixel/Android15–16/full font-theme-navigation-performance checks, instructor recent-history UI, true calendar Activity recreation, invalid-settings/empty-ICS UI and live delivery/publication remain pending. Old ABCT catalogue courses lack credit metadata; display Credits unknown instead of inventing per-course credits. Keep `@Keep InformationPage` and release guard (previous optimized enum navigation crash).
+
+# 2026-10-16 — Guide navigation stays visible
+
+- User request: no scrolling required to reach Next. GettingStartedGuide now has a weighted scrolling body and a fixed, wrapping Previous / Next-or-Done / Close footer. Both first-launch sheet and Settings replay page share it. Reopen hint stays in body; no duplicated insets or new state/preferences.
+- 527 JVM tests and optimized signed APK/AAB build pass; release guard PASS. Artifacts/mapping/log: build/guide-footer-2026-10-16/.
+- Waydroid Android 13: old Next absent at top confirmed; new all-seven-step flow advanced without scrolling. Previous, Replay, Close/reopen and unchanged footer bounds during body scrolling passed. Footer actions visible and usable at 320 dp / 200% text; original size/density/font scale restored. Replacement preserves app data/certificate; installed APK matches release guard.
+- Evidence: docs/verification/2026-10-16/guide-footer/report.md, PNGs, step/bounds/config checks, unit-test XML and release-guard.json. Final device: Guide step 1.
+- Not re-triggered: first-launch sheet (seen preference preserved). Physical devices/landscape/other themes/TalkBack and actual Done tap not re-tested. At extreme 200% font, the unchanged body topic-field label is tight against progress; footer checks do not certify the entire guide's large-font layout.
+
+# 2026-10-16 — Persistent scroll-edge fades complete
+
+- Latest user request supersedes scroll-only fade behavior: each fade remains visible at rest while content remains in its direction; clears at the corresponding boundary. Non-scrollable content has no fades.
+- Updated shared FadingBlurModifier visibility policy for ScrollState/LazyListState/LazyGridState and horizontal M3ButtonGroup targets. Preserved springs, 22/34 dp heights, themes, inset geometry and boundary-alpha clamps.
+- 527 unit tests pass; signed optimized APK/AAB build and release guard PASS. Replacement installed on Waydroid Android 13 with matching certificate and preserved data/sign-in. Installed APK hash matches archived build.
+- ARTEMIS observations + grounded ADB checks: course top/middle after idle and changelog top/bottom pass. Extra swipe at bottom leaves content pixels unchanged. Final device screen: course list at middle with fades retained.
+- Details, screenshots and hashes: docs/verification/2026-10-16/persistent-fades/report.md, release-guard.json and device-checks.json. Artifacts/mapping/logs: build/persistent-fades-2026-10-16/.
+- Not re-tested: physical Samsung/Pixel, Android 15/16, other themes/window/font sizes, every screen/sheet/PDF and horizontal group interactions. No backend/data/preference/signing/version changes or new UI instrumentation tests.
+
+# 2026-10-16 — Native support Waydroid follow-up complete
+
+- Found/fixed optimized startup crash: Navigation reflects the original `InformationPage` enum name after R8 renaming. Added narrow `@Keep` plus actual mapping/DEX release guard; old artifacts fail, fixed artifacts pass. 527 tests pass; signed optimized APK/AAB rebuilt and replacement-installed without data clear/sign-out.
+- Verified on Waydroid Android 13 (480×1000, density 180, font 100%, existing appearance): startup/first guide, all five native information pages, FAQ expansion, contact empty validation/categories/keyboard/draft restoration and cleanup, bilingual dated Terms/Privacy with final notes, Android changelog/version/final entries and final Settings-row reachability.
+- User explicitly authorized one recovery email. Native CAPTCHA → sending → accepted result passed, and **user confirmed receipt**. Exactly one request; no resend, password change or contact message. Warm/cold invalid-token links and empty-email rejection verified. Sign-in survives process restart; no fatal exception in final process.
+- Corrected installed/archive APK SHA-256: `0f157262afdb45cb2c7e6660910c0e3bcf7a916e836d8deea02ef2f5215bb2ae`. Archive: `build/native-support-2026-10-16/`. Detailed report/screenshots: `docs/verification/2026-10-16/native-support/device/report.md`; parent `results.json` has current hashes and checks.
+- Pending: actual password change and valid-reset-form end-to-end submission, live contact message, physical Samsung/Pixel, Android 15/16, other theme/font/orientation settings and TalkBack. No publishing/commits or backend changes. Recovery has `FLAG_SECURE`; evidence uses sanitized UI labels instead of disabling screen protection. Temporary host recipient file removed.
+
+---
+
+# 2026-10-16 — Native password recovery and information pages (local build verified)
+
+- Native Forgot Password, email-request result, link validation and reset-with-confirmation screens. Reuses existing custom backend actions, CAPTCHA, rate limits and one-hour/one-time links; never bypasses verification or changes backend. Native inputs stay outside the small reCAPTCHA WebView.
+- Strict HTTPS reset-link parser and shared cold/warm intent handling; accepted secrets are removed from Activity intents, never stored in navigation args/preferences. Paste-link fallback works independently of domain App Links verification. Password rules match the web reset form. Sensitive recovery surface blocks screenshots; secrets stay memory-only.
+- Native FAQ, Contact, Terms, Privacy and **Android-only Changelog** from Profile footer and Appearance & Settings. Bilingual legal snapshots retain original dates, with Android-specific storage notes. Contact retains fields on errors and uses existing server validation; no live message sent. Related-page Back navigation preserves contact drafts.
+- Android changelog contains this local build's additions and recent native-client work, with actual BuildConfig version and no claim of Play publication. Settings version is also bound to BuildConfig.
+- **527 JVM tests pass**, zero failures/errors/skips. Final signed optimized APK + AAB built; release guard PASS; release certificate unchanged. Verification-handshake simulation and routing source checks pass; packaged policy assets match source. No new dependencies, preference migrations, toolchain/version/signing changes.
+- Artifacts: `build/native-support-2026-10-16/` (APK, AAB, mapping, build log). Handoff: `docs/native-support-2026-10-16.md`. Evidence/security report: `docs/verification/2026-10-16/native-support/`.
+- **Waydroid/device and live email/reset/contact checks remain deferred by user choice.** No installation, screenshots, app-data changes, emails, password changes, support messages, UI instrumentation tests, commits or uploads. Live CAPTCHA score acceptance and domain association remain to verify; user-initiated paste works without association. Preserve installed data and obtain explicit authorization before any live password/support-message check.
+
+---
+
+# 2026-10-16 — Native first-launch Guide (source and local build complete)
+
+- Added a native Material 3 guide based on the web guide's seven topics: discovery, reviews, materials, timetable, GPA, calendar and contributing. Copy describes actual Android features; both languages follow the selected primary language.
+- Opens once on the first eligible Home visit (no keyboard/auth/import interruption). Dismiss/finish/shortcut saves `getting_started_seen` in existing `app_settings`; existing installations see it once, appearance reset preserves it. No existing data or preferences are migrated/deleted.
+- Replay from User Settings, its Guide footer link, or Appearance & Settings. Shared guide includes topic menu, progress, Previous/Next/Done, Replay, native shortcuts and pure spring transitions. Topic/scroll state survives recreation; controls scroll with content.
+- **513 JVM tests passed, zero failures/errors/skips.** Signed optimized APK and AAB built; release guard PASS; release certificate unchanged. No dependency/toolchain/version/signing changes.
+- Artifacts + R8 mapping + build log: `build/getting-started-2026-10-16/`. Evidence: `docs/verification/2026-10-16/getting-started/results.json` and unit XML. Handoff/checklist: `docs/getting-started-2026-10-16.md`.
+- **Device testing remains deferred by explicit user choice.** No Waydroid installation, screenshots, device actions or new UI tests. First-launch dismissal/relaunch, replay, shortcuts, rotation/themes/font/insets need device verification. No reviews published, account/data changes, commits or uploads.
+
+---
+
+## 2026-10-16 — Material 3 teaching-record and past-paper lists
+
+- Course 任教記錄 teacher rows now open that instructor's **學生評價 Student Reviews** section directly. Canonical names use the existing typed route; the section request is saved on its navigation entry without changing the route identity. Native list state and a saved one-time focus flag retain position during refresh/recreation. Other instructor entry points remain normal.
+- Replaced teaching-record cards with Material 3 ListItem rows grouped by term; bilingual names and lecture/tutorial/session labels wrap, and redundant year text is removed. Blank canonical names have no navigation action.
+- Replaced past-paper cards/extra checkbox rows with grouped Material 3 ListItem rows by academic year. PDF preview is the row action; leading selection and trailing download/sign-in remain separate, labelled actions. Existing filters, sorting, single/ZIP export, account guards and busy/error handling stay on the existing parent pipeline. Removed the single-caller legacy PastPaperCard.
+- Theme colors, grouped 24 dp outer / 4 dp inner shapes, spring-to-12 dp pressed corners, native ripples, preference-aware haptics, stable keys and scroll fades are used. No backend, preference, dependency, version or signing changes.
+- **510 JVM tests pass, zero failures/errors/skips.** New term/session and direct-review-position checks pass; existing navigation, reviews, files and state tests remain passing. Signed APK + AAB build; optimization guard/certificate verification PASS. Existing nonfatal Kotlin metadata diagnostics remain unchanged.
+- Artifacts/mapping/logs: `build/course-resource-lists-2026-10-16/`. APK SHA-256: `b07c33e96a73e1d82996e2919118915efbe6062b5dfc6febfebd5d68f8e613f5`; AAB: `139430ae21452b281cf0ba8657bcc8436d896fc0b867fa117985d77f6280865b`. Version remains 1.0.6/code7.
+- **User explicitly selected “Keep device testing deferred.”** No Waydroid install, launch, taps, screenshots or user-data mutations. Teacher navigation/Back/restoration, long bilingual rows/font scaling/themes and separate PDF/checkbox/download taps remain pending. No new UI instrumentation tests claimed. No reviews, votes, publishing or commits.
+- Handoff: `docs/course-resource-lists-2026-10-16.md`; results, release guard and test XML: `docs/verification/2026-10-16/course-resource-lists/`.
+
+## 2026-10-16 — Scroll-only edge fades across scrollable screens
+
+- User requested fades disappear at reached top/bottom boundaries and show during scrolling. Shared ScrollState/LazyListState/LazyGridState policy now shows fades only while dragging/flinging, clears each reached boundary immediately, and springs both fades away at rest. Fitting content has no fade. Animated opacity is clamped; fade height is bounded in short viewports.
+- Added shared `FadingLazyColumn` / `fadingVerticalScroll` integration across vertical pages, forms, dialogs/sheets and the drawer. Avatar grids and PDF viewport are covered; existing category/timetable fades share the policy. Connected button-group horizontal fades follow scrolling/edge visibility too. Item keys, callbacks, native scrolling and passed list states are preserved.
+- Removed the permanent 48 dp fade above bottom navigation, which otherwise remained visible at rest/endpoints. Page fades end at measured bar clearance; sheets/already-inset viewports use zero extra clearance. No new padding. Navigation's glass/icons/divider remain; hide travel matches the bar without the removed scrim.
+- **508 JVM tests pass, zero failures/errors/skips.** Focused visibility/opacity and existing geometry checks pass. Final source recompiled/tested after drawer integration; signed optimized APK + AAB build, release guard and certificate verification pass. Existing nonfatal toolchain metadata diagnostics remain unchanged.
+- Artifacts and mapping: `build/scroll-fades-2026-10-16/`. APK SHA-256: `babd24c95782f48a73c52be59f1ecb78a54dcaad659fd962a82fbab227747b22`; AAB: `e892a744065e35e36332e3a856f5ed15f73574f31f58df2460310d2d5939915b`. Version/signing unchanged (1.0.6/code7).
+- **Waydroid remains untouched under the user's source-first instruction.** Device visuals/performance, keyboard/themes/landscape, sheets and PDF zoom are pending. No new UI instrumentation tests or screenshots claimed. No user data, backend, preferences, dependencies, publishing or commits changed.
+- Handoff: `docs/scroll-fades-2026-10-16.md`; results, coverage inventory and test XML: `docs/verification/2026-10-16/scroll-fades/`. The effect remains the existing frosted gradient/alpha dissolve.
+
+## 2026-10-16 — Remaining web tools implemented; device pass deferred
+
+- Added complete instructor directory pagination, department/term/language/former-staff filters, search and sorting; actual grading stats now display correctly. Unknown numeric values sort last; zero stays valid.
+- Added past-paper year/instructor filters, newest/oldest sort, selection and single PDF / multiple-file ZIP export. Lecture fallback follows course+term and summer aliases. Study files and papers share the native save-picker exporter; pending picker data is saved, account changes reject private downloads and incomplete writes are cleaned up.
+- Added timetable undo/redo (10 states per term), clear confirmation, web-compatible share links, paste/import preview with missing/conflict counts, additive confirmation and one-step undo. Slow term/import responses cannot overwrite newer state. Asset read errors no longer cache partial catalogues.
+- Added PNG/PDF choice to the existing timetable export preview. PDF uses the full calendar bitmap and fits the selected orientation onto A4 with margins. Existing credits, gridline and zoom work is preserved.
+- Added validated cold/warm Android link routing to import confirmation; server-verified App Links remain separate. Security review and exact routing/parser diff are in the evidence folder.
+- Validation: **505 JVM tests pass, zero failures/errors/skips**. Signed optimized APK + AAB build successfully; release guard PASS, matching mapping embedded, 861 renamed app types. Version/signing unchanged (1.0.6/code7; min26/target36). Existing lint Kotlin metadata diagnostics are nonfatal in this build.
+- APK SHA-256: `8cb5153cd118909ad339785e169137f21158113bd6662ae9ce3dd9346efac038`; AAB: `0f628d7a7b49a693073298490cf995f851207b234b5e5ddb2c83a46cb78cd6a0`. Artifacts/mapping/build log: `build/parity-tools-2026-10-16/`.
+- **User selected “Finish the source changes first” because Waydroid is in another app. No installation, launch, screenshot, data clear or saved timetable mutation for these additions.** On-device filters, picker/ZIP/PDF, import/deep-link and undo flows are pending. Follow the device checklist in `docs/web-parity-tools-2026-10-16.md`; preserve existing selections and undo only test additions.
+- **Live genuine review publication remains pending by user choice.** No public review, vote, account mutation, release upload or commit. No backend/preference migration or dependency/toolchain changes.
+- Handoff: `docs/web-parity-tools-2026-10-16.md`; evidence: `docs/verification/2026-10-16/parity-tools/results.json`, unit-test XML, release guard and intent security report. Existing signed-in review verification is recorded in the prior entry.
+
+## 2026-10-16 — Signed-in review form verification completed
+
+- User signed in locally on Waydroid. Verified actual course/term choices, independent Lecture/Tutorial evaluations, separate comments and assessment selections, 0.0/N/A ratings, validation, keyboard dismissal and completed preview without activating Submit.
+- Verified full draft restoration after leaving/reopening, force-stop/relaunch and replacement APK installation. Cancelling term changes and reselecting the same course/term preserved answers.
+- Fixed the expanded preview's omitted review-language label (one-line presentation change), rebuilt the signed optimized APK/AAB and verified `en` on-device. **487 JVM tests pass; release guard PASS.**
+- Installed APK hash matches pulled device bytes: `822cf1b4831a326efcf5314371c34c281aa276a126aafbbeadda52b47797b746`.
+- Discarded only the synthetic draft created in this check; reopening confirmed an empty form and retained sign-in. No review/vote/account mutation was performed, and no device settings changed.
+- Evidence: `docs/verification/2026-10-16/reviews/signedin-results.json` and signed-in screenshots. Updated `docs/reviews-2026-10-16.md`; archived corrected artifacts in `build/reviews-2026-10-16/`.
+- Remaining: actual server publication intentionally untested, service-learning UI branches/extended accessibility-window matrix and physical Samsung/Pixel checks. Account isolation remains covered by JVM tests; no live logout/account switch was performed.
+
+## 2026-10-16 — Native review submission and browsing
+
+- Added a catalogue-backed Course → Evaluate → Preview form, separate instructor/session evaluations, explicit ratings including 0/N/A, assessment requirements, service-learning details, anonymity/language selection and account-scoped seven-day drafts.
+- Added write-time account/catalogue/eligibility validation; failed submissions keep drafts. Same-course/term reselection preserves answers and destructive changes require confirmation.
+- Added complete paginated browsing, shared search/filter/sort controls, 30-row load-more batches, full-review sheets, real vote counts and all instructor/session matching. Discover keeps a five-review preview.
+- Preserved the web repair for legacy instructor JSON and zero/N/A ratings. No backend/schema or stored-preference migration.
+- Validation: **487 JVM tests passed**; signed optimized APK + AAB built; release guard PASS. Final APK installed over Waydroid data and pulled bytes matched SHA-256 `db7805a3fcb5763a81553e91274cb5334cc25b07fc2f9556cfdaedce0bcbdd10`.
+- ARTEMIS-assisted Waydroid checks: 1323-review browsing, search, keyboard dismissal, full-review content/Close, native sign-in guard. Preceding optimized build also verified grade A=82, sorting, two-session details, and load-more 30→60.
+- **Pending:** signed-in form/draft UI and actual server submission with a consenting test account; physical Samsung/Pixel and expanded accessibility/window matrix. No review/vote/account was created. No device settings changed.
+- Handoff: `docs/reviews-2026-10-16.md`; evidence: `docs/verification/2026-10-16/reviews/`; archived release artifacts: `build/reviews-2026-10-16/`. Existing concurrent timetable work preserved; no commit/publish.
+
+## 2026-10-16 — Web feature additions completed and release verified
+
+- Added account-backed shared favourites and a My Favourites page; own-review editing/deletion with ownership checks, vote cleanup and existing statistics refresh; advanced course filters/sorting using actual metadata and terms; required/recommended readings; authenticated study-material browsing, PDF viewing, original single-file and ZIP bulk exports; corrected all six information links.
+- Added Forgot Password via the existing secure web recovery flow (browser handoff retains CAPTCHA/token protection). Device testing found the localized-context browser-launch crash; fixed both recovery/reading intents with NEW_TASK. Repeated final recovery launch and Back return successfully. Filter sheet now opens fully with Apply visible.
+- 456 JVM tests pass. Signed optimized release APK/AAB and release guard PASS (1.0.6/code7; 779 renamed app types present in DEX; mapping matches bundle). Final release installed on Waydroid in place; hash matches local APK; no uninstall/data clear. Final app process has no fatal exceptions.
+- ARTEMIS + grounded ADB: startup/catalogue, English filter (667), 2026–27 Term 1 filter (368), ACT2200 readings, resource/favourites/My Reviews guest prompts, FAQ and recovery URL, browser Back. Evidence/results: docs/verification/2026-10-15/web-parity/. Artifacts/mapping/log: build/web-parity-2026-10-15/.
+- Handoff: docs/web-parity-2026-10-16.md. Pending dedicated-account checks: favourites sync, live own-review edit/delete, protected PDF/file-picker/ZIP downloads, actual reset email/completion. No live review or email mutations performed. Physical-device/theme/font/landscape checks pending. No backend/schema/preference migration, signing change, publishing or unrelated work rollback.
+
+## 2026-10-15 — Course-list bottom fade correction
+
+- Fixed the abrupt band shown in the screenshot: the old mask ended above system navigation while the card became opaque again below it. Lazy-list bottom mask now continues through the navigation inset, clamped at its final opacity. Removed the duplicate dark mist overlay and bottom hairline; use a single feathered five-stop opacity mask. Top/category/timetable fades unchanged.
+- All 436 JVM tests and optimized signed release APK build passed. Matched the installed release certificate, updated Waydroid in place without clearing data, reopened app, entered courses and scrolled twice. Captured before/after screenshots; inspected dark/OLED bottom edge and confirmed no restored card strip below fade. No app-process fatal exceptions.
+- Evidence: docs/verification/2026-10-15/course-search-fade/bottom-*.png and bottom-fix-results.json. Build log: /tmp/lingubible-course-bottom-fade-fix.log. Light/gesture-navigation/physical-device checks remain pending. Existing gradient/mask styling is preserved; no new backdrop-blur renderer or UI test code.
+
+## 2026-10-15 — Signed release rerun on Waydroid
+
+- Built the latest optimized signed release APK (1.0.6/code7), including course-search fading edges. Verified release certificate matches installed app, installed with update-in-place, and reopened MainActivity successfully. No uninstall or data clear.
+- Waydroid: 192.168.240.112:5555. Release and release-validation builds both passed. Startup has no app-process AndroidRuntime fatal exceptions. Evidence: docs/verification/2026-10-15/course-search-fade/ (deployment hash, startup screenshot and log).
+- Full course-search scrolling/theme/keyboard visual checks remain pending; this request covered deploying and reopening the release.
+
+## 2026-10-15 — Course search results fading edges
+
+- Applied the existing spring-animated frosted fading-edge effect to the course search results list. Top edge appears after scrolling down; bottom edge indicates remaining results; intensity increases during scrolling and settles afterward. Uses the selected theme background, including OLED.
+- Added the existing measured bottom-inset policy to the LazyListState overload, placing the fade above visible navigation and following its movement. Preserved content padding, stable course keys, search/filter behavior, pull-to-refresh and card actions. No dependencies or data changes.
+- Validation: debug APK build and all 436 JVM tests passed (zero failures/errors); existing FadingBlurGeometryTest covers bottom navigation and short viewport ranges. Changed source files pass whitespace checks.
+- Waydroid observation through ARTEMIS found another app (VibeFinance) active, so no installation or disruptive interaction was performed. Course-list visual/scroll/keyboard verification remains pending; no new UI test code authored. This reuses the existing gradient/mask frosted effect, not a new optical backdrop-blur renderer.
+
 ## 2026-10-15 — 🎨 課表匯出預覽按鈕動態形狀變換（取代下壓縮放）、全螢幕雙指縮放檢視與邊界水波紋優化（Expressive Shape Morphing Buttons & Fullscreen Zoom Preview）
 
 - User requested replacing button press-down effects with Jetpack Compose shape changing, adding fullscreen pinch-to-zoom preview, and optimizing bounded ripple highlights:

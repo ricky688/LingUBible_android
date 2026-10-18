@@ -1,0 +1,16 @@
+{
+  "standard_buttons": {
+    "IconButton": 37,
+    "OutlinedButton": 28,
+    "Button": 37,
+    "FilledTonalButton": 9,
+    "TextButton": 80,
+    "FilledTonalIconButton": 1
+  },
+  "all_use_shared_defaults": true,
+  "shared_surface_press_sites": 11,
+  "connected_group_files_unchanged": true,
+  "source_changes_ui_only": true,
+  "haptic_handler_counts_unchanged": true,
+  "app_theme_and_bottom_navigation_unchanged": true
+}

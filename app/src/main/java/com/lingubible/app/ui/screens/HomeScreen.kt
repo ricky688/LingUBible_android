@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.ui.common.hapticClick
 
 import com.lingubible.app.core.navigation.screenContentPadding
@@ -16,9 +17,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,7 +39,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -85,7 +84,7 @@ fun HomeScreen(
     onNavigateToReviews: () -> Unit = {},
     homeViewModel: HomeViewModel = koinViewModel(),
     coursesViewModel: CoursesViewModel = koinViewModel(),
-    reviewsViewModel: ReviewsViewModel = koinViewModel(),
+    reviewsViewModel: ReviewsViewModel = koinViewModel(parameters = { org.koin.core.parameter.parametersOf(false, 5) }),
     instructorsViewModel: InstructorsViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel()
 ) {
@@ -99,8 +98,6 @@ fun HomeScreen(
     var selectedTab by remember { mutableStateOf(HomeFeaturedTab.POPULAR_COURSES) }
 
     // Favorites local state
-    val favoriteCourses = remember { mutableStateListOf<String>() }
-    val favoriteInstructors = remember { mutableStateListOf<String>() }
 
     // Rolling text actions
     val tickerTexts = listOf("探索課程", "集思廣益", "明辨是非", "分享心得")
@@ -135,7 +132,7 @@ fun HomeScreen(
             },
             modifier = Modifier.fillMaxSize()
         ) {
-            LazyColumn(
+            FadingLazyColumn(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
@@ -211,19 +208,14 @@ fun HomeScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // CTA Button with Expressive Spring Elevation and Haptics
+                        // CTA Button with shared shape feedback and haptics
                         val ctaInteractionSource = remember { MutableInteractionSource() }
-                        val isCtaPressed by ctaInteractionSource.collectIsPressedAsState()
-                        val ctaCorner by androidx.compose.animation.core.animateDpAsState(
-                            targetValue = if (isCtaPressed) 16.dp else 30.dp,
-                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                            label = "ctaPressedShape"
-                        )
+                        val ctaCorner by AppButtonDefaults.pressCorner(ctaInteractionSource, 30.dp)
 
                         Surface(
                             modifier = Modifier
                                 .shadow(
-                                    elevation = if (isCtaPressed) 4.dp else 12.dp,
+                                    elevation = 12.dp,
                                     shape = RoundedCornerShape(ctaCorner),
                                     ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
                                     spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
@@ -560,16 +552,13 @@ fun HomeScreen(
                                         )
                                     }
                                 } else {
-                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        courses.take(6).forEach { course ->
-                                            val isFav = favoriteCourses.contains(course.code)
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        courses.take(6).forEachIndexed { index, course ->
                                             PopularCourseCard(
                                                 course = course,
-                                                isFavorited = isFav,
-                                                onFavoriteToggle = {
-                                                    if (isFav) favoriteCourses.remove(course.code)
-                                                    else favoriteCourses.add(course.code)
-                                                },
+                                                groupIndex = index,
+                                                groupSize = minOf(6, courses.size),
+
                                                 onClick = { onNavigateToCourse(course.code) }
                                             )
                                         }
@@ -597,16 +586,13 @@ fun HomeScreen(
                                         )
                                     }
                                 } else {
-                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        instructors.take(6).forEach { instructor ->
-                                            val isFav = favoriteInstructors.contains(instructor.name)
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        instructors.take(6).forEachIndexed { index, instructor ->
                                             PopularInstructorCard(
                                                 instructor = instructor,
-                                                isFavorited = isFav,
-                                                onFavoriteToggle = {
-                                                    if (isFav) favoriteInstructors.remove(instructor.name)
-                                                    else favoriteInstructors.add(instructor.name)
-                                                },
+                                                groupIndex = index,
+                                                groupSize = minOf(6, instructors.size),
+
                                                 onClick = { onNavigateToInstructor(instructor.name) }
                                             )
                                         }
@@ -634,16 +620,13 @@ fun HomeScreen(
                                         )
                                     }
                                 } else {
-                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        topCourses.take(6).forEach { course ->
-                                            val isFav = favoriteCourses.contains(course.code)
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        topCourses.take(6).forEachIndexed { index, course ->
                                             PopularCourseCard(
                                                 course = course,
-                                                isFavorited = isFav,
-                                                onFavoriteToggle = {
-                                                    if (isFav) favoriteCourses.remove(course.code)
-                                                    else favoriteCourses.add(course.code)
-                                                },
+                                                groupIndex = index,
+                                                groupSize = minOf(6, topCourses.size),
+
                                                 onClick = { onNavigateToCourse(course.code) }
                                             )
                                         }
@@ -671,16 +654,13 @@ fun HomeScreen(
                                         )
                                     }
                                 } else {
-                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        topInstructors.take(6).forEach { instructor ->
-                                            val isFav = favoriteInstructors.contains(instructor.name)
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        topInstructors.take(6).forEachIndexed { index, instructor ->
                                             PopularInstructorCard(
                                                 instructor = instructor,
-                                                isFavorited = isFav,
-                                                onFavoriteToggle = {
-                                                    if (isFav) favoriteInstructors.remove(instructor.name)
-                                                    else favoriteInstructors.add(instructor.name)
-                                                },
+                                                groupIndex = index,
+                                                groupSize = minOf(6, topInstructors.size),
+
                                                 onClick = { onNavigateToInstructor(instructor.name) }
                                             )
                                         }
@@ -715,7 +695,7 @@ fun HomeScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        TextButton(shapes = ButtonDefaults.shapes(),
+                        TextButton(shapes = AppButtonDefaults.shapes(),
                             onClick = hapticClick { onNavigateToReviews() },
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
@@ -799,7 +779,7 @@ fun HomeScreen(
                                 Spacer(modifier = Modifier.height(18.dp))
                                 Button(
                                     onClick = hapticClick { onNavigateToWriteReview("") },
-                                    shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
+                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(14.dp)),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
                                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -817,13 +797,15 @@ fun HomeScreen(
                         }
                     }
                 } else {
-                    items(reviewsState.reviews.take(10)) { review ->
+                    itemsIndexed(reviewsState.reviews.take(10), key = { _, review -> review.id }) { index, review ->
                         ReviewCard(
                             review = review,
+                            groupIndex = index,
+                            groupSize = minOf(10, reviewsState.reviews.size),
                             onVote = { voteType ->
                                 reviewsViewModel.voteReview(review.id, voteType)
                             },
-                            modifier = Modifier.padding(bottom = 12.dp),
+                            modifier = Modifier.padding(bottom = 4.dp),
                             onClick = { onNavigateToCourse(review.courseCode) }
                         )
                     }

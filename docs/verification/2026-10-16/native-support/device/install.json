@@ -1,0 +1,9 @@
+{
+  "device": "192.168.240.112:5555",
+  "android": "13",
+  "replacement_install": true,
+  "data_cleared": false,
+  "certificate_sha256": "9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e",
+  "apk_sha256": "f27c8cb0d6ea404aba3577be14748e945f3638f0f2a3b2dcfed26e0514aafa41",
+  "installed_bytes_match": true
+}
