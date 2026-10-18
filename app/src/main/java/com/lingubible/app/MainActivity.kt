@@ -1,5 +1,7 @@
 package com.lingubible.app
 
+import com.lingubible.app.core.theme.AppMotion
+
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -310,11 +312,7 @@ fun LingUBibleMainScreen() {
 
             val bottomBarTranslationY by animateDpAsState(
                 targetValue = if (isBottomBarTargetVisible) 0.dp else hideTranslation,
-                animationSpec = if (isBottomBarTargetVisible) {
-                    spring(stiffness = Spring.StiffnessMediumLow)
-                } else {
-                    spring(stiffness = Spring.StiffnessMedium)
-                },
+                animationSpec = AppMotion.spatial(),
                 label = "bottomBarTranslationY"
             )
 

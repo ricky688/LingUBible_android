@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-18",
+  "device": "192.168.240.112:5555",
+  "android": "13",
+  "checks": [
+    {
+      "flow": "Final APK installation and cold launch",
+      "result": "PASS",
+      "evidence": "installation.json; final-restored-home.png",
+      "notes": "Exact release SHA-256 verified after restart. Cold launch reported 512 ms locally; not a benchmark."
+    },
+    {
+      "flow": "Discover statistics and cached refresh",
+      "result": "PASS",
+      "notes": "Four real counts remained visible during pull-to-refresh; refreshed data returned."
+    },
+    {
+      "flow": "Course directory, course detail, Back",
+      "result": "PASS",
+      "notes": "1083 courses; ACT1110 detail loaded and back returned to Discover."
+    },
+    {
+      "flow": "Instructor directory initial loading and populated list",
+      "result": "PASS",
+      "evidence": "final-instructors-layout.json; final-instructors-loaded-layout.json; final-instructors.png",
+      "notes": "Loading semantics observed, then 450 / 791 instructor rows available under existing defaults. No placeholder actions exposed."
+    },
+    {
+      "flow": "Academic Tools and calendar paging",
+      "result": "PASS",
+      "notes": "Timetable/calendar/GPA destinations; October to November then back to October."
+    },
+    {
+      "flow": "Timetable export preview",
+      "result": "PASS",
+      "notes": "Opened preview and closed it; no file export or calendar insertion performed."
+    },
+    {
+      "flow": "Calculator/Statistics repeated switching",
+      "result": "PASS",
+      "evidence": "final-tabs.mp4",
+      "notes": "Five switches recorded in one timed sequence; inspected in-flight slide/fade and stable endpoints."
+    },
+    {
+      "flow": "Honours comparison wording",
+      "result": "PASS",
+      "notes": "Enabled comparison: Compared with 2024 and metric deltas appeared; disabled again."
+    },
+    {
+      "flow": "Honours card press",
+      "result": "PASS",
+      "evidence": "final-card-press.mp4; final-card-rest.png; final-card-held.png",
+      "notes": "First grouped card outer corners visibly morph on hold; card width and text stay in place. Inner grouped edges retained."
+    },
+    {
+      "flow": "Light appearance and connected group interactions",
+      "result": "PASS",
+      "evidence": "final-light-gpa.png",
+      "notes": "Light selected; connected group exercised with held press, quick selection changes and GPA navigation. Detailed dual-ripple frame timing was not measured; custom source unchanged."
+    },
+    {
+      "flow": "Restore appearance and device settings",
+      "result": "PASS",
+      "evidence": "appearance-restored.json; device-restored.json",
+      "notes": "Dark reselected; original OLED/color preferences untouched. 480x1000, density180, font1.0, animator1, rotation0/auto0 unchanged."
+    },
+    {
+      "flow": "Runtime fatal errors",
+      "result": "PASS",
+      "evidence": "runtime-errors.txt",
+      "notes": "No AndroidRuntime fatal exception in tested live application process."
+    }
+  ],
+  "pending": [
+    "Physical Samsung/Pixel and Android 15/16",
+    "Sign-in/Register switching while signed out",
+    "Broader width/font-scale/landscape matrix",
+    "Quantitative frame-time and ripple-duration measurement"
+  ],
+  "artemis": "Pre-change exploration trace recorded separately. Post-restart diagnosis ready (5/5 required). Optional accessibility helper loopback did not answer; final inspections used Android CLI layout and ADB. Optional repair guidance: uv run artemis helper install --serial 192.168.240.112:5555 --force (not run)."
+}

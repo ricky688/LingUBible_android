@@ -42,7 +42,6 @@ fun PopularCourseCard(
 ) {
     val isDark = isAppDarkTheme()
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
     val isHovered by interactionSource.collectIsHoveredAsState()
     val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize)
 
@@ -68,7 +67,6 @@ fun PopularCourseCard(
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = when {
-                isPressed -> 4.dp
                 isHovered -> 6.dp
                 else -> 2.dp
             }
@@ -198,7 +196,6 @@ fun PopularInstructorCard(
 ) {
     val isDark = isAppDarkTheme()
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
     val isHovered by interactionSource.collectIsHoveredAsState()
     val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize)
 
@@ -223,7 +220,6 @@ fun PopularInstructorCard(
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = when {
-                isPressed -> 4.dp
                 isHovered -> 6.dp
                 else -> 2.dp
             }

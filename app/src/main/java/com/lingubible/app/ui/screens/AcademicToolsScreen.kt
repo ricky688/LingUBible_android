@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.theme.AppMotion
+
 import androidx.compose.runtime.saveable.rememberSaveable
 
 import androidx.compose.animation.*
@@ -55,7 +57,6 @@ fun AcademicToolsScreen(
     val isZh = appLanguage == AppLanguage.ZH_TW
 
     var selectedTab by rememberSaveable(initialTab) { mutableIntStateOf(initialTab.coerceIn(0, 2)) }
-    var previousTab by remember { mutableIntStateOf(selectedTab) }
 
     LaunchedEffect(selectedTab) {
         topBarState.setAcademicSubTab(selectedTab)
@@ -103,21 +104,21 @@ fun AcademicToolsScreen(
             visible = topBarState.isSubBarVisible,
             enter = expandVertically(
                 expandFrom = Alignment.Top,
-                animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                animationSpec = AppMotion.spatial()
             ) + slideInVertically(
                 initialOffsetY = { -it },
-                animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                animationSpec = AppMotion.spatial()
             ) + fadeIn(
-                animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                animationSpec = AppMotion.effects()
             ),
             exit = shrinkVertically(
                 shrinkTowards = Alignment.Top,
-                animationSpec = spring(stiffness = Spring.StiffnessMedium)
+                animationSpec = AppMotion.spatial()
             ) + slideOutVertically(
                 targetOffsetY = { -it },
-                animationSpec = spring(stiffness = Spring.StiffnessMedium)
+                animationSpec = AppMotion.spatial()
             ) + fadeOut(
-                animationSpec = spring(stiffness = Spring.StiffnessMedium)
+                animationSpec = AppMotion.effects()
             )
         ) {
             FrostedGlassHeader(
@@ -146,23 +147,20 @@ fun AcademicToolsScreen(
         AnimatedContent(
             targetState = selectedTab,
             transitionSpec = {
-                val forward = targetState >= previousTab
+                val forward = targetState >= initialState
                 val direction = if (forward) 1 else -1
                 (slideInHorizontally(
                     initialOffsetX = { (it * 0.25f * direction).toInt() },
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                ) + fadeIn(animationSpec = tween(220))) togetherWith
+                    animationSpec = AppMotion.spatial()
+                ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
                 (slideOutHorizontally(
                     targetOffsetX = { (-it * 0.25f * direction).toInt() },
-                    animationSpec = tween(180, easing = FastOutLinearInEasing)
-                ) + fadeOut(animationSpec = tween(160)))
+                    animationSpec = AppMotion.spatial()
+                ) + fadeOut(animationSpec = AppMotion.effects()))
             },
             modifier = Modifier.weight(1f),
             label = "academicToolSubViewTransition"
         ) { tabIndex ->
-            LaunchedEffect(tabIndex) {
-                previousTab = tabIndex
-            }
             when (tabIndex) {
                 0 -> PlannerScreen()
                 1 -> CalendarScreen()

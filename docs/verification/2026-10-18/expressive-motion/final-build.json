@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "tasks": [
+    "testDebugUnitTest",
+    "assembleRelease",
+    "bundleRelease"
+  ],
+  "unit_tests": 551,
+  "failures": 0,
+  "errors": 0,
+  "build_duration": "9m 6s",
+  "release_guard": "PASS",
+  "whitespace_check": "PASS",
+  "device_validation": "PASS for recorded flows; see device-checks.json for scope/pending checks",
+  "known_diagnostics": "Existing Kotlin dependency metadata / R8 diagnostics remain; no toolchain changes."
+}

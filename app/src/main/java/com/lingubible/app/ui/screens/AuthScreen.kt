@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.theme.AppMotion
 import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.ui.components.fadingVerticalScroll
 import com.lingubible.app.ui.common.hapticClick
@@ -167,10 +168,10 @@ fun AuthScreen(
                 Column {
                         AnimatedVisibility(
                             visible = !isLoginMode,
-                            enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                                fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-                            exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                                fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            enter = expandVertically(animationSpec = AppMotion.spatial()) +
+                                fadeIn(animationSpec = AppMotion.effects()),
+                            exit = shrinkVertically(animationSpec = AppMotion.spatial()) +
+                                fadeOut(animationSpec = AppMotion.effects())
                         ) {
                             Column {
                             OutlinedTextField(
@@ -217,10 +218,10 @@ fun AuthScreen(
 
                         AnimatedVisibility(
                             visible = !isLoginMode,
-                            enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                                fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-                            exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                                fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            enter = expandVertically(animationSpec = AppMotion.spatial()) +
+                                fadeIn(animationSpec = AppMotion.effects()),
+                            exit = shrinkVertically(animationSpec = AppMotion.spatial()) +
+                                fadeOut(animationSpec = AppMotion.effects())
                         ) {
                             Column {
                                 Spacer(modifier = Modifier.height(12.dp))

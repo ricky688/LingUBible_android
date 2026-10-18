@@ -1,5 +1,7 @@
 package com.lingubible.app.core.navigation
 
+import com.lingubible.app.core.theme.AppMotion
+
 import com.lingubible.app.ui.common.hapticClick
 
 import androidx.compose.animation.animateColorAsState
@@ -75,7 +77,7 @@ fun LingUBibleBottomBar(
     }
     val frostedBaseColor by animateColorAsState(
         targetValue = targetFrostedBaseColor,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = AppMotion.effects(),
         label = "bottomBarFrostedBase"
     )
 
@@ -87,7 +89,7 @@ fun LingUBibleBottomBar(
     }
     val frostedSurfaceColor by animateColorAsState(
         targetValue = targetFrostedSurfaceColor,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = AppMotion.effects(),
         label = "bottomBarFrostedSurface"
     )
 
@@ -99,11 +101,7 @@ fun LingUBibleBottomBar(
 
     val internalTranslationY by animateDpAsState(
         targetValue = if (isVisible) 0.dp else 200.dp,
-        animationSpec = if (isVisible) {
-            spring(stiffness = Spring.StiffnessMediumLow)
-        } else {
-            spring(stiffness = Spring.StiffnessMedium)
-        },
+        animationSpec = AppMotion.spatial(),
         label = "bottomBarTranslationY"
     )
     val barTranslationY = barOffset ?: internalTranslationY
@@ -111,7 +109,7 @@ fun LingUBibleBottomBar(
     // Fade animation on items strictly matching spring motion
     val itemsAlpha by animateFloatAsState(
         targetValue = if (isVisible) 1f else 0f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = AppMotion.effects(),
         label = "itemsAlpha"
     )
 
@@ -140,7 +138,7 @@ fun LingUBibleBottomBar(
                     delay(index * 45L) // Staggered delay: 0ms, 45ms, 90ms
                     animatable.animateTo(
                         targetValue = 1f,
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                        animationSpec = AppMotion.spatial()
                     )
                 }
             }

@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "device": "192.168.240.112:5555",
+  "android": "13",
+  "installed_apk_sha256": "7c09245e19018a2caaf4ad8d286fbd876f8cd3ccab994b40d2a89f3b646a28e1",
+  "candidate_apk_sha256": "7c09245e19018a2caaf4ad8d286fbd876f8cd3ccab994b40d2a89f3b646a28e1",
+  "certificate_matches": true,
+  "data_cleared": false,
+  "uninstalled": false,
+  "session_restart_needed": false,
+  "release_build": "PASS \u2014 2m 45s",
+  "runtime_fatal_errors": 0
+}

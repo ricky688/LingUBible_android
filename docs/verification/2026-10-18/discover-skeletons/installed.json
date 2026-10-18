@@ -1,0 +1,7 @@
+{
+  "apk_sha256": "a779367702327229d9b59f0c7c4126f01bdc59db37e077b3eece9368bfe34817",
+  "aab_sha256": "0b52d9e870c1adb8410d5f5f6fd7132cc5988c7270a98196913283763af83f3b",
+  "certificate_sha256": "9c01dcc10feaa3abe2696bff3d03080a53f2b7fd8e8ca160d3e7c16423ce707e",
+  "installed_hash_matches": true,
+  "data_preserving_update": true
+}

@@ -1,5 +1,6 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.core.theme.AppMotion
 import com.lingubible.app.ui.common.hapticClick
 
 import androidx.compose.animation.*
@@ -375,12 +376,12 @@ fun MonthlyCalendarOverview(
                         AnimatedContent(
                             targetState = headerTitle,
                             transitionSpec = {
-                                (fadeIn(animationSpec = tween(220)) + slideInVertically(
+                                (fadeIn(animationSpec = AppMotion.effects()) + slideInVertically(
                                     initialOffsetY = { it / 3 },
-                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                                )) togetherWith (fadeOut(animationSpec = tween(150)) + slideOutVertically(
+                                    animationSpec = AppMotion.spatial()
+                                )) togetherWith (fadeOut(animationSpec = AppMotion.effects()) + slideOutVertically(
                                     targetOffsetY = { -it / 3 },
-                                    animationSpec = tween(150)
+                                    animationSpec = AppMotion.spatial()
                                 ))
                             },
                             label = "calendarHeaderTitleTransition"
@@ -440,10 +441,10 @@ fun MonthlyCalendarOverview(
                 // Collapsible Content
                 AnimatedVisibility(
                     visible = isExpanded,
-                    enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                            expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-                    exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium)) +
-                           shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMedium))
+                    enter = fadeIn(animationSpec = AppMotion.effects()) +
+                            expandVertically(animationSpec = AppMotion.spatial()),
+                    exit = fadeOut(animationSpec = AppMotion.effects()) +
+                           shrinkVertically(animationSpec = AppMotion.spatial())
                 ) {
                     var horizontalDragAmount by remember { mutableFloatStateOf(0f) }
                     Column(
@@ -511,17 +512,17 @@ fun MonthlyCalendarOverview(
 
                                 ((slideInHorizontally(
                                     initialOffsetX = slideInOffset,
-                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                                    animationSpec = AppMotion.spatial()
                                 ) + fadeIn(
-                                    animationSpec = tween(durationMillis = 220)
+                                    animationSpec = AppMotion.effects()
                                 )) togetherWith (slideOutHorizontally(
                                     targetOffsetX = slideOutOffset,
-                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                                    animationSpec = AppMotion.spatial()
                                 ) + fadeOut(
-                                    animationSpec = tween(durationMillis = 160)
+                                    animationSpec = AppMotion.effects()
                                 ))).using(
                                     SizeTransform(clip = true) { _, _ ->
-                                        spring(stiffness = Spring.StiffnessMediumLow)
+                                        AppMotion.spatial()
                                     }
                                 )
                             },
@@ -562,17 +563,17 @@ fun MonthlyCalendarOverview(
 
                                                 ((slideInHorizontally(
                                                     initialOffsetX = slideInOffset,
-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                                                    animationSpec = AppMotion.spatial()
                                                 ) + fadeIn(
-                                                    animationSpec = tween(durationMillis = 200)
+                                                    animationSpec = AppMotion.effects()
                                                 )) togetherWith (slideOutHorizontally(
                                                     targetOffsetX = slideOutOffset,
-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                                                    animationSpec = AppMotion.spatial()
                                                 ) + fadeOut(
-                                                    animationSpec = tween(durationMillis = 150)
+                                                    animationSpec = AppMotion.effects()
                                                 ))).using(
                                                     SizeTransform(clip = true) { _, _ ->
-                                                        spring(stiffness = Spring.StiffnessMediumLow)
+                                                        AppMotion.spatial()
                                                     }
                                                 )
                                             },
@@ -648,17 +649,17 @@ fun MonthlyCalendarOverview(
 
                                                 ((slideInHorizontally(
                                                     initialOffsetX = slideInOffset,
-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                                                    animationSpec = AppMotion.spatial()
                                                 ) + fadeIn(
-                                                    animationSpec = tween(durationMillis = 200)
+                                                    animationSpec = AppMotion.effects()
                                                 )) togetherWith (slideOutHorizontally(
                                                     targetOffsetX = slideOutOffset,
-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                                                    animationSpec = AppMotion.spatial()
                                                 ) + fadeOut(
-                                                    animationSpec = tween(durationMillis = 150)
+                                                    animationSpec = AppMotion.effects()
                                                 ))).using(
                                                     SizeTransform(clip = true) { _, _ ->
-                                                        spring(stiffness = Spring.StiffnessMediumLow)
+                                                        AppMotion.spatial()
                                                     }
                                                 )
                                             },
@@ -717,17 +718,17 @@ fun MonthlyCalendarOverview(
 
                                                 ((slideInHorizontally(
                                                     initialOffsetX = slideInOffset,
-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                                                    animationSpec = AppMotion.spatial()
                                                 ) + fadeIn(
-                                                    animationSpec = tween(durationMillis = 200)
+                                                    animationSpec = AppMotion.effects()
                                                 )) togetherWith (slideOutHorizontally(
                                                     targetOffsetX = slideOutOffset,
-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                                                    animationSpec = AppMotion.spatial()
                                                 ) + fadeOut(
-                                                    animationSpec = tween(durationMillis = 150)
+                                                    animationSpec = AppMotion.effects()
                                                 ))).using(
                                                     SizeTransform(clip = true) { _, _ ->
-                                                        spring(stiffness = Spring.StiffnessMediumLow)
+                                                        AppMotion.spatial()
                                                     }
                                                 )
                                             },

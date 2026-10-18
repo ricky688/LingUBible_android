@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.core.theme.AppMotion
+
 import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.ui.common.hapticClick
 
@@ -118,15 +120,15 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
             transitionSpec = {
                 val direction = if (targetState) 1 else -1
                 ((slideInHorizontally(
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                    animationSpec = AppMotion.spatial(),
                     initialOffsetX = { direction * it / 4 }
-                ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))) togetherWith
+                ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
                     (slideOutHorizontally(
-                        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                        animationSpec = AppMotion.spatial(),
                         targetOffsetX = { -direction * it / 4 }
-                    ) + fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium))))
+                    ) + fadeOut(animationSpec = AppMotion.effects())))
                     .using(SizeTransform(clip = true) { _, _ ->
-                        spring(stiffness = Spring.StiffnessMediumLow)
+                        AppMotion.spatial()
                     })
             },
             label = "gpaCalculatorStatisticsTransition"
@@ -246,9 +248,9 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .animateItem(
-                                    fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                                    placementSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                                    fadeOutSpec = spring(stiffness = Spring.StiffnessMedium)
+                                    fadeInSpec = AppMotion.effects(),
+                                    placementSpec = AppMotion.spatial(),
+                                    fadeOutSpec = AppMotion.effects()
                                 ),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
@@ -490,7 +492,7 @@ fun YearCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
+                .animateContentSize(AppMotion.spatial())
         ) {
             // Year Header
             Row(
@@ -547,8 +549,8 @@ fun YearCard(
                                             AnimatedContent(
                                                 targetState = String.format(java.util.Locale.US, "%.3f", yearStat.yearGpa),
                                                 transitionSpec = {
-                                                    (slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it } + fadeIn())
-                                                        .togetherWith(slideOutVertically(spring(stiffness = Spring.StiffnessMediumLow)) { -it } + fadeOut())
+                                                    (slideInVertically(AppMotion.spatial()) { it } + fadeIn(AppMotion.effects()))
+                                                        .togetherWith(slideOutVertically(AppMotion.spatial()) { -it } + fadeOut(AppMotion.effects()))
                                                 },
                                                 label = "YearGpaRoll"
                                             ) { gpaStr ->
@@ -692,7 +694,7 @@ fun TermSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
+            .animateContentSize(AppMotion.spatial())
     ) {
         // Term Title Bar
         Row(

@@ -1,10 +1,8 @@
 package com.lingubible.app.core.navigation
 
+import com.lingubible.app.core.theme.AppMotion
+
 import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -76,13 +74,13 @@ fun LingUBibleNavHost(
                 val direction = if (toIndex >= fromIndex) 1 else -1
                 slideInHorizontally(
                     initialOffsetX = { (it * 0.25f * direction).toInt() },
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                ) + fadeIn(animationSpec = tween(240))
+                    animationSpec = AppMotion.page()
+                ) + fadeIn(animationSpec = AppMotion.effects())
             } else {
                 slideInHorizontally(
                     initialOffsetX = { (it * 0.3f).toInt() },
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                ) + fadeIn(animationSpec = tween(240))
+                    animationSpec = AppMotion.page()
+                ) + fadeIn(animationSpec = AppMotion.effects())
             }
         },
         exitTransition = {
@@ -92,26 +90,26 @@ fun LingUBibleNavHost(
                 val direction = if (toIndex >= fromIndex) -1 else 1
                 slideOutHorizontally(
                     targetOffsetX = { (it * 0.25f * direction).toInt() },
-                    animationSpec = tween(190, easing = FastOutLinearInEasing)
-                ) + fadeOut(animationSpec = tween(170))
+                    animationSpec = AppMotion.page()
+                ) + fadeOut(animationSpec = AppMotion.effects())
             } else {
                 slideOutHorizontally(
                     targetOffsetX = { (-it * 0.15f).toInt() },
-                    animationSpec = tween(190, easing = FastOutLinearInEasing)
-                ) + fadeOut(animationSpec = tween(170))
+                    animationSpec = AppMotion.page()
+                ) + fadeOut(animationSpec = AppMotion.effects())
             }
         },
         popEnterTransition = {
             slideInHorizontally(
                 initialOffsetX = { (-it * 0.2f).toInt() },
-                animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-            ) + fadeIn(animationSpec = tween(240))
+                animationSpec = AppMotion.page()
+            ) + fadeIn(animationSpec = AppMotion.effects())
         },
         popExitTransition = {
             slideOutHorizontally(
                 targetOffsetX = { (it * 0.3f).toInt() },
-                animationSpec = tween(190, easing = FastOutLinearInEasing)
-            ) + fadeOut(animationSpec = tween(170))
+                animationSpec = AppMotion.page()
+            ) + fadeOut(animationSpec = AppMotion.effects())
         }
     ) {
         composable<Screen.Home> {

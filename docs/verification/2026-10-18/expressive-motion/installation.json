@@ -1,0 +1,14 @@
+{
+  "device": "192.168.240.112:5555",
+  "android_version": "13",
+  "candidate_apk_sha256": "94734e7dd3b5dc210a30b2a4e7668ef9d9dba3ec80a29bd43e7779525b770c83",
+  "installed_apk_sha256": "94734e7dd3b5dc210a30b2a4e7668ef9d9dba3ec80a29bd43e7779525b770c83",
+  "certificate_matches": true,
+  "status": "PASS — exact final APK opens after Waydroid session restart",
+  "uninstalled": false,
+  "cleared_data": false,
+  "account_still_signed_in": true,
+  "timetable_courses": 3,
+  "timetable_credits": 9,
+  "installer_note": "Android shared installer was blocked by a VibeFinance dex2oat process, then LingUBible dex2oat. A reserved Waydroid session restart released the package freeze. Android CLI install had timed out; post-restart hash and live application checks confirm deployment."
+}

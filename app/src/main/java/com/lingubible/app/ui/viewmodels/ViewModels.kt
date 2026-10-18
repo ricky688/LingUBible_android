@@ -636,6 +636,7 @@ class ReviewsViewModel(
 data class HomeUiState(
     val isLoading: Boolean = false,
     val stats: PlatformStats = PlatformStats(),
+    val hasLoadedStats: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -658,6 +659,7 @@ class HomeViewModel(
                     it.copy(
                         isLoading = false,
                         stats = result.getOrDefault(PlatformStats()),
+                        hasLoadedStats = true,
                         errorMessage = null
                     )
                 }

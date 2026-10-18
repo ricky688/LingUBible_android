@@ -12,7 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.lingubible.app.core.theme.TactileMotionTokens
+import com.lingubible.app.core.theme.AppMotion
 
 /** Shared press feedback: morph the outline without shrinking the button or its content. */
 object AppButtonDefaults {
@@ -35,7 +35,7 @@ object AppButtonDefaults {
         val pressed by source.collectIsPressedAsState()
         return animateDpAsState(
             targetValue = if (pressed) PressedCornerRadius else restingCorner,
-            animationSpec = TactileMotionTokens.gentleSpring(),
+            animationSpec = AppMotion.press(),
             label = "buttonPressCorner"
         )
     }

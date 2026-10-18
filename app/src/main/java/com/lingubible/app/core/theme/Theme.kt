@@ -393,7 +393,7 @@ fun colorSchemeFor(
 @Composable
 fun animateColorScheme(
     targetColorScheme: ColorScheme,
-    animationSpec: AnimationSpec<Color> = spring(stiffness = Spring.StiffnessMediumLow)
+    animationSpec: AnimationSpec<Color> = AppMotion.effects()
 ): ColorScheme {
     val primary by animateColorAsState(targetColorScheme.primary, animationSpec, label = "primary")
     val onPrimary by animateColorAsState(targetColorScheme.onPrimary, animationSpec, label = "onPrimary")
@@ -530,7 +530,7 @@ fun LingUBibleTheme(
     ) {
         MaterialExpressiveTheme(
             colorScheme = animatedColorScheme,
-            motionScheme = MotionScheme.expressive(),
+            motionScheme = AppMotion.scheme,
             typography = Typography,
             content = content
         )

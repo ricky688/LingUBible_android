@@ -1,0 +1,1580 @@
+--- before/MainActivity.kt
++++ after/MainActivity.kt
+@@ -1,4 +1,6 @@
+ package com.lingubible.app
++
++import com.lingubible.app.core.theme.AppMotion
+ 
+ import android.content.res.Configuration
+ import android.os.Bundle
+@@ -310,11 +312,7 @@
+ 
+             val bottomBarTranslationY by animateDpAsState(
+                 targetValue = if (isBottomBarTargetVisible) 0.dp else hideTranslation,
+-                animationSpec = if (isBottomBarTargetVisible) {
+-                    spring(stiffness = Spring.StiffnessMediumLow)
+-                } else {
+-                    spring(stiffness = Spring.StiffnessMedium)
+-                },
++                animationSpec = AppMotion.spatial(),
+                 label = "bottomBarTranslationY"
+             )
+ 
+--- before/core/navigation/LingUBibleBottomBar.kt
++++ after/core/navigation/LingUBibleBottomBar.kt
+@@ -1,4 +1,6 @@
+ package com.lingubible.app.core.navigation
++
++import com.lingubible.app.core.theme.AppMotion
+ 
+ import com.lingubible.app.ui.common.hapticClick
+ 
+@@ -75,7 +77,7 @@
+     }
+     val frostedBaseColor by animateColorAsState(
+         targetValue = targetFrostedBaseColor,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
++        animationSpec = AppMotion.effects(),
+         label = "bottomBarFrostedBase"
+     )
+ 
+@@ -87,7 +89,7 @@
+     }
+     val frostedSurfaceColor by animateColorAsState(
+         targetValue = targetFrostedSurfaceColor,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
++        animationSpec = AppMotion.effects(),
+         label = "bottomBarFrostedSurface"
+     )
+ 
+@@ -99,11 +101,7 @@
+ 
+     val internalTranslationY by animateDpAsState(
+         targetValue = if (isVisible) 0.dp else 200.dp,
+-        animationSpec = if (isVisible) {
+-            spring(stiffness = Spring.StiffnessMediumLow)
+-        } else {
+-            spring(stiffness = Spring.StiffnessMedium)
+-        },
++        animationSpec = AppMotion.spatial(),
+         label = "bottomBarTranslationY"
+     )
+     val barTranslationY = barOffset ?: internalTranslationY
+@@ -111,7 +109,7 @@
+     // Fade animation on items strictly matching spring motion
+     val itemsAlpha by animateFloatAsState(
+         targetValue = if (isVisible) 1f else 0f,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
++        animationSpec = AppMotion.effects(),
+         label = "itemsAlpha"
+     )
+ 
+@@ -140,7 +138,7 @@
+                     delay(index * 45L) // Staggered delay: 0ms, 45ms, 90ms
+                     animatable.animateTo(
+                         targetValue = 1f,
+-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                        animationSpec = AppMotion.spatial()
+                     )
+                 }
+             }
+--- before/core/navigation/LingUBibleTopBar.kt
++++ after/core/navigation/LingUBibleTopBar.kt
+@@ -1,15 +1,13 @@
+ package com.lingubible.app.core.navigation
++
++import com.lingubible.app.core.theme.AppMotion
+ 
+ import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.common.hapticClick
+ 
+ import androidx.compose.animation.*
+-import androidx.compose.animation.core.FastOutLinearInEasing
+-import androidx.compose.animation.core.Spring
+ import androidx.compose.animation.core.animateDpAsState
+ import androidx.compose.animation.core.animateFloatAsState
+-import androidx.compose.animation.core.spring
+-import androidx.compose.animation.core.tween
+ import androidx.compose.foundation.Image
+ import androidx.compose.foundation.background
+ import androidx.compose.foundation.clickable
+@@ -303,14 +301,14 @@
+     }
+     val frostedSurfaceColor by animateColorAsState(
+         targetValue = targetFrostedSurfaceColor,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
++        animationSpec = AppMotion.effects(),
+         label = "topBarFrostedSurface"
+     )
+ 
+     val targetGlassHighlightColor = if (isDark) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.75f) else Color(0xFFCBD5E1).copy(alpha = 0.85f)
+     val glassHighlightColor by animateColorAsState(
+         targetValue = targetGlassHighlightColor,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
++        animationSpec = AppMotion.effects(),
+         label = "topBarGlassHighlight"
+     )
+     val glassBorderColors = remember(glassHighlightColor) {
+@@ -321,21 +319,21 @@
+         visible = isVisible,
+         enter = expandVertically(
+             expandFrom = Alignment.Top,
+-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++            animationSpec = AppMotion.spatial()
+         ) + slideInVertically(
+             initialOffsetY = { -it },
+-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++            animationSpec = AppMotion.spatial()
+         ) + fadeIn(
+-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++            animationSpec = AppMotion.effects()
+         ),
+         exit = shrinkVertically(
+             shrinkTowards = Alignment.Top,
+-            animationSpec = spring(stiffness = Spring.StiffnessMedium)
++            animationSpec = AppMotion.spatial()
+         ) + slideOutVertically(
+             targetOffsetY = { -it },
+-            animationSpec = spring(stiffness = Spring.StiffnessMedium)
++            animationSpec = AppMotion.spatial()
+         ) + fadeOut(
+-            animationSpec = spring(stiffness = Spring.StiffnessMedium)
++            animationSpec = AppMotion.effects()
+         )
+     ) {
+         Box(
+@@ -387,7 +385,7 @@
+                         var logoScale by remember { mutableFloatStateOf(1f) }
+                         val animatedLogoScale by animateFloatAsState(
+                             targetValue = logoScale,
+-                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
++                            animationSpec = AppMotion.spatial(),
+                             label = "logoBounceScale",
+                             finishedListener = { logoScale = 1f }
+                         )
+@@ -428,55 +426,55 @@
+                             if (initialState.first == targetState.first) {
+                                 // When route hasn't changed (only expanded/collapsed state toggled),
+                                 // provide a smooth directional slide & crossfade so compact title glides in naturally
+-                                (fadeIn(animationSpec = tween(200)) + slideInVertically(
++                                (fadeIn(animationSpec = AppMotion.effects()) + slideInVertically(
+                                     initialOffsetY = { it / 3 },
+-                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                                    animationSpec = AppMotion.spatial()
+                                 )) togetherWith
+-                                (fadeOut(animationSpec = tween(140)) + slideOutVertically(
++                                (fadeOut(animationSpec = AppMotion.effects()) + slideOutVertically(
+                                     targetOffsetY = { -it / 3 },
+-                                    animationSpec = tween(140)
++                                    animationSpec = AppMotion.spatial()
+                                 ))
+                             } else {
+                                 when (transitionDirection) {
+                                     TransitionDirection.FORWARD_TAB -> {
+                                         (slideInVertically(
+                                             initialOffsetY = { height -> height },
+-                                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+-                                        ) + fadeIn(animationSpec = tween(220))) togetherWith
++                                            animationSpec = AppMotion.spatial()
++                                        ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
+                                         (slideOutVertically(
+                                             targetOffsetY = { height -> -height },
+-                                            animationSpec = tween(180, easing = FastOutLinearInEasing)
+-                                        ) + fadeOut(animationSpec = tween(160)))
++                                            animationSpec = AppMotion.spatial()
++                                        ) + fadeOut(animationSpec = AppMotion.effects()))
+                                     }
+                                     TransitionDirection.BACKWARD_TAB -> {
+                                         (slideInVertically(
+                                             initialOffsetY = { height -> -height },
+-                                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+-                                        ) + fadeIn(animationSpec = tween(220))) togetherWith
++                                            animationSpec = AppMotion.spatial()
++                                        ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
+                                         (slideOutVertically(
+                                             targetOffsetY = { height -> height },
+-                                            animationSpec = tween(180, easing = FastOutLinearInEasing)
+-                                        ) + fadeOut(animationSpec = tween(160)))
++                                            animationSpec = AppMotion.spatial()
++                                        ) + fadeOut(animationSpec = AppMotion.effects()))
+                                     }
+                                     TransitionDirection.ENTER_DETAIL -> {
+                                         (slideInHorizontally(
+                                             initialOffsetX = { width -> (width * 0.4f).toInt() },
+-                                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+-                                        ) + fadeIn(animationSpec = tween(220))) togetherWith
++                                            animationSpec = AppMotion.spatial()
++                                        ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
+                                         (slideOutHorizontally(
+                                             targetOffsetX = { width -> -(width * 0.3f).toInt() },
+-                                            animationSpec = tween(180, easing = FastOutLinearInEasing)
+-                                        ) + fadeOut(animationSpec = tween(160)))
++                                            animationSpec = AppMotion.spatial()
++                                        ) + fadeOut(animationSpec = AppMotion.effects()))
+                                     }
+                                     TransitionDirection.POP_DETAIL -> {
+                                         (slideInHorizontally(
+                                             initialOffsetX = { width -> -(width * 0.4f).toInt() },
+-                                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+-                                        ) + fadeIn(animationSpec = tween(220))) togetherWith
++                                            animationSpec = AppMotion.spatial()
++                                        ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
+                                         (slideOutHorizontally(
+                                             targetOffsetX = { width -> (width * 0.3f).toInt() },
+-                                            animationSpec = tween(180, easing = FastOutLinearInEasing)
+-                                        ) + fadeOut(animationSpec = tween(160)))
++                                            animationSpec = AppMotion.spatial()
++                                        ) + fadeOut(animationSpec = AppMotion.effects()))
+                                     }
+                                 }
+                             }
+@@ -527,7 +525,7 @@
+                         AnimatedContent(
+                             targetState = Pair(isHome, isReviewable),
+                             transitionSpec = {
+-                                fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(150))
++                                fadeIn(animationSpec = AppMotion.effects()) togetherWith fadeOut(animationSpec = AppMotion.effects())
+                             },
+                             label = "topBarActionsTransition"
+                         ) { (home, reviewable) ->
+@@ -583,17 +581,17 @@
+             AnimatedVisibility(
+                 visible = isExpanded,
+                 enter = expandVertically(
+-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                    animationSpec = AppMotion.spatial()
+                 ) + slideInVertically(
+                     initialOffsetY = { -it / 3 },
+-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+-                ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
++                    animationSpec = AppMotion.spatial()
++                ) + fadeIn(animationSpec = AppMotion.effects()),
+                 exit = shrinkVertically(
+-                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
++                    animationSpec = AppMotion.spatial()
+                 ) + slideOutVertically(
+                     targetOffsetY = { -it / 3 },
+-                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
+-                ) + fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium))
++                    animationSpec = AppMotion.spatial()
++                ) + fadeOut(animationSpec = AppMotion.effects())
+             ) {
+                 Column(
+                     modifier = Modifier
+@@ -608,13 +606,13 @@
+                     AnimatedContent(
+                         targetState = titleInfo,
+                         transitionSpec = {
+-                            (fadeIn(animationSpec = tween(220)) + slideInVertically(
++                            (fadeIn(animationSpec = AppMotion.effects()) + slideInVertically(
+                                 initialOffsetY = { it / 2 },
+-                                animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                                animationSpec = AppMotion.spatial()
+                             )) togetherWith
+-                            (fadeOut(animationSpec = tween(160)) + slideOutVertically(
++                            (fadeOut(animationSpec = AppMotion.effects()) + slideOutVertically(
+                                 targetOffsetY = { -it / 2 },
+-                                animationSpec = tween(160, easing = FastOutLinearInEasing)
++                                animationSpec = AppMotion.spatial()
+                             ))
+                         },
+                         label = "expandedTitleTransition"
+--- before/core/navigation/NavGraph.kt
++++ after/core/navigation/NavGraph.kt
+@@ -1,10 +1,8 @@
+ package com.lingubible.app.core.navigation
+ 
++import com.lingubible.app.core.theme.AppMotion
++
+ import androidx.compose.animation.*
+-import androidx.compose.animation.core.FastOutLinearInEasing
+-import androidx.compose.animation.core.Spring
+-import androidx.compose.animation.core.spring
+-import androidx.compose.animation.core.tween
+ import androidx.compose.runtime.Composable
+ import androidx.compose.runtime.DisposableEffect
+ import androidx.compose.runtime.LaunchedEffect
+@@ -76,13 +74,13 @@
+                 val direction = if (toIndex >= fromIndex) 1 else -1
+                 slideInHorizontally(
+                     initialOffsetX = { (it * 0.25f * direction).toInt() },
+-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+-                ) + fadeIn(animationSpec = tween(240))
++                    animationSpec = AppMotion.page()
++                ) + fadeIn(animationSpec = AppMotion.effects())
+             } else {
+                 slideInHorizontally(
+                     initialOffsetX = { (it * 0.3f).toInt() },
+-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+-                ) + fadeIn(animationSpec = tween(240))
++                    animationSpec = AppMotion.page()
++                ) + fadeIn(animationSpec = AppMotion.effects())
+             }
+         },
+         exitTransition = {
+@@ -92,26 +90,26 @@
+                 val direction = if (toIndex >= fromIndex) -1 else 1
+                 slideOutHorizontally(
+                     targetOffsetX = { (it * 0.25f * direction).toInt() },
+-                    animationSpec = tween(190, easing = FastOutLinearInEasing)
+-                ) + fadeOut(animationSpec = tween(170))
++                    animationSpec = AppMotion.page()
++                ) + fadeOut(animationSpec = AppMotion.effects())
+             } else {
+                 slideOutHorizontally(
+                     targetOffsetX = { (-it * 0.15f).toInt() },
+-                    animationSpec = tween(190, easing = FastOutLinearInEasing)
+-                ) + fadeOut(animationSpec = tween(170))
++                    animationSpec = AppMotion.page()
++                ) + fadeOut(animationSpec = AppMotion.effects())
+             }
+         },
+         popEnterTransition = {
+             slideInHorizontally(
+                 initialOffsetX = { (-it * 0.2f).toInt() },
+-                animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+-            ) + fadeIn(animationSpec = tween(240))
++                animationSpec = AppMotion.page()
++            ) + fadeIn(animationSpec = AppMotion.effects())
+         },
+         popExitTransition = {
+             slideOutHorizontally(
+                 targetOffsetX = { (it * 0.3f).toInt() },
+-                animationSpec = tween(190, easing = FastOutLinearInEasing)
+-            ) + fadeOut(animationSpec = tween(170))
++                animationSpec = AppMotion.page()
++            ) + fadeOut(animationSpec = AppMotion.effects())
+         }
+     ) {
+         composable<Screen.Home> {
+--- before/core/theme/Theme.kt
++++ after/core/theme/Theme.kt
+@@ -393,7 +393,7 @@
+ @Composable
+ fun animateColorScheme(
+     targetColorScheme: ColorScheme,
+-    animationSpec: AnimationSpec<Color> = spring(stiffness = Spring.StiffnessMediumLow)
++    animationSpec: AnimationSpec<Color> = AppMotion.effects()
+ ): ColorScheme {
+     val primary by animateColorAsState(targetColorScheme.primary, animationSpec, label = "primary")
+     val onPrimary by animateColorAsState(targetColorScheme.onPrimary, animationSpec, label = "onPrimary")
+@@ -530,7 +530,7 @@
+     ) {
+         MaterialExpressiveTheme(
+             colorScheme = animatedColorScheme,
+-            motionScheme = MotionScheme.expressive(),
++            motionScheme = AppMotion.scheme,
+             typography = Typography,
+             content = content
+         )
+--- before/ui/common/CardPressShape.kt
++++ after/ui/common/CardPressShape.kt
+@@ -1,8 +1,6 @@
+ package com.lingubible.app.ui.common
+ 
+-import androidx.compose.animation.core.Spring
+ import androidx.compose.animation.core.animateDpAsState
+-import androidx.compose.animation.core.spring
+ import androidx.compose.foundation.interaction.InteractionSource
+ import androidx.compose.foundation.interaction.collectIsPressedAsState
+ import androidx.compose.foundation.shape.RoundedCornerShape
+@@ -10,17 +8,23 @@
+ import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.staticCompositionLocalOf
+ import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.Dp
++import com.lingubible.app.core.theme.AppMotion
+ import com.lingubible.app.ui.components.getGroupedItemShape
+ 
+ internal val LocalCardCornerRadius = staticCompositionLocalOf { 28.dp }
+ 
+ @Composable
+-internal fun rememberCardPressShape(interactionSource: InteractionSource, groupIndex: Int = 0, groupSize: Int = 1): RoundedCornerShape {
++internal fun rememberCardPressShape(
++    interactionSource: InteractionSource,
++    groupIndex: Int = 0,
++    groupSize: Int = 1,
++    restingCorner: Dp = LocalCardCornerRadius.current
++): RoundedCornerShape {
+     val isPressed by interactionSource.collectIsPressedAsState()
+-    val restingCorner = LocalCardCornerRadius.current
+     val corner by animateDpAsState(
+         targetValue = if (isPressed) maxOf(8.dp, restingCorner - 12.dp) else restingCorner,
+-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
++        animationSpec = AppMotion.press(),
+         label = "cardPressCorner"
+     )
+     return getGroupedItemShape(groupIndex, groupSize, outerRadius = corner)
+--- before/ui/components/AppButtonDefaults.kt
++++ after/ui/components/AppButtonDefaults.kt
+@@ -12,7 +12,7 @@
+ import androidx.compose.ui.graphics.Shape
+ import androidx.compose.ui.unit.Dp
+ import androidx.compose.ui.unit.dp
+-import com.lingubible.app.core.theme.TactileMotionTokens
++import com.lingubible.app.core.theme.AppMotion
+ 
+ /** Shared press feedback: morph the outline without shrinking the button or its content. */
+ object AppButtonDefaults {
+@@ -35,7 +35,7 @@
+         val pressed by source.collectIsPressedAsState()
+         return animateDpAsState(
+             targetValue = if (pressed) PressedCornerRadius else restingCorner,
+-            animationSpec = TactileMotionTokens.gentleSpring(),
++            animationSpec = AppMotion.press(),
+             label = "buttonPressCorner"
+         )
+     }
+--- before/ui/components/ExpressiveReviewButton.kt
++++ after/ui/components/ExpressiveReviewButton.kt
+@@ -1,4 +1,6 @@
+ package com.lingubible.app.ui.components
++
++import com.lingubible.app.core.theme.AppMotion
+ 
+ import com.lingubible.app.ui.common.hapticClick
+ 
+@@ -108,24 +110,15 @@
+     val pressCorner by AppButtonDefaults.pressCorner(interactionSource, 24.dp)
+     val animatedShape = if (pressCorner < 24.dp) RoundedCornerShape(pressCorner) else shape
+ 
+-    // Fast, snappy Google M3 collapse (StiffnessHigh)
+-    // and smooth spring expand (StiffnessMedium)
++    // Match the native Expressive button size/shape spring.
+     val translationX by animateDpAsState(
+         targetValue = if (expanded) 0.dp else collapsedTranslationX,
+-        animationSpec = if (expanded) {
+-            spring(stiffness = Spring.StiffnessMedium)
+-        } else {
+-            spring(stiffness = Spring.StiffnessHigh)
+-        },
++        animationSpec = AppMotion.press(),
+         label = "fabTranslationX"
+     )
+     val translationY by animateDpAsState(
+         targetValue = if (expanded) 0.dp else collapsedTranslationY,
+-        animationSpec = if (expanded) {
+-            spring(stiffness = Spring.StiffnessMedium)
+-        } else {
+-            spring(stiffness = Spring.StiffnessHigh)
+-        },
++        animationSpec = AppMotion.press(),
+         label = "fabTranslationY"
+     )
+ 
+@@ -157,11 +150,7 @@
+                     bottom = 14.dp
+                 )
+                 .animateContentSize(
+-                    animationSpec = if (expanded) {
+-                        spring(stiffness = Spring.StiffnessMedium)
+-                    } else {
+-                        spring(stiffness = Spring.StiffnessHigh)
+-                    }
++                    animationSpec = AppMotion.press()
+                 ),
+             verticalAlignment = Alignment.CenterVertically,
+             horizontalArrangement = Arrangement.Center
+@@ -176,15 +165,15 @@
+             AnimatedVisibility(
+                 visible = expanded,
+                 enter = fadeIn(
+-                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
++                    animationSpec = AppMotion.effects()
+                 ) + expandHorizontally(
+-                    animationSpec = spring(stiffness = Spring.StiffnessMedium),
++                    animationSpec = AppMotion.press(),
+                     expandFrom = Alignment.Start
+                 ),
+                 exit = fadeOut(
+-                    animationSpec = tween(durationMillis = 100, easing = FastOutLinearInEasing)
++                    animationSpec = AppMotion.effects()
+                 ) + shrinkHorizontally(
+-                    animationSpec = spring(stiffness = Spring.StiffnessHigh),
++                    animationSpec = AppMotion.press(),
+                     shrinkTowards = Alignment.Start
+                 )
+             ) {
+@@ -217,7 +206,6 @@
+ ) {
+     val interactionSource = remember { MutableInteractionSource() }
+     val isHovered by interactionSource.collectIsHoveredAsState()
+-    val isPressed by interactionSource.collectIsPressedAsState()
+ 
+     Button(
+         onClick = hapticClick(onClick),
+@@ -225,7 +213,6 @@
+             .pointerHoverIcon(PointerIcon.Hand)
+             .shadow(
+                 elevation = when {
+-                    isPressed -> 8.dp
+                     isHovered -> 7.dp
+                     else -> 4.dp
+                 },
+@@ -241,7 +228,7 @@
+         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
+         elevation = ButtonDefaults.buttonElevation(
+             defaultElevation = 4.dp,
+-            pressedElevation = 8.dp
++            pressedElevation = 4.dp
+         ),
+         interactionSource = interactionSource
+     ) {
+--- before/ui/components/FirstClassHonoursContent.kt
++++ after/ui/components/FirstClassHonoursContent.kt
+@@ -1,6 +1,8 @@
+ package com.lingubible.app.ui.components
+ 
++import com.lingubible.app.core.theme.AppMotion
+ import com.lingubible.app.ui.common.hapticClick
++import com.lingubible.app.ui.common.rememberCardPressShape
+ 
+ import com.lingubible.app.core.navigation.screenContentPadding
+ import androidx.compose.animation.*
+@@ -163,7 +165,7 @@
+             Column(
+                 modifier = Modifier
+                     .fillMaxWidth()
+-                    .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow)),
++                    .animateContentSize(AppMotion.spatial()),
+                 verticalArrangement = Arrangement.spacedBy(12.dp)
+             ) {
+                 GpaSectionTitle("甲等榮譽統計", "First Class Honours Statistics")
+@@ -186,10 +188,10 @@
+ 
+                 AnimatedVisibility(
+                     visible = showChange,
+-                    enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) +
+-                        expandVertically(spring(stiffness = Spring.StiffnessMediumLow)),
+-                    exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) +
+-                        shrinkVertically(spring(stiffness = Spring.StiffnessMedium))
++                    enter = fadeIn(AppMotion.effects()) +
++                        expandVertically(AppMotion.spatial()),
++                    exit = fadeOut(AppMotion.effects()) +
++                        shrinkVertically(AppMotion.spatial())
+                 ) {
+                     Text(
+                         text = previousYear?.let { "與 $it 比較 · Compared with $it" } ?: "沒有上一屆資料 · No earlier cohort",
+@@ -250,9 +252,9 @@
+                 metric = metric,
+                 showChange = showChange,
+                 modifier = Modifier.animateItem(
+-                    fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-                    placementSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-                    fadeOutSpec = spring(stiffness = Spring.StiffnessMedium)
++                    fadeInSpec = AppMotion.effects(),
++                    placementSpec = AppMotion.spatial(),
++                    fadeOutSpec = AppMotion.effects()
+                 )
+             )
+         }
+@@ -419,10 +421,10 @@
+             AnimatedContent(
+                 targetState = value,
+                 transitionSpec = {
+-                    (slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it / 2 } +
+-                        fadeIn(spring(stiffness = Spring.StiffnessMediumLow))) togetherWith
+-                        (slideOutVertically(spring(stiffness = Spring.StiffnessMedium)) { -it / 2 } +
+-                            fadeOut(spring(stiffness = Spring.StiffnessMedium)))
++                    (slideInVertically(AppMotion.spatial()) { it / 2 } +
++                        fadeIn(AppMotion.effects())) togetherWith
++                        (slideOutVertically(AppMotion.spatial()) { -it / 2 } +
++                            fadeOut(AppMotion.effects()))
+                 },
+                 label = "metricRoll_${title}"
+             ) { targetValue ->
+@@ -436,10 +438,10 @@
+ 
+             AnimatedVisibility(
+                 visible = showChange && deltaStr != "—",
+-                enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) +
+-                    expandVertically(spring(stiffness = Spring.StiffnessMediumLow)),
+-                exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) +
+-                    shrinkVertically(spring(stiffness = Spring.StiffnessMedium))
++                enter = fadeIn(AppMotion.effects()) +
++                    expandVertically(AppMotion.spatial()),
++                exit = fadeOut(AppMotion.effects()) +
++                    shrinkVertically(AppMotion.spatial())
+             ) {
+                 val isPositive = (deltaNum ?: 0.0) > 0
+                 val isNegative = (deltaNum ?: 0.0) < 0
+@@ -510,7 +512,7 @@
+ 
+     val filterRotation by animateFloatAsState(
+         targetValue = if (filtersExpanded) 180f else 0f,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
++        animationSpec = AppMotion.spatial(),
+         label = "filterBtnRotation"
+     )
+ 
+@@ -533,8 +535,8 @@
+                 trailingIcon = {
+                     AnimatedVisibility(
+                         visible = query.isNotEmpty(),
+-                        enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) + scaleIn(spring(stiffness = Spring.StiffnessMediumLow)),
+-                        exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) + scaleOut(spring(stiffness = Spring.StiffnessMedium))
++                        enter = fadeIn(AppMotion.effects()) + scaleIn(AppMotion.spatial()),
++                        exit = fadeOut(AppMotion.effects()) + scaleOut(AppMotion.spatial())
+                     ) {
+                         IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { onQueryChange("") }) {
+                             Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(18.dp))
+@@ -588,10 +590,10 @@
+ 
+         AnimatedVisibility(
+             visible = filtersExpanded,
+-            enter = expandVertically(spring(stiffness = Spring.StiffnessMediumLow)) +
+-                fadeIn(spring(stiffness = Spring.StiffnessMediumLow)),
+-            exit = shrinkVertically(spring(stiffness = Spring.StiffnessMedium)) +
+-                fadeOut(spring(stiffness = Spring.StiffnessMedium))
++            enter = expandVertically(AppMotion.spatial()) +
++                fadeIn(AppMotion.effects()),
++            exit = shrinkVertically(AppMotion.spatial()) +
++                fadeOut(AppMotion.effects())
+         ) {
+             Card(
+                 modifier = Modifier.fillMaxWidth(),
+@@ -713,8 +715,8 @@
+                                 AnimatedContent(
+                                     targetState = sortByName,
+                                     transitionSpec = {
+-                                        (slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it / 2 } + fadeIn()) togetherWith
+-                                            (slideOutVertically(spring(stiffness = Spring.StiffnessMedium)) { -it / 2 } + fadeOut())
++                                        (slideInVertically(AppMotion.spatial()) { it / 2 } + fadeIn(AppMotion.effects())) togetherWith
++                                            (slideOutVertically(AppMotion.spatial()) { -it / 2 } + fadeOut(AppMotion.effects()))
+                                     },
+                                     label = "sortModeText"
+                                 ) { isByName ->
+@@ -760,16 +762,11 @@
+     val pctVal = cohort?.pct ?: 0.0
+ 
+     val interactionSource = remember { MutableInteractionSource() }
+-    val isPressed by interactionSource.collectIsPressedAsState()
+-    val pressScale by animateFloatAsState(
+-        targetValue = if (isPressed) 0.98f else 1.0f,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-        label = "cardPressScale_${entry.en}"
+-    )
++    val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize, restingCorner = 22.dp)
+ 
+     val animatedProgress by animateFloatAsState(
+         targetValue = pctVal.toFloat().coerceIn(0f, 1f),
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
++        animationSpec = AppMotion.effects(),
+         label = "progPct_${entry.en}"
+     )
+ 
+@@ -779,13 +776,12 @@
+     Card(
+         modifier = modifier
+             .fillMaxWidth()
+-            .scale(pressScale)
+             .clickable(
+                 interactionSource = interactionSource,
+                 indication = null,
+                 onClick = hapticClick {}
+             ),
+-        shape = getGroupedItemShape(groupIndex, groupSize, outerRadius = 22.dp),
++        shape = shape,
+         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+         border = CardDefaults.outlinedCardBorder().copy(
+             brush = Brush.verticalGradient(
+@@ -864,8 +860,8 @@
+                 AnimatedContent(
+                     targetState = percentage(cohort?.pct),
+                     transitionSpec = {
+-                        (slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it / 2 } + fadeIn()) togetherWith
+-                            (slideOutVertically(spring(stiffness = Spring.StiffnessMedium)) { -it / 2 } + fadeOut())
++                        (slideInVertically(AppMotion.spatial()) { it / 2 } + fadeIn(AppMotion.effects())) togetherWith
++                            (slideOutVertically(AppMotion.spatial()) { -it / 2 } + fadeOut(AppMotion.effects()))
+                     },
+                     label = "entryPct_${entry.en}"
+                 ) { targetPct ->
+@@ -890,10 +886,10 @@
+ 
+             AnimatedVisibility(
+                 visible = showChange,
+-                enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) +
+-                    expandVertically(spring(stiffness = Spring.StiffnessMediumLow)),
+-                exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) +
+-                    shrinkVertically(spring(stiffness = Spring.StiffnessMedium))
++                enter = fadeIn(AppMotion.effects()) +
++                    expandVertically(AppMotion.spatial()),
++                exit = fadeOut(AppMotion.effects()) +
++                    shrinkVertically(AppMotion.spatial())
+             ) {
+                 val delta = when (metric) {
+                     "first" -> change(cohort?.first?.toDouble(), older?.first?.toDouble())
+@@ -1014,7 +1010,7 @@
+     val containerColor by animateColorAsState(
+         targetValue = if (checked) MaterialTheme.colorScheme.primaryContainer
+         else MaterialTheme.colorScheme.surfaceContainerLow,
+-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
++        animationSpec = AppMotion.effects(),
+         label = "statisticsSwitchContainer"
+     )
+     Surface(
+@@ -1110,10 +1106,10 @@
+                     AnimatedContent(
+                         targetState = options[selectedKey].orEmpty(),
+                         transitionSpec = {
+-                            (slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it / 3 } +
+-                                fadeIn(spring(stiffness = Spring.StiffnessMediumLow))) togetherWith
+-                                (slideOutVertically(spring(stiffness = Spring.StiffnessMedium)) { -it / 3 } +
+-                                    fadeOut(spring(stiffness = Spring.StiffnessMedium)))
++                            (slideInVertically(AppMotion.spatial()) { it / 3 } +
++                                fadeIn(AppMotion.effects())) togetherWith
++                                (slideOutVertically(AppMotion.spatial()) { -it / 3 } +
++                                    fadeOut(AppMotion.effects()))
+                         },
+                         label = "statisticsSelectorValue"
+                     ) { selectedLabel ->
+--- before/ui/components/MonthlyCalendarOverview.kt
++++ after/ui/components/MonthlyCalendarOverview.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.components
+ 
++import com.lingubible.app.core.theme.AppMotion
+ import com.lingubible.app.ui.common.hapticClick
+ 
+ import androidx.compose.animation.*
+@@ -375,12 +376,12 @@
+                         AnimatedContent(
+                             targetState = headerTitle,
+                             transitionSpec = {
+-                                (fadeIn(animationSpec = tween(220)) + slideInVertically(
++                                (fadeIn(animationSpec = AppMotion.effects()) + slideInVertically(
+                                     initialOffsetY = { it / 3 },
+-                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+-                                )) togetherWith (fadeOut(animationSpec = tween(150)) + slideOutVertically(
++                                    animationSpec = AppMotion.spatial()
++                                )) togetherWith (fadeOut(animationSpec = AppMotion.effects()) + slideOutVertically(
+                                     targetOffsetY = { -it / 3 },
+-                                    animationSpec = tween(150)
++                                    animationSpec = AppMotion.spatial()
+                                 ))
+                             },
+                             label = "calendarHeaderTitleTransition"
+@@ -440,10 +441,10 @@
+                 // Collapsible Content
+                 AnimatedVisibility(
+                     visible = isExpanded,
+-                    enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
+-                            expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+-                    exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium)) +
+-                           shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMedium))
++                    enter = fadeIn(animationSpec = AppMotion.effects()) +
++                            expandVertically(animationSpec = AppMotion.spatial()),
++                    exit = fadeOut(animationSpec = AppMotion.effects()) +
++                           shrinkVertically(animationSpec = AppMotion.spatial())
+                 ) {
+                     var horizontalDragAmount by remember { mutableFloatStateOf(0f) }
+                     Column(
+@@ -511,17 +512,17 @@
+ 
+                                 ((slideInHorizontally(
+                                     initialOffsetX = slideInOffset,
+-                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                                    animationSpec = AppMotion.spatial()
+                                 ) + fadeIn(
+-                                    animationSpec = tween(durationMillis = 220)
++                                    animationSpec = AppMotion.effects()
+                                 )) togetherWith (slideOutHorizontally(
+                                     targetOffsetX = slideOutOffset,
+-                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                                    animationSpec = AppMotion.spatial()
+                                 ) + fadeOut(
+-                                    animationSpec = tween(durationMillis = 160)
++                                    animationSpec = AppMotion.effects()
+                                 ))).using(
+                                     SizeTransform(clip = true) { _, _ ->
+-                                        spring(stiffness = Spring.StiffnessMediumLow)
++                                        AppMotion.spatial()
+                                     }
+                                 )
+                             },
+@@ -562,17 +563,17 @@
+ 
+                                                 ((slideInHorizontally(
+                                                     initialOffsetX = slideInOffset,
+-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                                                    animationSpec = AppMotion.spatial()
+                                                 ) + fadeIn(
+-                                                    animationSpec = tween(durationMillis = 200)
++                                                    animationSpec = AppMotion.effects()
+                                                 )) togetherWith (slideOutHorizontally(
+                                                     targetOffsetX = slideOutOffset,
+-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                                                    animationSpec = AppMotion.spatial()
+                                                 ) + fadeOut(
+-                                                    animationSpec = tween(durationMillis = 150)
++                                                    animationSpec = AppMotion.effects()
+                                                 ))).using(
+                                                     SizeTransform(clip = true) { _, _ ->
+-                                                        spring(stiffness = Spring.StiffnessMediumLow)
++                                                        AppMotion.spatial()
+                                                     }
+                                                 )
+                                             },
+@@ -648,17 +649,17 @@
+ 
+                                                 ((slideInHorizontally(
+                                                     initialOffsetX = slideInOffset,
+-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                                                    animationSpec = AppMotion.spatial()
+                                                 ) + fadeIn(
+-                                                    animationSpec = tween(durationMillis = 200)
++                                                    animationSpec = AppMotion.effects()
+                                                 )) togetherWith (slideOutHorizontally(
+                                                     targetOffsetX = slideOutOffset,
+-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                                                    animationSpec = AppMotion.spatial()
+                                                 ) + fadeOut(
+-                                                    animationSpec = tween(durationMillis = 150)
++                                                    animationSpec = AppMotion.effects()
+                                                 ))).using(
+                                                     SizeTransform(clip = true) { _, _ ->
+-                                                        spring(stiffness = Spring.StiffnessMediumLow)
++                                                        AppMotion.spatial()
+                                                     }
+                                                 )
+                                             },
+@@ -717,17 +718,17 @@
+ 
+                                                 ((slideInHorizontally(
+                                                     initialOffsetX = slideInOffset,
+-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                                                    animationSpec = AppMotion.spatial()
+                                                 ) + fadeIn(
+-                                                    animationSpec = tween(durationMillis = 200)
++                                                    animationSpec = AppMotion.effects()
+                                                 )) togetherWith (slideOutHorizontally(
+                                                     targetOffsetX = slideOutOffset,
+-                                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                                                    animationSpec = AppMotion.spatial()
+                                                 ) + fadeOut(
+-                                                    animationSpec = tween(durationMillis = 150)
++                                                    animationSpec = AppMotion.effects()
+                                                 ))).using(
+                                                     SizeTransform(clip = true) { _, _ ->
+-                                                        spring(stiffness = Spring.StiffnessMediumLow)
++                                                        AppMotion.spatial()
+                                                     }
+                                                 )
+                                             },
+--- before/ui/components/PopularItemCard.kt
++++ after/ui/components/PopularItemCard.kt
+@@ -42,7 +42,6 @@
+ ) {
+     val isDark = isAppDarkTheme()
+     val interactionSource = remember { MutableInteractionSource() }
+-    val isPressed by interactionSource.collectIsPressedAsState()
+     val isHovered by interactionSource.collectIsHoveredAsState()
+     val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize)
+ 
+@@ -68,7 +67,6 @@
+         ),
+         elevation = CardDefaults.cardElevation(
+             defaultElevation = when {
+-                isPressed -> 4.dp
+                 isHovered -> 6.dp
+                 else -> 2.dp
+             }
+@@ -198,7 +196,6 @@
+ ) {
+     val isDark = isAppDarkTheme()
+     val interactionSource = remember { MutableInteractionSource() }
+-    val isPressed by interactionSource.collectIsPressedAsState()
+     val isHovered by interactionSource.collectIsHoveredAsState()
+     val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize)
+ 
+@@ -223,7 +220,6 @@
+         ),
+         elevation = CardDefaults.cardElevation(
+             defaultElevation = when {
+-                isPressed -> 4.dp
+                 isHovered -> 6.dp
+                 else -> 2.dp
+             }
+--- before/ui/components/StatsCard.kt
++++ after/ui/components/StatsCard.kt
+@@ -1,12 +1,9 @@
+ package com.lingubible.app.ui.components
+ 
++import com.lingubible.app.core.theme.AppMotion
+ import com.lingubible.app.ui.common.hapticClick
+ 
+ import androidx.compose.animation.Crossfade
+-import androidx.compose.animation.core.Animatable
+-import androidx.compose.animation.core.AnimationVector1D
+-import androidx.compose.animation.core.Spring
+-import androidx.compose.animation.core.spring
+ import androidx.compose.foundation.BorderStroke
+ import androidx.compose.foundation.background
+ import androidx.compose.foundation.clickable
+@@ -20,22 +17,13 @@
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
+-import androidx.compose.runtime.LaunchedEffect
+-import androidx.compose.runtime.State
+ import androidx.compose.runtime.remember
+-import androidx.compose.runtime.snapshotFlow
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+-import androidx.compose.ui.MotionDurationScale
+-import androidx.compose.ui.draw.drawWithContent
+-import androidx.compose.ui.geometry.CornerRadius
+-import androidx.compose.ui.geometry.Offset
+-import androidx.compose.ui.geometry.Size
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.graphics.vector.ImageVector
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.text.style.TextOverflow
+-import androidx.compose.ui.semantics.clearAndSetSemantics
+ import androidx.compose.ui.semantics.semantics
+ import androidx.compose.ui.semantics.stateDescription
+ import androidx.compose.ui.unit.dp
+@@ -43,9 +31,6 @@
+ import com.lingubible.app.core.theme.*
+ import com.lingubible.app.ui.common.mousePointer
+ import com.lingubible.app.ui.common.rememberCardPressShape
+-import kotlinx.coroutines.currentCoroutineContext
+-import kotlinx.coroutines.flow.collectLatest
+-import kotlinx.coroutines.isActive
+ 
+ @Composable
+ fun StatsCard(
+@@ -81,10 +66,10 @@
+     ) {
+         Crossfade(
+             targetState = isLoading,
+-            animationSpec = spring(stiffness = Spring.StiffnessMedium),
++            animationSpec = AppMotion.effects(),
+             label = "statsLoaded"
+         ) { loading ->
+-            val skeletonAlpha = rememberStatsSkeletonAlpha(loading)
++            val skeletonAlpha = rememberSkeletonAlpha(loading)
+             val skeletonColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.22f)
+             Column(
+                 modifier = Modifier.padding(14.dp)
+@@ -128,7 +113,7 @@
+                         ) {
+                             Text(
+                                 text = if (loading) "+00" else change.orEmpty(),
+-                                modifier = Modifier.statsSkeleton(loading, skeletonColor, skeletonAlpha),
++                                modifier = Modifier.contentSkeleton(loading, skeletonColor, skeletonAlpha),
+                                 color = if (change.orEmpty().startsWith("+")) {
+                                     if (isDark) Color(0xFF34D399) else Color(0xFF166534)
+                                 } else {
+@@ -146,7 +131,7 @@
+                 // Value
+                 Text(
+                     text = if (loading) "0000" else value,
+-                    modifier = Modifier.statsSkeleton(loading, skeletonColor, skeletonAlpha),
++                    modifier = Modifier.contentSkeleton(loading, skeletonColor, skeletonAlpha),
+                     style = MaterialTheme.typography.headlineMedium,
+                     fontWeight = FontWeight.Black,
+                     fontSize = 26.sp,
+@@ -169,38 +154,3 @@
+         }
+     }
+ }
+-
+-@Composable
+-private fun rememberStatsSkeletonAlpha(loading: Boolean): State<Float> {
+-    val alpha = remember { Animatable(0.7f) }
+-    LaunchedEffect(loading) {
+-        if (loading) animateStatsSkeletonPulse(alpha)
+-    }
+-    return alpha.asState()
+-}
+-
+-internal suspend fun animateStatsSkeletonPulse(alpha: Animatable<Float, AnimationVector1D>) {
+-    val motionScale = currentCoroutineContext()[MotionDurationScale]
+-    snapshotFlow { motionScale?.scaleFactor ?: 1f }.collectLatest { scale ->
+-        // A zero-duration spring loop would otherwise spin when system animations are off.
+-        if (scale == 0f) {
+-            alpha.snapTo(0.7f)
+-        } else {
+-            while (currentCoroutineContext().isActive) {
+-                alpha.animateTo(0.95f, spring(stiffness = Spring.StiffnessVeryLow))
+-                alpha.animateTo(0.55f, spring(stiffness = Spring.StiffnessVeryLow))
+-            }
+-        }
+-    }
+-}
+-
+-private fun Modifier.statsSkeleton(loading: Boolean, color: Color, alpha: State<Float>): Modifier =
+-    if (!loading) this else clearAndSetSemantics {}.drawWithContent {
+-        drawRoundRect(
+-            color = color,
+-            topLeft = Offset(0f, size.height * 0.18f),
+-            size = Size(size.width, size.height * 0.64f),
+-            cornerRadius = CornerRadius(6.dp.toPx()),
+-            alpha = alpha.value
+-        )
+-    }
+--- before/ui/components/TimetableExportPreviewModal.kt
++++ after/ui/components/TimetableExportPreviewModal.kt
+@@ -1,4 +1,6 @@
+ package com.lingubible.app.ui.components
++
++import com.lingubible.app.core.theme.AppMotion
+ 
+ import android.app.Activity
+ import android.graphics.Bitmap
+@@ -399,7 +401,7 @@
+                     ) {
+                         AnimatedContent(
+                             targetState = previewBitmap to isRendering,
+-                            transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(120)) },
++                            transitionSpec = { fadeIn(AppMotion.effects()) togetherWith fadeOut(AppMotion.effects()) },
+                             label = "previewCrossfade"
+                         ) { (bmp, rendering) ->
+                             if (rendering || bmp == null) {
+--- before/ui/screens/AcademicToolsScreen.kt
++++ after/ui/screens/AcademicToolsScreen.kt
+@@ -1,4 +1,6 @@
+ package com.lingubible.app.ui.screens
++
++import com.lingubible.app.core.theme.AppMotion
+ 
+ import androidx.compose.runtime.saveable.rememberSaveable
+ 
+@@ -55,7 +57,6 @@
+     val isZh = appLanguage == AppLanguage.ZH_TW
+ 
+     var selectedTab by rememberSaveable(initialTab) { mutableIntStateOf(initialTab.coerceIn(0, 2)) }
+-    var previousTab by remember { mutableIntStateOf(selectedTab) }
+ 
+     LaunchedEffect(selectedTab) {
+         topBarState.setAcademicSubTab(selectedTab)
+@@ -103,21 +104,21 @@
+             visible = topBarState.isSubBarVisible,
+             enter = expandVertically(
+                 expandFrom = Alignment.Top,
+-                animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                animationSpec = AppMotion.spatial()
+             ) + slideInVertically(
+                 initialOffsetY = { -it },
+-                animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                animationSpec = AppMotion.spatial()
+             ) + fadeIn(
+-                animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
++                animationSpec = AppMotion.effects()
+             ),
+             exit = shrinkVertically(
+                 shrinkTowards = Alignment.Top,
+-                animationSpec = spring(stiffness = Spring.StiffnessMedium)
++                animationSpec = AppMotion.spatial()
+             ) + slideOutVertically(
+                 targetOffsetY = { -it },
+-                animationSpec = spring(stiffness = Spring.StiffnessMedium)
++                animationSpec = AppMotion.spatial()
+             ) + fadeOut(
+-                animationSpec = spring(stiffness = Spring.StiffnessMedium)
++                animationSpec = AppMotion.effects()
+             )
+         ) {
+             FrostedGlassHeader(
+@@ -146,23 +147,20 @@
+         AnimatedContent(
+             targetState = selectedTab,
+             transitionSpec = {
+-                val forward = targetState >= previousTab
++                val forward = targetState >= initialState
+                 val direction = if (forward) 1 else -1
+                 (slideInHorizontally(
+                     initialOffsetX = { (it * 0.25f * direction).toInt() },
+-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+-                ) + fadeIn(animationSpec = tween(220))) togetherWith
++                    animationSpec = AppMotion.spatial()
++                ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
+                 (slideOutHorizontally(
+                     targetOffsetX = { (-it * 0.25f * direction).toInt() },
+-                    animationSpec = tween(180, easing = FastOutLinearInEasing)
+-                ) + fadeOut(animationSpec = tween(160)))
++                    animationSpec = AppMotion.spatial()
++                ) + fadeOut(animationSpec = AppMotion.effects()))
+             },
+             modifier = Modifier.weight(1f),
+             label = "academicToolSubViewTransition"
+         ) { tabIndex ->
+-            LaunchedEffect(tabIndex) {
+-                previousTab = tabIndex
+-            }
+             when (tabIndex) {
+                 0 -> PlannerScreen()
+                 1 -> CalendarScreen()
+--- before/ui/screens/AuthScreen.kt
++++ after/ui/screens/AuthScreen.kt
+@@ -1,5 +1,6 @@
+ package com.lingubible.app.ui.screens
+ 
++import com.lingubible.app.core.theme.AppMotion
+ import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.components.fadingVerticalScroll
+ import com.lingubible.app.ui.common.hapticClick
+@@ -167,10 +168,10 @@
+                 Column {
+                         AnimatedVisibility(
+                             visible = !isLoginMode,
+-                            enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
+-                                fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+-                            exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
+-                                fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
++                            enter = expandVertically(animationSpec = AppMotion.spatial()) +
++                                fadeIn(animationSpec = AppMotion.effects()),
++                            exit = shrinkVertically(animationSpec = AppMotion.spatial()) +
++                                fadeOut(animationSpec = AppMotion.effects())
+                         ) {
+                             Column {
+                             OutlinedTextField(
+@@ -217,10 +218,10 @@
+ 
+                         AnimatedVisibility(
+                             visible = !isLoginMode,
+-                            enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
+-                                fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+-                            exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
+-                                fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
++                            enter = expandVertically(animationSpec = AppMotion.spatial()) +
++                                fadeIn(animationSpec = AppMotion.effects()),
++                            exit = shrinkVertically(animationSpec = AppMotion.spatial()) +
++                                fadeOut(animationSpec = AppMotion.effects())
+                         ) {
+                             Column {
+                                 Spacer(modifier = Modifier.height(12.dp))
+--- before/ui/screens/CoursesScreen.kt
++++ after/ui/screens/CoursesScreen.kt
+@@ -1,6 +1,8 @@
+ package com.lingubible.app.ui.screens
+ 
+ import com.lingubible.app.ui.components.AppButtonDefaults
++import com.lingubible.app.core.theme.AppMotion
++import com.lingubible.app.ui.components.DirectoryLoadingSkeleton
+ import com.lingubible.app.ui.components.FadingLazyColumn
+ import com.lingubible.app.data.repository.SearchHistoryStore
+ import com.lingubible.app.ui.components.RecentSearchesButton
+@@ -422,45 +424,49 @@
+         }
+ 
+         // Courses List
+-        if (uiState.isLoading && uiState.courses.isEmpty()) {
+-            M3LoadingState(
+-                modifier = Modifier.fillMaxSize(),
+-                message = "正在載入課程..."
+-            )
+-        } else {
+-            M3PullToRefreshBox(
+-                isRefreshing = uiState.isLoading,
+-                onRefresh = { viewModel.loadCourses() },
+-                modifier = Modifier.fillMaxSize()
+-            ) {
+-                if (uiState.courses.isEmpty()) {
+-                    Box(
+-                        modifier = Modifier.fillMaxSize(),
+-                        contentAlignment = Alignment.Center
+-                    ) {
+-                        Text(
+-                            text = "找不到相關課程",
+-                            style = MaterialTheme.typography.bodyLarge,
+-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+-                        )
+-                    }
+-                } else {
+-                    FadingLazyColumn(
+-                        state = listState,
+-                        modifier = Modifier
+-                            .fillMaxSize()
+-                            .mouseScrollbar(listState),
+-                        contentPadding = screenContentPadding(),
+-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+-                    ) {
+-                        itemsIndexed(uiState.courses, key = { _, it -> it.code }) { index, course ->
+-                            PopularCourseCard(
+-                                course = course,
+-                                groupIndex = index,
+-                                groupSize = uiState.courses.size,
+-
+-                                onClick = { searchHistory.add("courses", searchInput); onNavigateToCourse(course.code) }
++        Crossfade(
++            targetState = uiState.isLoading && uiState.courses.isEmpty(),
++            animationSpec = AppMotion.effects(),
++            modifier = Modifier.fillMaxSize(),
++            label = "courseDirectoryLoading"
++        ) { loading ->
++            if (loading) {
++                DirectoryLoadingSkeleton(instructors = false)
++            } else {
++                M3PullToRefreshBox(
++                    isRefreshing = uiState.isLoading,
++                    onRefresh = { viewModel.loadCourses() },
++                    modifier = Modifier.fillMaxSize()
++                ) {
++                    if (uiState.courses.isEmpty()) {
++                        Box(
++                            modifier = Modifier.fillMaxSize(),
++                            contentAlignment = Alignment.Center
++                        ) {
++                            Text(
++                                text = "找不到相關課程",
++                                style = MaterialTheme.typography.bodyLarge,
++                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                             )
++                        }
++                    } else {
++                        FadingLazyColumn(
++                            state = listState,
++                            modifier = Modifier
++                                .fillMaxSize()
++                                .mouseScrollbar(listState),
++                            contentPadding = screenContentPadding(),
++                            verticalArrangement = Arrangement.spacedBy(4.dp)
++                        ) {
++                            itemsIndexed(uiState.courses, key = { _, it -> it.code }) { index, course ->
++                                PopularCourseCard(
++                                    course = course,
++                                    groupIndex = index,
++                                    groupSize = uiState.courses.size,
++
++                                    onClick = { searchHistory.add("courses", searchInput); onNavigateToCourse(course.code) }
++                                )
++                            }
+                         }
+                     }
+                 }
+--- before/ui/screens/GpaHonsScreen.kt
++++ after/ui/screens/GpaHonsScreen.kt
+@@ -1,4 +1,6 @@
+ package com.lingubible.app.ui.screens
++
++import com.lingubible.app.core.theme.AppMotion
+ 
+ import com.lingubible.app.ui.components.AppButtonDefaults
+ import com.lingubible.app.ui.common.hapticClick
+@@ -118,15 +120,15 @@
+             transitionSpec = {
+                 val direction = if (targetState) 1 else -1
+                 ((slideInHorizontally(
+-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
++                    animationSpec = AppMotion.spatial(),
+                     initialOffsetX = { direction * it / 4 }
+-                ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))) togetherWith
++                ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
+                     (slideOutHorizontally(
+-                        animationSpec = spring(stiffness = Spring.StiffnessMedium),
++                        animationSpec = AppMotion.spatial(),
+                         targetOffsetX = { -direction * it / 4 }
+-                    ) + fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium))))
++                    ) + fadeOut(animationSpec = AppMotion.effects())))
+                     .using(SizeTransform(clip = true) { _, _ ->
+-                        spring(stiffness = Spring.StiffnessMediumLow)
++                        AppMotion.spatial()
+                     })
+             },
+             label = "gpaCalculatorStatisticsTransition"
+@@ -246,9 +248,9 @@
+                             modifier = Modifier
+                                 .fillMaxWidth()
+                                 .animateItem(
+-                                    fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-                                    placementSpec = spring(stiffness = Spring.StiffnessMediumLow),
+-                                    fadeOutSpec = spring(stiffness = Spring.StiffnessMedium)
++                                    fadeInSpec = AppMotion.effects(),
++                                    placementSpec = AppMotion.spatial(),
++                                    fadeOutSpec = AppMotion.effects()
+                                 ),
+                             verticalArrangement = Arrangement.spacedBy(8.dp)
+                         ) {
+@@ -490,7 +492,7 @@
+             modifier = Modifier
+                 .fillMaxWidth()
+                 .padding(16.dp)
+-                .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
++                .animateContentSize(AppMotion.spatial())
+         ) {
+             // Year Header
+             Row(
+@@ -547,8 +549,8 @@
+                                             AnimatedContent(
+                                                 targetState = String.format(java.util.Locale.US, "%.3f", yearStat.yearGpa),
+                                                 transitionSpec = {
+-                                                    (slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it } + fadeIn())
+-                                                        .togetherWith(slideOutVertically(spring(stiffness = Spring.StiffnessMediumLow)) { -it } + fadeOut())
++                                                    (slideInVertically(AppMotion.spatial()) { it } + fadeIn(AppMotion.effects()))
++                                                        .togetherWith(slideOutVertically(AppMotion.spatial()) { -it } + fadeOut(AppMotion.effects()))
+                                                 },
+                                                 label = "YearGpaRoll"
+                                             ) { gpaStr ->
+@@ -692,7 +694,7 @@
+     Column(
+         modifier = Modifier
+             .fillMaxWidth()
+-            .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
++            .animateContentSize(AppMotion.spatial())
+     ) {
+         // Term Title Bar
+         Row(
+--- before/ui/screens/HomeScreen.kt
++++ after/ui/screens/HomeScreen.kt
+@@ -520,15 +520,15 @@
+                         transitionSpec = {
+                             val direction = if (targetState.ordinal > initialState.ordinal) 1 else -1
+                             ((slideInHorizontally(
+-                                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
++                                animationSpec = AppMotion.spatial(),
+                                 initialOffsetX = { fullWidth -> direction * fullWidth / 4 }
+-                            ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))) togetherWith
++                            ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
+                                 (slideOutHorizontally(
+-                                    animationSpec = spring(stiffness = Spring.StiffnessMedium),
++                                    animationSpec = AppMotion.spatial(),
+                                     targetOffsetX = { fullWidth -> -direction * fullWidth / 4 }
+-                                ) + fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium))))
++                                ) + fadeOut(animationSpec = AppMotion.effects())))
+                                 .using(SizeTransform(clip = false) { _, _ ->
+-                                    spring(stiffness = Spring.StiffnessMediumLow)
++                                    AppMotion.spatial()
+                                 })
+                         },
+                         modifier = Modifier.fillMaxWidth(),
+--- before/ui/screens/InstructorsScreen.kt
++++ after/ui/screens/InstructorsScreen.kt
+@@ -1,6 +1,9 @@
+ package com.lingubible.app.ui.screens
+ 
+ import com.lingubible.app.ui.components.AppButtonDefaults
++import com.lingubible.app.core.theme.AppMotion
++import com.lingubible.app.ui.components.DirectoryLoadingSkeleton
++import androidx.compose.animation.Crossfade
+ import com.lingubible.app.ui.components.FadingLazyColumn
+ import com.lingubible.app.data.repository.SearchHistoryStore
+ import com.lingubible.app.ui.components.RecentSearchesButton
+@@ -124,45 +127,49 @@
+             Spacer(Modifier.height(8.dp))
+ 
+             // List
+-            if (uiState.isLoading && uiState.instructors.isEmpty()) {
+-                M3LoadingState(
+-                    modifier = Modifier.fillMaxSize(),
+-                    message = "正在載入講師名錄..."
+-                )
+-            } else {
+-                M3PullToRefreshBox(
+-                    isRefreshing = uiState.isLoading,
+-                    onRefresh = { viewModel.loadInstructors() },
+-                    modifier = Modifier.fillMaxSize()
+-                ) {
+-                    if (uiState.instructors.isEmpty()) {
+-                        Box(
+-                            modifier = Modifier.fillMaxSize(),
+-                            contentAlignment = Alignment.Center
+-                        ) {
+-                            Text(
+-                                text = "找不到相關講師",
+-                                style = MaterialTheme.typography.bodyLarge,
+-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+-                            )
+-                        }
+-                    } else {
+-                        FadingLazyColumn(
+-                            state = listState,
+-                            modifier = Modifier
+-                                .fillMaxSize()
+-                                .mouseScrollbar(listState),
+-                            contentPadding = screenContentPadding(),
+-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+-                        ) {
+-                            itemsIndexed(uiState.instructors, key = { _, it -> it.id }) { index, instructor ->
+-                                PopularInstructorCard(
+-                                    instructor = instructor,
+-                                    groupIndex = index,
+-                                    groupSize = uiState.instructors.size,
++            Crossfade(
++                targetState = uiState.isLoading && uiState.instructors.isEmpty(),
++                animationSpec = AppMotion.effects(),
++                modifier = Modifier.fillMaxSize(),
++                label = "instructorDirectoryLoading"
++            ) { loading ->
++                if (loading) {
++                    DirectoryLoadingSkeleton(instructors = true)
++                } else {
++                    M3PullToRefreshBox(
++                        isRefreshing = uiState.isLoading,
++                        onRefresh = { viewModel.loadInstructors() },
++                        modifier = Modifier.fillMaxSize()
++                    ) {
++                        if (uiState.instructors.isEmpty()) {
++                            Box(
++                                modifier = Modifier.fillMaxSize(),
++                                contentAlignment = Alignment.Center
++                            ) {
++                                Text(
++                                    text = "找不到相關講師",
++                                    style = MaterialTheme.typography.bodyLarge,
++                                    color = MaterialTheme.colorScheme.onSurfaceVariant
++                                )
++                            }
++                        } else {
++                            FadingLazyColumn(
++                                state = listState,
++                                modifier = Modifier
++                                    .fillMaxSize()
++                                    .mouseScrollbar(listState),
++                                contentPadding = screenContentPadding(),
++                                verticalArrangement = Arrangement.spacedBy(4.dp)
++                            ) {
++                                itemsIndexed(uiState.instructors, key = { _, it -> it.id }) { index, instructor ->
++                                    PopularInstructorCard(
++                                        instructor = instructor,
++                                        groupIndex = index,
++                                        groupSize = uiState.instructors.size,
+ 
+-                                    onClick = { searchHistory.add("instructors", searchInput); onNavigateToInstructor(instructor.name) }
+-                                )
++                                        onClick = { searchHistory.add("instructors", searchInput); onNavigateToInstructor(instructor.name) }
++                                    )
++                                }
+                             }
+                         }
+                     }
+--- /dev/null
++++ after/core/theme/AppMotion.kt
+@@ -0,0 +1,13 @@
++package com.lingubible.app.core.theme
++
++import androidx.compose.material3.MotionScheme
++
++/** The same Expressive spring tokens drive native components and custom transitions. */
++object AppMotion {
++    val scheme = MotionScheme.expressive()
++
++    fun <T> page() = scheme.slowSpatialSpec<T>()
++    fun <T> spatial() = scheme.defaultSpatialSpec<T>()
++    fun <T> press() = scheme.fastSpatialSpec<T>()
++    fun <T> effects() = scheme.defaultEffectsSpec<T>()
++}
+--- /dev/null
++++ after/ui/components/LoadingSkeleton.kt
+@@ -0,0 +1,54 @@
++package com.lingubible.app.ui.components
++
++import androidx.compose.animation.core.Animatable
++import androidx.compose.animation.core.AnimationVector1D
++import androidx.compose.animation.core.Spring
++import androidx.compose.animation.core.spring
++import androidx.compose.runtime.*
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.MotionDurationScale
++import androidx.compose.ui.draw.drawWithContent
++import androidx.compose.ui.geometry.CornerRadius
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.geometry.Size
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.semantics.clearAndSetSemantics
++import androidx.compose.ui.unit.dp
++import kotlinx.coroutines.currentCoroutineContext
++import kotlinx.coroutines.flow.collectLatest
++import kotlinx.coroutines.isActive
++
++@Composable
++internal fun rememberSkeletonAlpha(loading: Boolean): State<Float> {
++    val alpha = remember { Animatable(0.7f) }
++    LaunchedEffect(loading) {
++        if (loading) animateSkeletonPulse(alpha)
++    }
++    return alpha.asState()
++}
++
++internal suspend fun animateSkeletonPulse(alpha: Animatable<Float, AnimationVector1D>) {
++    val motionScale = currentCoroutineContext()[MotionDurationScale]
++    snapshotFlow { motionScale?.scaleFactor ?: 1f }.collectLatest { scale ->
++        // A zero-duration spring loop would otherwise spin when system animations are off.
++        if (scale == 0f) {
++            alpha.snapTo(0.7f)
++        } else {
++            while (currentCoroutineContext().isActive) {
++                alpha.animateTo(0.95f, spring(stiffness = Spring.StiffnessVeryLow))
++                alpha.animateTo(0.55f, spring(stiffness = Spring.StiffnessVeryLow))
++            }
++        }
++    }
++}
++
++internal fun Modifier.contentSkeleton(loading: Boolean, color: Color, alpha: State<Float>): Modifier =
++    if (!loading) this else clearAndSetSemantics {}.drawWithContent {
++        drawRoundRect(
++            color = color,
++            topLeft = Offset(0f, size.height * 0.18f),
++            size = Size(size.width, size.height * 0.64f),
++            cornerRadius = CornerRadius(6.dp.toPx()),
++            alpha = alpha.value
++        )
++    }
+--- /dev/null
++++ after/ui/components/DirectoryLoadingSkeleton.kt
+@@ -0,0 +1,63 @@
++package com.lingubible.app.ui.components
++
++import androidx.compose.foundation.BorderStroke
++import androidx.compose.foundation.layout.*
++import androidx.compose.material3.Card
++import androidx.compose.material3.CardDefaults
++import androidx.compose.material3.MaterialTheme
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.State
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.drawWithContent
++import androidx.compose.ui.geometry.CornerRadius
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.semantics.clearAndSetSemantics
++import androidx.compose.ui.semantics.contentDescription
++import androidx.compose.ui.semantics.stateDescription
++import androidx.compose.ui.unit.dp
++import com.lingubible.app.core.navigation.screenContentPadding
++
++/** Reserves the directory's grouped-card layout without creating fake domain objects or actions. */
++@Composable
++internal fun DirectoryLoadingSkeleton(instructors: Boolean, modifier: Modifier = Modifier) {
++    val alpha = rememberSkeletonAlpha(true)
++    val color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.22f)
++    FadingLazyColumn(
++        modifier = modifier.fillMaxSize().clearAndSetSemantics {
++            contentDescription = if (instructors) "講師名錄 Instructor directory" else "課程列表 Course directory"
++            stateDescription = "載入中 Loading"
++        },
++        contentPadding = screenContentPadding(),
++        verticalArrangement = Arrangement.spacedBy(4.dp)
++    ) {
++        items(3, key = { "loading-$it" }) { index ->
++            Card(
++                shape = getGroupedItemShape(index, 3, outerRadius = 28.dp),
++                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
++                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
++            ) {
++                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
++                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
++                        SkeletonBar(Modifier.weight(1f).height(24.dp), color, alpha)
++                        SkeletonBar(Modifier.width(44.dp).height(24.dp), color, alpha)
++                    }
++                    SkeletonBar(Modifier.fillMaxWidth(0.85f).height(18.dp), color, alpha)
++                    SkeletonBar(Modifier.fillMaxWidth(0.6f).height(14.dp), color, alpha)
++                    if (!instructors) {
++                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
++                            repeat(3) { SkeletonBar(Modifier.weight(1f).height(42.dp), color, alpha) }
++                        }
++                    }
++                    SkeletonBar(Modifier.fillMaxWidth(0.4f).height(18.dp), color, alpha)
++                }
++            }
++        }
++    }
++}
++
++@Composable
++private fun SkeletonBar(modifier: Modifier, color: Color, alpha: State<Float>) {
++    Box(modifier.drawWithContent {
++        drawRoundRect(color = color, cornerRadius = CornerRadius(6.dp.toPx()), alpha = alpha.value)
++    })
++}

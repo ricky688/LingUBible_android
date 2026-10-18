@@ -1,0 +1,15 @@
+{
+  "trace_id": "f220c060-c597-4389-8baf-f5f3c2a1a66e",
+  "status": "completed",
+  "device": "192.168.240.112:5555",
+  "elapsed_seconds": 32.4,
+  "backend": "ARTEMIS accessibility helper",
+  "actions": [
+    "Tap 認證學生",
+    "Observe Discover remains with four statistic cards",
+    "Tap 課程評價",
+    "Observe Discover remains with four statistic cards and no dialog"
+  ],
+  "summary": "Neither tap navigated or opened a dialog.",
+  "inspection": "Trace summary inspected. Daemon-reported raw stderr path was unavailable on this host."
+}

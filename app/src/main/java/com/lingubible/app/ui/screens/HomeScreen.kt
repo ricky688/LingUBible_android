@@ -272,18 +272,18 @@ fun HomeScreen(
                 // ==========================================
                 item {
                     val stats = homeState.stats
-                    val isStatsLoading = homeState.isLoading && stats.verifiedStudentsCount == 0
+                    val isStatsLoading = homeState.isLoading && !homeState.hasLoadedStats
 
-                    val studentsDisplay = if (isStatsLoading) "..." else if (stats.verifiedStudentsCount > 0) "${stats.verifiedStudentsCount}" else if (authState.currentUser != null) "1" else "--"
+                    val studentsDisplay = if (stats.verifiedStudentsCount > 0) "${stats.verifiedStudentsCount}" else if (authState.currentUser != null) "1" else "--"
                     val studentsChange = if (stats.verifiedStudentsLast30Days > 0) "+${stats.verifiedStudentsLast30Days}" else "--"
 
-                    val reviewsDisplay = if (isStatsLoading) "..." else if (stats.reviewsCount > 0) "${stats.reviewsCount}" else if (reviewsState.reviews.isNotEmpty()) "${reviewsState.reviews.size}" else "--"
+                    val reviewsDisplay = if (stats.reviewsCount > 0) "${stats.reviewsCount}" else if (reviewsState.reviews.isNotEmpty()) "${reviewsState.reviews.size}" else "--"
                     val reviewsChange = if (stats.reviewsLast30Days > 0) "+${stats.reviewsLast30Days}" else "--"
 
-                    val coursesDisplay = if (isStatsLoading) "..." else if (stats.coursesCount > 0) "${stats.coursesCount}" else if (coursesState.courses.isNotEmpty()) "${coursesState.courses.size}" else "--"
+                    val coursesDisplay = if (stats.coursesCount > 0) "${stats.coursesCount}" else if (coursesState.courses.isNotEmpty()) "${coursesState.courses.size}" else "--"
                     val coursesChange = if (stats.coursesLast30Days > 0) "+${stats.coursesLast30Days}" else "--"
 
-                    val instructorsDisplay = if (isStatsLoading) "..." else if (stats.instructorsCount > 0) "${stats.instructorsCount}" else if (instructorsState.instructors.isNotEmpty()) "${instructorsState.instructors.size}" else "--"
+                    val instructorsDisplay = if (stats.instructorsCount > 0) "${stats.instructorsCount}" else if (instructorsState.instructors.isNotEmpty()) "${instructorsState.instructors.size}" else "--"
                     val instructorsChange = if (stats.instructorsLast30Days > 0) "+${stats.instructorsLast30Days}" else "--"
 
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -296,14 +296,18 @@ fun HomeScreen(
                                 title = "認證學生",
                                 value = studentsDisplay,
                                 change = studentsChange,
-                                modifier = Modifier.weight(1f)
+                                isLoading = isStatsLoading,
+                                modifier = Modifier.weight(1f),
+                                onClick = {}
                             )
                             StatsCard(
                                 icon = Icons.Filled.Star,
                                 title = "課程評價",
                                 value = reviewsDisplay,
                                 change = reviewsChange,
-                                modifier = Modifier.weight(1f)
+                                isLoading = isStatsLoading,
+                                modifier = Modifier.weight(1f),
+                                onClick = {}
                             )
                         }
                         Row(
@@ -315,6 +319,7 @@ fun HomeScreen(
                                 title = "涵蓋課程",
                                 value = coursesDisplay,
                                 change = coursesChange,
+                                isLoading = isStatsLoading,
                                 modifier = Modifier.weight(1f),
                                 onClick = { onNavigateToCourse("") }
                             )
@@ -323,6 +328,7 @@ fun HomeScreen(
                                 title = "評價講師",
                                 value = instructorsDisplay,
                                 change = instructorsChange,
+                                isLoading = isStatsLoading,
                                 modifier = Modifier.weight(1f),
                                 onClick = { onNavigateToInstructor("") }
                             )
@@ -516,15 +522,15 @@ fun HomeScreen(
                         transitionSpec = {
                             val direction = if (targetState.ordinal > initialState.ordinal) 1 else -1
                             ((slideInHorizontally(
-                                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                                animationSpec = AppMotion.spatial(),
                                 initialOffsetX = { fullWidth -> direction * fullWidth / 4 }
-                            ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))) togetherWith
+                            ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
                                 (slideOutHorizontally(
-                                    animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                                    animationSpec = AppMotion.spatial(),
                                     targetOffsetX = { fullWidth -> -direction * fullWidth / 4 }
-                                ) + fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium))))
+                                ) + fadeOut(animationSpec = AppMotion.effects())))
                                 .using(SizeTransform(clip = false) { _, _ ->
-                                    spring(stiffness = Spring.StiffnessMediumLow)
+                                    AppMotion.spatial()
                                 })
                         },
                         modifier = Modifier.fillMaxWidth(),

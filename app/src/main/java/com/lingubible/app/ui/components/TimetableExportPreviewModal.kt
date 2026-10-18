@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.core.theme.AppMotion
+
 import android.app.Activity
 import android.graphics.Bitmap
 import android.os.Build
@@ -399,7 +401,7 @@ fun TimetableExportPreviewModal(
                     ) {
                         AnimatedContent(
                             targetState = previewBitmap to isRendering,
-                            transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(120)) },
+                            transitionSpec = { fadeIn(AppMotion.effects()) togetherWith fadeOut(AppMotion.effects()) },
                             label = "previewCrossfade"
                         ) { (bmp, rendering) ->
                             if (rendering || bmp == null) {

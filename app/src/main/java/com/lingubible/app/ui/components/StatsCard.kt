@@ -1,7 +1,9 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.core.theme.AppMotion
 import com.lingubible.app.ui.common.hapticClick
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lingubible.app.core.theme.*
@@ -34,7 +39,8 @@ fun StatsCard(
     value: String,
     change: String? = null,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    isLoading: Boolean = false
 ) {
     val isDark = isAppDarkTheme()
     val bgColor = MaterialTheme.colorScheme.surfaceContainer
@@ -45,6 +51,7 @@ fun StatsCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .semantics { if (isLoading) stateDescription = "載入中 Loading" }
             .then(if (onClick != null) Modifier.mousePointer().clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -57,81 +64,93 @@ fun StatsCard(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(14.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Crossfade(
+            targetState = isLoading,
+            animationSpec = AppMotion.effects(),
+            label = "statsLoaded"
+        ) { loading ->
+            val skeletonAlpha = rememberSkeletonAlpha(loading)
+            val skeletonColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.22f)
+            Column(
+                modifier = Modifier.padding(14.dp)
             ) {
-                // Icon Box
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(
-                            color = if (isDark) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
-                            shape = RoundedCornerShape(8.dp)
-                        ),
-                    contentAlignment = Alignment.Center
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = title,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                // Change trend pill if available
-                if (!change.isNullOrBlank()) {
+                    // Icon Box
                     Box(
                         modifier = Modifier
+                            .size(36.dp)
                             .background(
-                                color = if (change.startsWith("+")) {
-                                    if (isDark) Color(0xFF064E3B) else Color(0xFFDCFCE7)
-                                } else {
-                                    if (isDark) Color(0xFF27272A) else Color(0xFFF3F4F6)
-                                },
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                                color = if (isDark) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = change,
-                            color = if (change.startsWith("+")) {
-                                if (isDark) Color(0xFF34D399) else Color(0xFF166534)
-                            } else {
-                                if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
-                            },
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
+
+                    // Change trend pill if available
+                    if (loading || !change.isNullOrBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = if (loading) MaterialTheme.colorScheme.surfaceContainerHighest else if (change.orEmpty().startsWith("+")) {
+                                        if (isDark) Color(0xFF064E3B) else Color(0xFFDCFCE7)
+                                    } else {
+                                        if (isDark) Color(0xFF27272A) else Color(0xFFF3F4F6)
+                                    },
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = if (loading) "+00" else change.orEmpty(),
+                                modifier = Modifier.contentSkeleton(loading, skeletonColor, skeletonAlpha),
+                                color = if (change.orEmpty().startsWith("+")) {
+                                    if (isDark) Color(0xFF34D399) else Color(0xFF166534)
+                                } else {
+                                    if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
+                                },
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Value
+                Text(
+                    text = if (loading) "0000" else value,
+                    modifier = Modifier.contentSkeleton(loading, skeletonColor, skeletonAlpha),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 26.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = if (isDark) Color(0xFFF1F5F9) else MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                // Title
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isDark) Color(0xFF94A3B8) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
+                )
             }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Value
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Black,
-                fontSize = 26.sp,
-                color = if (isDark) Color(0xFFF1F5F9) else MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            // Title
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (isDark) Color(0xFF94A3B8) else MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1
-            )
         }
     }
 }

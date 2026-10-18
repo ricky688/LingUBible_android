@@ -1,0 +1,46 @@
+{
+  "before": {
+    "認證學生": {
+      "clickable": false,
+      "bounds": null,
+      "center": null
+    },
+    "課程評價": {
+      "clickable": false,
+      "bounds": null,
+      "center": null
+    },
+    "涵蓋課程": {
+      "clickable": true,
+      "bounds": "[18,659][234,798]",
+      "center": "[126,728]"
+    },
+    "評價講師": {
+      "clickable": true,
+      "bounds": "[245,659][462,798]",
+      "center": "[353,728]"
+    }
+  },
+  "updated": {
+    "認證學生": {
+      "clickable": true,
+      "bounds": "[18,509][234,648]",
+      "center": "[126,578]"
+    },
+    "課程評價": {
+      "clickable": true,
+      "bounds": "[245,509][462,648]",
+      "center": "[353,578]"
+    },
+    "涵蓋課程": {
+      "clickable": true,
+      "bounds": "[18,659][234,798]",
+      "center": "[126,728]"
+    },
+    "評價講師": {
+      "clickable": true,
+      "bounds": "[245,659][462,798]",
+      "center": "[353,728]"
+    }
+  }
+}

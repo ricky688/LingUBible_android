@@ -1,6 +1,8 @@
 package com.lingubible.app.ui.screens
 
 import com.lingubible.app.ui.components.AppButtonDefaults
+import com.lingubible.app.core.theme.AppMotion
+import com.lingubible.app.ui.components.DirectoryLoadingSkeleton
 import com.lingubible.app.ui.components.FadingLazyColumn
 import com.lingubible.app.data.repository.SearchHistoryStore
 import com.lingubible.app.ui.components.RecentSearchesButton
@@ -422,45 +424,49 @@ fun CoursesScreen(
         }
 
         // Courses List
-        if (uiState.isLoading && uiState.courses.isEmpty()) {
-            M3LoadingState(
-                modifier = Modifier.fillMaxSize(),
-                message = "正在載入課程..."
-            )
-        } else {
-            M3PullToRefreshBox(
-                isRefreshing = uiState.isLoading,
-                onRefresh = { viewModel.loadCourses() },
-                modifier = Modifier.fillMaxSize()
-            ) {
-                if (uiState.courses.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "找不到相關課程",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    FadingLazyColumn(
-                        state = listState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .mouseScrollbar(listState),
-                        contentPadding = screenContentPadding(),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        itemsIndexed(uiState.courses, key = { _, it -> it.code }) { index, course ->
-                            PopularCourseCard(
-                                course = course,
-                                groupIndex = index,
-                                groupSize = uiState.courses.size,
-
-                                onClick = { searchHistory.add("courses", searchInput); onNavigateToCourse(course.code) }
+        Crossfade(
+            targetState = uiState.isLoading && uiState.courses.isEmpty(),
+            animationSpec = AppMotion.effects(),
+            modifier = Modifier.fillMaxSize(),
+            label = "courseDirectoryLoading"
+        ) { loading ->
+            if (loading) {
+                DirectoryLoadingSkeleton(instructors = false)
+            } else {
+                M3PullToRefreshBox(
+                    isRefreshing = uiState.isLoading,
+                    onRefresh = { viewModel.loadCourses() },
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    if (uiState.courses.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "找不到相關課程",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        }
+                    } else {
+                        FadingLazyColumn(
+                            state = listState,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .mouseScrollbar(listState),
+                            contentPadding = screenContentPadding(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            itemsIndexed(uiState.courses, key = { _, it -> it.code }) { index, course ->
+                                PopularCourseCard(
+                                    course = course,
+                                    groupIndex = index,
+                                    groupSize = uiState.courses.size,
+
+                                    onClick = { searchHistory.add("courses", searchInput); onNavigateToCourse(course.code) }
+                                )
+                            }
                         }
                     }
                 }

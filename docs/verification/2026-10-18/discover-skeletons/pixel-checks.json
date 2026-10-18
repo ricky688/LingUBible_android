@@ -1,0 +1,39 @@
+{
+  "four_card_edges_unchanged": true,
+  "card_bounds": [
+    [
+      18,
+      509,
+      234,
+      648
+    ],
+    [
+      245,
+      509,
+      462,
+      648
+    ],
+    [
+      18,
+      659,
+      234,
+      798
+    ],
+    [
+      245,
+      659,
+      462,
+      798
+    ]
+  ],
+  "normal_pulse_relative_brightness": [
+    92,
+    99
+  ],
+  "animations_off_bars_identical_frames": [
+    2,
+    3,
+    5
+  ],
+  "fake_numbers_not_drawn": true
+}

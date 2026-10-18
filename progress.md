@@ -1,3 +1,31 @@
+## 2026-10-18 — Discover statistics press feedback
+
+- Verified-student and course-review count cards now supply empty click callbacks to the existing StatsCard component. This enables the shared corner-shape press animation and preference-aware haptics while staying on Discover.
+- Course/instructor count navigation remains as before. Loading and count rendering unchanged.
+- Validation: debug Kotlin compilation and optimized release APK build succeeded (`assembleRelease`, 2m 45s); `git diff --check` passed. Updated APK installed on Waydroid with matching certificate and SHA-256 `7c09245e19018a2caaf4ad8d286fbd876f8cd3ccab994b40d2a89f3b646a28e1`, without clearing data.
+- ARTEMIS trace `f220c060-c597-4389-8baf-f5f3c2a1a66e` completed: tapping each new card stayed on Discover without a dialog. Further taps/held presses recorded; both corner morphs visually verified and counts retained. No fatal runtime errors. No extra test suite for this two-callback edit; physical haptic sensation remains unchecked.
+- Evidence: `docs/verification/2026-10-18/stats-card-clicks/` (recording, rest/held/final screenshots, before/after semantics, installation and results). APK/mapping/log archive: `build/stats-card-clicks-2026-10-18/`. The existing AAB remains from the earlier motion build and was not rebuilt for this APK-only device check.
+
+## 2026-10-18 — Shared Material 3 Expressive motion
+
+- Added shared native Expressive motion roles for pages, layout/tabs, presses and color/opacity; applied them to navigation, bars, Academic Tools, GPA/Statistics, honours filters, authentication switching, calendar paging and timetable preview fades.
+- Removed honours-card press shrinking and remaining popular/review press elevation lifts; preserved connected-button light/dark effects and completed quick-tap cycles.
+- Added grouped course/instructor skeleton loading using the same reduced-motion-safe pulse as Discover. Initial loading crossfades without replacing cached data during refresh.
+- Corrected Academic Tools transition direction to use the animation’s initial and target states.
+- Validation: 551 unit tests passed; optimized release APK/AAB built; release guard PASS. Archive: `build/expressive-motion-2026-10-18/`. Final source cleanup was rebuilt and retested successfully (551 tests, 9m 6s release build); whitespace check PASS.
+- ARTEMIS exploration completed before test changes: `a8691632-3a16-4bfc-9bc7-188eaa88fab2`.
+- Waydroid checks subsequently authorized and completed on the exact final APK (SHA-256 `94734e7dd3b5dc210a30b2a4e7668ef9d9dba3ec80a29bd43e7779525b770c83`). Restarting the reserved user session released Android’s installer lock. Course/instructor directories, detail/back, Academic tabs, calendar paging, export preview, repeated Calculator/Statistics switching, honours comparison and corner morphs, and light/dark appearance checked. No fatal runtime errors; signed-in account and 3-course/9-credit timetable retained. Dark and device settings restored. See `device-checks.json` and screenshots/recordings in the evidence directory.
+- Handoff and evidence: `docs/expressive-motion-2026-10-18.md`, `docs/verification/2026-10-18/expressive-motion/`. Physical Samsung/Pixel and Android 15/16 checks remain pending.
+
+## 2026-10-18 — Discover statistics skeleton loading
+
+- Added theme-colored pulsing count/trend placeholders to all four Discover statistics cards. Kept labels/icons visible, reserved the existing line geometry, added a spring crossfade to values and accessibility loading descriptions; hidden placeholder digits are not spoken.
+- Added `HomeUiState.hasLoadedStats` so refresh keeps loaded values, including zero counts. Initial errors end loading and retry still works. Backend requests/fallbacks unchanged.
+- Pulse uses stiffness-only springs, stops when loading ends, and suspends when system animations are disabled. Unit coverage checks disabling and re-enabling motion without a busy loop.
+- Validation: 550 unit tests pass (4 new), optimized APK/AAB build and release guard PASS. Installed matching release on Waydroid without clearing data; APK SHA-256 `a779367702327229d9b59f0c7c4126f01bdc59db37e077b3eece9368bfe34817`.
+- ARTEMIS verified Discover/refresh before tests. Cold-start captures confirm the skeleton-to-value transition; pixel checks verify identical card borders and static placeholders with animations off. Original device/animation settings restored; final Discover shows all four metrics, no current-process fatal exception.
+- Handoff: `docs/discover-skeletons-2026-10-18.md`; evidence `docs/verification/2026-10-18/discover-skeletons/`; artifacts/mapping `build/discover-skeletons-2026-10-18/`. Physical-device/font-window matrix checks remain pending for this change.
+
 ## 2026-10-18 — Global button press corner morph
 
 - Added `AppButtonDefaults`: standard buttons and icon actions now share an 8 dp pressed shape; 192 native button call sites use it. Eleven custom Surface press sites share its stiffness-only spring, including Home CTA, category grids, syllabus, review FABs and timetable export controls.

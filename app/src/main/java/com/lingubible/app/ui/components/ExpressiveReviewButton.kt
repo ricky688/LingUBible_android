@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.core.theme.AppMotion
+
 import com.lingubible.app.ui.common.hapticClick
 
 import androidx.compose.animation.*
@@ -108,24 +110,15 @@ fun ExpressiveReviewFab(
     val pressCorner by AppButtonDefaults.pressCorner(interactionSource, 24.dp)
     val animatedShape = if (pressCorner < 24.dp) RoundedCornerShape(pressCorner) else shape
 
-    // Fast, snappy Google M3 collapse (StiffnessHigh)
-    // and smooth spring expand (StiffnessMedium)
+    // Match the native Expressive button size/shape spring.
     val translationX by animateDpAsState(
         targetValue = if (expanded) 0.dp else collapsedTranslationX,
-        animationSpec = if (expanded) {
-            spring(stiffness = Spring.StiffnessMedium)
-        } else {
-            spring(stiffness = Spring.StiffnessHigh)
-        },
+        animationSpec = AppMotion.press(),
         label = "fabTranslationX"
     )
     val translationY by animateDpAsState(
         targetValue = if (expanded) 0.dp else collapsedTranslationY,
-        animationSpec = if (expanded) {
-            spring(stiffness = Spring.StiffnessMedium)
-        } else {
-            spring(stiffness = Spring.StiffnessHigh)
-        },
+        animationSpec = AppMotion.press(),
         label = "fabTranslationY"
     )
 
@@ -157,11 +150,7 @@ fun ExpressiveReviewFab(
                     bottom = 14.dp
                 )
                 .animateContentSize(
-                    animationSpec = if (expanded) {
-                        spring(stiffness = Spring.StiffnessMedium)
-                    } else {
-                        spring(stiffness = Spring.StiffnessHigh)
-                    }
+                    animationSpec = AppMotion.press()
                 ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
@@ -176,15 +165,15 @@ fun ExpressiveReviewFab(
             AnimatedVisibility(
                 visible = expanded,
                 enter = fadeIn(
-                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
+                    animationSpec = AppMotion.effects()
                 ) + expandHorizontally(
-                    animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                    animationSpec = AppMotion.press(),
                     expandFrom = Alignment.Start
                 ),
                 exit = fadeOut(
-                    animationSpec = tween(durationMillis = 100, easing = FastOutLinearInEasing)
+                    animationSpec = AppMotion.effects()
                 ) + shrinkHorizontally(
-                    animationSpec = spring(stiffness = Spring.StiffnessHigh),
+                    animationSpec = AppMotion.press(),
                     shrinkTowards = Alignment.Start
                 )
             ) {
@@ -217,7 +206,6 @@ fun ExpressiveInlineReviewButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val isPressed by interactionSource.collectIsPressedAsState()
 
     Button(
         onClick = hapticClick(onClick),
@@ -225,7 +213,6 @@ fun ExpressiveInlineReviewButton(
             .pointerHoverIcon(PointerIcon.Hand)
             .shadow(
                 elevation = when {
-                    isPressed -> 8.dp
                     isHovered -> 7.dp
                     else -> 4.dp
                 },
@@ -241,7 +228,7 @@ fun ExpressiveInlineReviewButton(
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 4.dp,
-            pressedElevation = 8.dp
+            pressedElevation = 4.dp
         ),
         interactionSource = interactionSource
     ) {

@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "device": "Waydroid 192.168.240.112:5555",
+  "android_version": 13,
+  "release_apk_sha256": "7c09245e19018a2caaf4ad8d286fbd876f8cd3ccab994b40d2a89f3b646a28e1",
+  "checks": {
+    "both_cards_expose_click_actions": "PASS",
+    "verified_students_tap_stays_on_discover": "PASS",
+    "course_reviews_tap_stays_on_discover": "PASS",
+    "neither_opens_dialog": "PASS",
+    "verified_students_hold_corner_morph": "PASS — inspected rest and held video frames",
+    "course_reviews_hold_corner_morph": "PASS — inspected rest and held video frames",
+    "quick_taps_after_holds_stay_on_discover": "PASS",
+    "displayed_counts_retained": "PASS — 588 students / 1323 reviews during this run",
+    "runtime_fatal_errors": 0
+  },
+  "artemis_trace": "f220c060-c597-4389-8baf-f5f3c2a1a66e",
+  "artifacts": [
+    "press-feedback.mp4",
+    "rest.png",
+    "verified-students-held.png",
+    "course-reviews-held.png",
+    "after-interactions.png",
+    "clickability.json",
+    "installation.json"
+  ],
+  "not_checked": [
+    "Physical haptic sensation on a real phone"
+  ],
+  "notes": "Existing course/instructor click handlers were preserved. No app data clear, sign-out, theme/configuration change, session restart or backend write. New AAB not built for this APK-only device check."
+}

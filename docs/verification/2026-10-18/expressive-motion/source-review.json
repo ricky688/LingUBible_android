@@ -1,0 +1,8 @@
+{
+  "diff_whitespace_check": "PASS",
+  "custom_damping_overrides_added": false,
+  "connected_group_files_unchanged": true,
+  "backend_or_preference_changes_this_task": false,
+  "source_cleanup": "Indent Crossfade content, remove unused imports, normalize EOF only",
+  "device_testing": "Completed on final APK after user authorization; see device-checks.json"
+}

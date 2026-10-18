@@ -1,6 +1,9 @@
 package com.lingubible.app.ui.screens
 
 import com.lingubible.app.ui.components.AppButtonDefaults
+import com.lingubible.app.core.theme.AppMotion
+import com.lingubible.app.ui.components.DirectoryLoadingSkeleton
+import androidx.compose.animation.Crossfade
 import com.lingubible.app.ui.components.FadingLazyColumn
 import com.lingubible.app.data.repository.SearchHistoryStore
 import com.lingubible.app.ui.components.RecentSearchesButton
@@ -124,45 +127,49 @@ fun InstructorsScreen(
             Spacer(Modifier.height(8.dp))
 
             // List
-            if (uiState.isLoading && uiState.instructors.isEmpty()) {
-                M3LoadingState(
-                    modifier = Modifier.fillMaxSize(),
-                    message = "正在載入講師名錄..."
-                )
-            } else {
-                M3PullToRefreshBox(
-                    isRefreshing = uiState.isLoading,
-                    onRefresh = { viewModel.loadInstructors() },
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    if (uiState.instructors.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "找不到相關講師",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    } else {
-                        FadingLazyColumn(
-                            state = listState,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .mouseScrollbar(listState),
-                            contentPadding = screenContentPadding(),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            itemsIndexed(uiState.instructors, key = { _, it -> it.id }) { index, instructor ->
-                                PopularInstructorCard(
-                                    instructor = instructor,
-                                    groupIndex = index,
-                                    groupSize = uiState.instructors.size,
-
-                                    onClick = { searchHistory.add("instructors", searchInput); onNavigateToInstructor(instructor.name) }
+            Crossfade(
+                targetState = uiState.isLoading && uiState.instructors.isEmpty(),
+                animationSpec = AppMotion.effects(),
+                modifier = Modifier.fillMaxSize(),
+                label = "instructorDirectoryLoading"
+            ) { loading ->
+                if (loading) {
+                    DirectoryLoadingSkeleton(instructors = true)
+                } else {
+                    M3PullToRefreshBox(
+                        isRefreshing = uiState.isLoading,
+                        onRefresh = { viewModel.loadInstructors() },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        if (uiState.instructors.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "找不到相關講師",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
+                            }
+                        } else {
+                            FadingLazyColumn(
+                                state = listState,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .mouseScrollbar(listState),
+                                contentPadding = screenContentPadding(),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                itemsIndexed(uiState.instructors, key = { _, it -> it.id }) { index, instructor ->
+                                    PopularInstructorCard(
+                                        instructor = instructor,
+                                        groupIndex = index,
+                                        groupSize = uiState.instructors.size,
+
+                                        onClick = { searchHistory.add("instructors", searchInput); onNavigateToInstructor(instructor.name) }
+                                    )
+                                }
                             }
                         }
                     }

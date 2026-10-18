@@ -35,7 +35,12 @@ internal val ANDROID_FAQ = listOf(
 )
 
 internal val ANDROID_CHANGELOG = listOf(
-    InformationSection("2026-10-16", InformationText("2026-10-16 · 本地客戶端更新", "2026-10-16 · Local client update"), listOf(
+    InformationSection("1.0.7", InformationText("v1.0.7 · 課表學分去重與介面圓角動效升級", "v1.0.7 · Timetable Credit Deduplication & UI Corner Motion"), listOf(
+        InformationText("修復包含講課與導修等多時段課程重複計算學分與課程數之問題，統計更準確。", "Fixed multi-section courses (e.g. Lecture + Tutorial) double counting credits and course count."),
+        InformationText("全面套用 Material 3 Expressive 按鈕按壓圓角形狀變換（8dp pressed shape）。", "Applied Material 3 Expressive button press corner shape morphing (8dp pressed shape) across all screens."),
+        InformationText("堆疊卡片群組圓角接縫優化，相鄰卡片採用 4dp 緊湊內圓角，外觀更協調整齊。", "Optimized stacked card group corners with compact 4dp facing radii for seamless list rhythm."),
+        InformationText("優化橫向鍵盤輸入視野、榮譽規劃雙語排版與小螢幕大字體極限佈局。", "Enhanced landscape input visibility, honours bilingual typography, and small-screen/large-font adaptability."))),
+    InformationSection("1.0.6", InformationText("v1.0.6 · 網頁端功能對齊與自訂選項", "v1.0.6 · Web Parity & Customization"), listOf(
         InformationText("新增完整講師任教篩選與成績分佈、課程與講師分享連結，以及可清除的搜尋記錄。", "Added complete instructor history filters and grade distributions, course/instructor sharing links, and removable recent searches."),
         InformationText("新增每學期課表標題、色彩、內容及顯示範圍自訂，並支援匯出解像度與日曆日期設定。", "Added per-term timetable title, color, field and range customization, export resolutions and calendar date settings."),
         InformationText("指南導覽按鈕固定在底部；捲動邊緣漸變在尚有內容時保留。", "Guide navigation stays at the bottom; scroll fades remain while content is available."),

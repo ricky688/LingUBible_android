@@ -1,0 +1,7 @@
+{
+  "app/src/main/java/com/lingubible/app/ui/components/StatsCard.kt": "168bc4d8cf3d85417cf1515861be9147b6be4d9cf87a5ddeb767ce67dc76b6c8",
+  "app/src/main/java/com/lingubible/app/ui/screens/HomeScreen.kt": "8d2d36c57743f26c33cf936530330a68a37f14a972f851b5ef1643e0fd8e2781",
+  "app/src/main/java/com/lingubible/app/ui/viewmodels/ViewModels.kt": "622bc0bc3a14951d361b27de2413a175d8fc0724b76a68edc30612da5578348a",
+  "app/src/test/java/com/lingubible/app/HomeStatsLoadingTest.kt": "d4e39926461cf6c729282d8f0a80b95de935e0086f83dde7e1a801d7be29e863",
+  "app/src/test/java/com/lingubible/app/ui/components/StatsSkeletonPulseTest.kt": "edaa276db37dc33f006571c9e704360218a2dbe84ed9b2c596a3756edd93eca2"
+}

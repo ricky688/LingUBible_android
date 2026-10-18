@@ -1,15 +1,13 @@
 package com.lingubible.app.core.navigation
 
+import com.lingubible.app.core.theme.AppMotion
+
 import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.ui.common.hapticClick
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -303,14 +301,14 @@ fun LingUBibleTopBar(
     }
     val frostedSurfaceColor by animateColorAsState(
         targetValue = targetFrostedSurfaceColor,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = AppMotion.effects(),
         label = "topBarFrostedSurface"
     )
 
     val targetGlassHighlightColor = if (isDark) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.75f) else Color(0xFFCBD5E1).copy(alpha = 0.85f)
     val glassHighlightColor by animateColorAsState(
         targetValue = targetGlassHighlightColor,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = AppMotion.effects(),
         label = "topBarGlassHighlight"
     )
     val glassBorderColors = remember(glassHighlightColor) {
@@ -321,21 +319,21 @@ fun LingUBibleTopBar(
         visible = isVisible,
         enter = expandVertically(
             expandFrom = Alignment.Top,
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+            animationSpec = AppMotion.spatial()
         ) + slideInVertically(
             initialOffsetY = { -it },
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+            animationSpec = AppMotion.spatial()
         ) + fadeIn(
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+            animationSpec = AppMotion.effects()
         ),
         exit = shrinkVertically(
             shrinkTowards = Alignment.Top,
-            animationSpec = spring(stiffness = Spring.StiffnessMedium)
+            animationSpec = AppMotion.spatial()
         ) + slideOutVertically(
             targetOffsetY = { -it },
-            animationSpec = spring(stiffness = Spring.StiffnessMedium)
+            animationSpec = AppMotion.spatial()
         ) + fadeOut(
-            animationSpec = spring(stiffness = Spring.StiffnessMedium)
+            animationSpec = AppMotion.effects()
         )
     ) {
         Box(
@@ -387,7 +385,7 @@ fun LingUBibleTopBar(
                         var logoScale by remember { mutableFloatStateOf(1f) }
                         val animatedLogoScale by animateFloatAsState(
                             targetValue = logoScale,
-                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                            animationSpec = AppMotion.spatial(),
                             label = "logoBounceScale",
                             finishedListener = { logoScale = 1f }
                         )
@@ -428,55 +426,55 @@ fun LingUBibleTopBar(
                             if (initialState.first == targetState.first) {
                                 // When route hasn't changed (only expanded/collapsed state toggled),
                                 // provide a smooth directional slide & crossfade so compact title glides in naturally
-                                (fadeIn(animationSpec = tween(200)) + slideInVertically(
+                                (fadeIn(animationSpec = AppMotion.effects()) + slideInVertically(
                                     initialOffsetY = { it / 3 },
-                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                                    animationSpec = AppMotion.spatial()
                                 )) togetherWith
-                                (fadeOut(animationSpec = tween(140)) + slideOutVertically(
+                                (fadeOut(animationSpec = AppMotion.effects()) + slideOutVertically(
                                     targetOffsetY = { -it / 3 },
-                                    animationSpec = tween(140)
+                                    animationSpec = AppMotion.spatial()
                                 ))
                             } else {
                                 when (transitionDirection) {
                                     TransitionDirection.FORWARD_TAB -> {
                                         (slideInVertically(
                                             initialOffsetY = { height -> height },
-                                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                                        ) + fadeIn(animationSpec = tween(220))) togetherWith
+                                            animationSpec = AppMotion.spatial()
+                                        ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
                                         (slideOutVertically(
                                             targetOffsetY = { height -> -height },
-                                            animationSpec = tween(180, easing = FastOutLinearInEasing)
-                                        ) + fadeOut(animationSpec = tween(160)))
+                                            animationSpec = AppMotion.spatial()
+                                        ) + fadeOut(animationSpec = AppMotion.effects()))
                                     }
                                     TransitionDirection.BACKWARD_TAB -> {
                                         (slideInVertically(
                                             initialOffsetY = { height -> -height },
-                                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                                        ) + fadeIn(animationSpec = tween(220))) togetherWith
+                                            animationSpec = AppMotion.spatial()
+                                        ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
                                         (slideOutVertically(
                                             targetOffsetY = { height -> height },
-                                            animationSpec = tween(180, easing = FastOutLinearInEasing)
-                                        ) + fadeOut(animationSpec = tween(160)))
+                                            animationSpec = AppMotion.spatial()
+                                        ) + fadeOut(animationSpec = AppMotion.effects()))
                                     }
                                     TransitionDirection.ENTER_DETAIL -> {
                                         (slideInHorizontally(
                                             initialOffsetX = { width -> (width * 0.4f).toInt() },
-                                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                                        ) + fadeIn(animationSpec = tween(220))) togetherWith
+                                            animationSpec = AppMotion.spatial()
+                                        ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
                                         (slideOutHorizontally(
                                             targetOffsetX = { width -> -(width * 0.3f).toInt() },
-                                            animationSpec = tween(180, easing = FastOutLinearInEasing)
-                                        ) + fadeOut(animationSpec = tween(160)))
+                                            animationSpec = AppMotion.spatial()
+                                        ) + fadeOut(animationSpec = AppMotion.effects()))
                                     }
                                     TransitionDirection.POP_DETAIL -> {
                                         (slideInHorizontally(
                                             initialOffsetX = { width -> -(width * 0.4f).toInt() },
-                                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                                        ) + fadeIn(animationSpec = tween(220))) togetherWith
+                                            animationSpec = AppMotion.spatial()
+                                        ) + fadeIn(animationSpec = AppMotion.effects())) togetherWith
                                         (slideOutHorizontally(
                                             targetOffsetX = { width -> (width * 0.3f).toInt() },
-                                            animationSpec = tween(180, easing = FastOutLinearInEasing)
-                                        ) + fadeOut(animationSpec = tween(160)))
+                                            animationSpec = AppMotion.spatial()
+                                        ) + fadeOut(animationSpec = AppMotion.effects()))
                                     }
                                 }
                             }
@@ -527,7 +525,7 @@ fun LingUBibleTopBar(
                         AnimatedContent(
                             targetState = Pair(isHome, isReviewable),
                             transitionSpec = {
-                                fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(150))
+                                fadeIn(animationSpec = AppMotion.effects()) togetherWith fadeOut(animationSpec = AppMotion.effects())
                             },
                             label = "topBarActionsTransition"
                         ) { (home, reviewable) ->
@@ -583,17 +581,17 @@ fun LingUBibleTopBar(
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = expandVertically(
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                    animationSpec = AppMotion.spatial()
                 ) + slideInVertically(
                     initialOffsetY = { -it / 3 },
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+                    animationSpec = AppMotion.spatial()
+                ) + fadeIn(animationSpec = AppMotion.effects()),
                 exit = shrinkVertically(
-                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
+                    animationSpec = AppMotion.spatial()
                 ) + slideOutVertically(
                     targetOffsetY = { -it / 3 },
-                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
-                ) + fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium))
+                    animationSpec = AppMotion.spatial()
+                ) + fadeOut(animationSpec = AppMotion.effects())
             ) {
                 Column(
                     modifier = Modifier
@@ -608,13 +606,13 @@ fun LingUBibleTopBar(
                     AnimatedContent(
                         targetState = titleInfo,
                         transitionSpec = {
-                            (fadeIn(animationSpec = tween(220)) + slideInVertically(
+                            (fadeIn(animationSpec = AppMotion.effects()) + slideInVertically(
                                 initialOffsetY = { it / 2 },
-                                animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                                animationSpec = AppMotion.spatial()
                             )) togetherWith
-                            (fadeOut(animationSpec = tween(160)) + slideOutVertically(
+                            (fadeOut(animationSpec = AppMotion.effects()) + slideOutVertically(
                                 targetOffsetY = { -it / 2 },
-                                animationSpec = tween(160, easing = FastOutLinearInEasing)
+                                animationSpec = AppMotion.spatial()
                             ))
                         },
                         label = "expandedTitleTransition"

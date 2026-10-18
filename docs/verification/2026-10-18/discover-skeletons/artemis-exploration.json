@@ -1,0 +1,10 @@
+{
+  "completed_trace": "9ad8893b-959e-4cde-91e6-6e67a806d122",
+  "verified": [
+    "Four Discover stats labels/values",
+    "Pull to refresh retains 2x2 layout"
+  ],
+  "first_trace": "292cc805-b5ae-4fc7-b104-e576401d6f06",
+  "first_trace_cancelled": "Provider 503; diagnosed ready and retried successfully",
+  "before_authoring_tests": true
+}

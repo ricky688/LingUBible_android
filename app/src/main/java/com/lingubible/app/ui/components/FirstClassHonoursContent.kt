@@ -1,6 +1,8 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.core.theme.AppMotion
 import com.lingubible.app.ui.common.hapticClick
+import com.lingubible.app.ui.common.rememberCardPressShape
 
 import com.lingubible.app.core.navigation.screenContentPadding
 import androidx.compose.animation.*
@@ -163,7 +165,7 @@ fun FirstClassHonoursContent(listState: LazyListState) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow)),
+                    .animateContentSize(AppMotion.spatial()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 GpaSectionTitle("甲等榮譽統計", "First Class Honours Statistics")
@@ -186,10 +188,10 @@ fun FirstClassHonoursContent(listState: LazyListState) {
 
                 AnimatedVisibility(
                     visible = showChange,
-                    enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) +
-                        expandVertically(spring(stiffness = Spring.StiffnessMediumLow)),
-                    exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) +
-                        shrinkVertically(spring(stiffness = Spring.StiffnessMedium))
+                    enter = fadeIn(AppMotion.effects()) +
+                        expandVertically(AppMotion.spatial()),
+                    exit = fadeOut(AppMotion.effects()) +
+                        shrinkVertically(AppMotion.spatial())
                 ) {
                     Text(
                         text = previousYear?.let { "與 $it 比較 · Compared with $it" } ?: "沒有上一屆資料 · No earlier cohort",
@@ -250,9 +252,9 @@ fun FirstClassHonoursContent(listState: LazyListState) {
                 metric = metric,
                 showChange = showChange,
                 modifier = Modifier.animateItem(
-                    fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                    placementSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                    fadeOutSpec = spring(stiffness = Spring.StiffnessMedium)
+                    fadeInSpec = AppMotion.effects(),
+                    placementSpec = AppMotion.spatial(),
+                    fadeOutSpec = AppMotion.effects()
                 )
             )
         }
@@ -419,10 +421,10 @@ private fun HonoursMetricTile(
             AnimatedContent(
                 targetState = value,
                 transitionSpec = {
-                    (slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it / 2 } +
-                        fadeIn(spring(stiffness = Spring.StiffnessMediumLow))) togetherWith
-                        (slideOutVertically(spring(stiffness = Spring.StiffnessMedium)) { -it / 2 } +
-                            fadeOut(spring(stiffness = Spring.StiffnessMedium)))
+                    (slideInVertically(AppMotion.spatial()) { it / 2 } +
+                        fadeIn(AppMotion.effects())) togetherWith
+                        (slideOutVertically(AppMotion.spatial()) { -it / 2 } +
+                            fadeOut(AppMotion.effects()))
                 },
                 label = "metricRoll_${title}"
             ) { targetValue ->
@@ -436,10 +438,10 @@ private fun HonoursMetricTile(
 
             AnimatedVisibility(
                 visible = showChange && deltaStr != "—",
-                enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) +
-                    expandVertically(spring(stiffness = Spring.StiffnessMediumLow)),
-                exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) +
-                    shrinkVertically(spring(stiffness = Spring.StiffnessMedium))
+                enter = fadeIn(AppMotion.effects()) +
+                    expandVertically(AppMotion.spatial()),
+                exit = fadeOut(AppMotion.effects()) +
+                    shrinkVertically(AppMotion.spatial())
             ) {
                 val isPositive = (deltaNum ?: 0.0) > 0
                 val isNegative = (deltaNum ?: 0.0) < 0
@@ -510,7 +512,7 @@ private fun StatisticsFilterBar(
 
     val filterRotation by animateFloatAsState(
         targetValue = if (filtersExpanded) 180f else 0f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = AppMotion.spatial(),
         label = "filterBtnRotation"
     )
 
@@ -533,8 +535,8 @@ private fun StatisticsFilterBar(
                 trailingIcon = {
                     AnimatedVisibility(
                         visible = query.isNotEmpty(),
-                        enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) + scaleIn(spring(stiffness = Spring.StiffnessMediumLow)),
-                        exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) + scaleOut(spring(stiffness = Spring.StiffnessMedium))
+                        enter = fadeIn(AppMotion.effects()) + scaleIn(AppMotion.spatial()),
+                        exit = fadeOut(AppMotion.effects()) + scaleOut(AppMotion.spatial())
                     ) {
                         IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { onQueryChange("") }) {
                             Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(18.dp))
@@ -588,10 +590,10 @@ private fun StatisticsFilterBar(
 
         AnimatedVisibility(
             visible = filtersExpanded,
-            enter = expandVertically(spring(stiffness = Spring.StiffnessMediumLow)) +
-                fadeIn(spring(stiffness = Spring.StiffnessMediumLow)),
-            exit = shrinkVertically(spring(stiffness = Spring.StiffnessMedium)) +
-                fadeOut(spring(stiffness = Spring.StiffnessMedium))
+            enter = expandVertically(AppMotion.spatial()) +
+                fadeIn(AppMotion.effects()),
+            exit = shrinkVertically(AppMotion.spatial()) +
+                fadeOut(AppMotion.effects())
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -713,8 +715,8 @@ private fun StatisticsFilterBar(
                                 AnimatedContent(
                                     targetState = sortByName,
                                     transitionSpec = {
-                                        (slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it / 2 } + fadeIn()) togetherWith
-                                            (slideOutVertically(spring(stiffness = Spring.StiffnessMedium)) { -it / 2 } + fadeOut())
+                                        (slideInVertically(AppMotion.spatial()) { it / 2 } + fadeIn(AppMotion.effects())) togetherWith
+                                            (slideOutVertically(AppMotion.spatial()) { -it / 2 } + fadeOut(AppMotion.effects()))
                                     },
                                     label = "sortModeText"
                                 ) { isByName ->
@@ -760,16 +762,11 @@ private fun HonoursProgrammeCard(
     val pctVal = cohort?.pct ?: 0.0
 
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val pressScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1.0f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "cardPressScale_${entry.en}"
-    )
+    val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize, restingCorner = 22.dp)
 
     val animatedProgress by animateFloatAsState(
         targetValue = pctVal.toFloat().coerceIn(0f, 1f),
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = AppMotion.effects(),
         label = "progPct_${entry.en}"
     )
 
@@ -779,13 +776,12 @@ private fun HonoursProgrammeCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .scale(pressScale)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = hapticClick {}
             ),
-        shape = getGroupedItemShape(groupIndex, groupSize, outerRadius = 22.dp),
+        shape = shape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         border = CardDefaults.outlinedCardBorder().copy(
             brush = Brush.verticalGradient(
@@ -864,8 +860,8 @@ private fun HonoursProgrammeCard(
                 AnimatedContent(
                     targetState = percentage(cohort?.pct),
                     transitionSpec = {
-                        (slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it / 2 } + fadeIn()) togetherWith
-                            (slideOutVertically(spring(stiffness = Spring.StiffnessMedium)) { -it / 2 } + fadeOut())
+                        (slideInVertically(AppMotion.spatial()) { it / 2 } + fadeIn(AppMotion.effects())) togetherWith
+                            (slideOutVertically(AppMotion.spatial()) { -it / 2 } + fadeOut(AppMotion.effects()))
                     },
                     label = "entryPct_${entry.en}"
                 ) { targetPct ->
@@ -890,10 +886,10 @@ private fun HonoursProgrammeCard(
 
             AnimatedVisibility(
                 visible = showChange,
-                enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) +
-                    expandVertically(spring(stiffness = Spring.StiffnessMediumLow)),
-                exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) +
-                    shrinkVertically(spring(stiffness = Spring.StiffnessMedium))
+                enter = fadeIn(AppMotion.effects()) +
+                    expandVertically(AppMotion.spatial()),
+                exit = fadeOut(AppMotion.effects()) +
+                    shrinkVertically(AppMotion.spatial())
             ) {
                 val delta = when (metric) {
                     "first" -> change(cohort?.first?.toDouble(), older?.first?.toDouble())
@@ -1014,7 +1010,7 @@ private fun ExpressiveSwitchRow(
     val containerColor by animateColorAsState(
         targetValue = if (checked) MaterialTheme.colorScheme.primaryContainer
         else MaterialTheme.colorScheme.surfaceContainerLow,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = AppMotion.effects(),
         label = "statisticsSwitchContainer"
     )
     Surface(
@@ -1110,10 +1106,10 @@ private fun StatisticsDropdown(
                     AnimatedContent(
                         targetState = options[selectedKey].orEmpty(),
                         transitionSpec = {
-                            (slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it / 3 } +
-                                fadeIn(spring(stiffness = Spring.StiffnessMediumLow))) togetherWith
-                                (slideOutVertically(spring(stiffness = Spring.StiffnessMedium)) { -it / 3 } +
-                                    fadeOut(spring(stiffness = Spring.StiffnessMedium)))
+                            (slideInVertically(AppMotion.spatial()) { it / 3 } +
+                                fadeIn(AppMotion.effects())) togetherWith
+                                (slideOutVertically(AppMotion.spatial()) { -it / 3 } +
+                                    fadeOut(AppMotion.effects()))
                         },
                         label = "statisticsSelectorValue"
                     ) { selectedLabel ->
