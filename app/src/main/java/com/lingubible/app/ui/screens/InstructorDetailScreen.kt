@@ -108,7 +108,7 @@ fun InstructorDetailScreen(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = screenContentPadding(start = 16.dp, top = 16.dp, end = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     // Profile Header Card
                     item {

@@ -1,3 +1,21 @@
+## 2026-10-19 — Release v1.0.8 (Code 9): Independent Floating Cards & Seam Redesign
+
+- Redesigned card list connections across the entire app: replaced the cramped pseudo-grouping (which caused awkward 4dp inner corners, a 4dp crevice, and colliding double borders) with Independent Floating Expressive Cards.
+- Every course, instructor, and review card now features uniform `18.dp` rounded corners on all four corners with tactile spring press feedback squishing to `10.dp`.
+- Increased list item spacing from `4.dp` to `10.dp`, providing clean breathing room and clear visual hierarchy across `CoursesScreen`, `InstructorsScreen`, `ReviewsScreen`, `CourseDetailScreen`, `InstructorDetailScreen`, `FavoritesScreen`, `DirectoryLoadingSkeleton`, and `FirstClassHonoursContent`.
+- Validation: all unit tests passed (`BUILD SUCCESSFUL`); Google Play release verification script (`verify-play-release.py`) passed with status PASS.
+- Production AAB (`release/LingUBible-v1.0.8-code9.aab`, SHA-256 `1807db167b9f93f6ca947e0e3e73c630f2b1db1fb40840d2aed9ad6bdd69da0c`) and APK (`release/LingUBible-v1.0.8-code9.apk`, SHA-256 `2ba6882f10523b21c897ceb0c9d042913d30c14f56ccd4658e7dbdcf6017ed99`) generated and verified.
+- Installed to user's phone (Samsung Galaxy S24 Ultra `SM_S9280`) via ADB.
+
+## Guide overscroll and course circular loading — completed
+
+- Fixed the first-launch guide’s parent-sheet drag conflict: content can scroll without pulling the whole sheet. Disabled only this sheet’s gestures and removed its drag handle; pinned Next/Close controls remain.
+- Replaced the course-search skeleton with the selected theme’s standard Material3 circular progress indicator. Other skeletons and backend behavior unchanged.
+- Reproduced old behavior: 83 px sheet movement, Next off-screen and accidental dismissal. The same executable check now measures 0 px at both top and bottom boundaries, with Next visible at y=905. Next/Close callbacks and the live circular loader were verified.
+- Validation: 551 unit tests passed; optimized release APK built (4m 11s), installed and hash-verified on Waydroid. APK SHA-256: `9c42a99659c0b9a5363bde731131c01c30c1fc9bdf34d6c21582a9bbbbfc3f2f`. No new AAB built.
+- Tested first launch in disposable Waydroid user 10; resets were limited to that test user. Removed it afterward and restored owner 0. Owner account and 3-course/9-credit timetable intact. Physical Samsung device was not used.
+- ARTEMIS exploration trace: `76c61b94-98c3-4269-9f63-2299afb1f902`. Evidence and runnable regression check: `docs/verification/2026-10-18/guide-scroll-circle/`. APK/mapping/log: `build/guide-scroll-circle-2026-10-18/`. Hardware and larger-font/landscape checks remain pending.
+
 ## 2026-10-18 — Discover statistics press feedback
 
 - Verified-student and course-review count cards now supply empty click callbacks to the existing StatsCard component. This enables the shared corner-shape press animation and preference-aware haptics while staying on Discover.

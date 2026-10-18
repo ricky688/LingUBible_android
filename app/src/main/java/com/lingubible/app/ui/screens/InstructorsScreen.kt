@@ -159,7 +159,7 @@ fun InstructorsScreen(
                                     .fillMaxSize()
                                     .mouseScrollbar(listState),
                                 contentPadding = screenContentPadding(),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 itemsIndexed(uiState.instructors, key = { _, it -> it.id }) { index, instructor ->
                                     PopularInstructorCard(

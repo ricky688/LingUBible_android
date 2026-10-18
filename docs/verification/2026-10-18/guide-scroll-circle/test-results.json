@@ -1,0 +1,67 @@
+{
+  "status": "PASS",
+  "device": "Waydroid 192.168.240.112:5555",
+  "android_version": 13,
+  "guide_before": {
+    "before": {
+      "header_y": 135,
+      "next_y": 905
+    },
+    "during": {
+      "header_y": 218,
+      "next_y": null
+    },
+    "after": {
+      "header_y": null,
+      "next_y": null
+    },
+    "header_movement_px": 83
+  },
+  "guide_after_top": {
+    "before": {
+      "header_y": 84,
+      "next_y": 905
+    },
+    "during": {
+      "header_y": 84,
+      "next_y": 905
+    },
+    "after": {
+      "header_y": 84,
+      "next_y": 905
+    },
+    "header_movement_px": 0
+  },
+  "guide_after_bottom": {
+    "before": {
+      "header_y": 75,
+      "next_y": 905
+    },
+    "during": {
+      "header_y": 75,
+      "next_y": 905
+    },
+    "after": {
+      "header_y": 75,
+      "next_y": 905
+    },
+    "header_movement_px": 0
+  },
+  "next_button_advances": "PASS — step 2 observed",
+  "close_button_dismisses": "PASS — Home observed",
+  "course_loading_indicator": "PASS — standard circular arc captured during cold-load, followed by populated course list",
+  "course_search": "PASS — text entry, empty results and cached results exercised in isolated QA user",
+  "unit_tests": 551,
+  "unit_failures": 0,
+  "release_build": "PASS — 4m 11s",
+  "artemis_trace": "76c61b94-98c3-4269-9f63-2299afb1f902",
+  "owner_restored": true,
+  "temporary_user_removed": true,
+  "owner_data_cleared": false,
+  "physical_phone_used": false,
+  "not_checked": [
+    "Physical Samsung/Pixel overscroll behavior",
+    "Large-font/landscape matrix for this change"
+  ],
+  "aab_rebuilt": false
+}

@@ -1,0 +1,18 @@
+{
+  "device": "192.168.240.112:5555",
+  "android_version": 13,
+  "installed_apk_sha256": "9c42a99659c0b9a5363bde731131c01c30c1fc9bdf34d6c21582a9bbbbfc3f2f",
+  "candidate_apk_sha256": "9c42a99659c0b9a5363bde731131c01c30c1fc9bdf34d6c21582a9bbbbfc3f2f",
+  "certificate_matches": true,
+  "owner_user": 0,
+  "temporary_qa_user": 10,
+  "temporary_user_removed": true,
+  "current_user": 0,
+  "owner_app_data_cleared": false,
+  "clears_limited_to_disposable_user": true,
+  "owner_account_present": true,
+  "owner_timetable_courses": 3,
+  "owner_timetable_credits": 9,
+  "physical_phone_used": false,
+  "aab_rebuilt": false
+}

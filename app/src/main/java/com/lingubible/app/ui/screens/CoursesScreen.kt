@@ -2,7 +2,6 @@ package com.lingubible.app.ui.screens
 
 import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.core.theme.AppMotion
-import com.lingubible.app.ui.components.DirectoryLoadingSkeleton
 import com.lingubible.app.ui.components.FadingLazyColumn
 import com.lingubible.app.data.repository.SearchHistoryStore
 import com.lingubible.app.ui.components.RecentSearchesButton
@@ -57,7 +56,6 @@ import com.lingubible.app.domain.model.COURSE_CATEGORIES
 import com.lingubible.app.domain.model.CourseCategory
 import com.lingubible.app.ui.common.mouseScrollbar
 import com.lingubible.app.ui.components.M3ButtonGroupItem
-import com.lingubible.app.ui.components.M3LoadingState
 import com.lingubible.app.ui.components.M3PullToRefreshBox
 import com.lingubible.app.ui.components.PopularCourseCard
 import com.lingubible.app.ui.components.ScrollableM3ButtonGroup
@@ -431,7 +429,9 @@ fun CoursesScreen(
             label = "courseDirectoryLoading"
         ) { loading ->
             if (loading) {
-                DirectoryLoadingSkeleton(instructors = false)
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             } else {
                 M3PullToRefreshBox(
                     isRefreshing = uiState.isLoading,
@@ -456,7 +456,7 @@ fun CoursesScreen(
                                 .fillMaxSize()
                                 .mouseScrollbar(listState),
                             contentPadding = screenContentPadding(),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             itemsIndexed(uiState.courses, key = { _, it -> it.code }) { index, course ->
                                 PopularCourseCard(

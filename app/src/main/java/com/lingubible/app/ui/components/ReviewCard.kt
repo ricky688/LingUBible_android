@@ -74,7 +74,7 @@ fun ReviewCard(
         }
     }
     val interactionSource = remember { MutableInteractionSource() }
-    val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize)
+    val shape = rememberCardPressShape(interactionSource, restingCorner = 18.dp, uniformCorners = true)
 
     Card(
         modifier = modifier.fillMaxWidth()

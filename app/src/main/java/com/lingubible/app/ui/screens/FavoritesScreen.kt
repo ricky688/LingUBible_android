@@ -4,6 +4,7 @@ import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.ui.components.FadingLazyColumn
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -49,7 +50,7 @@ fun FavoritesScreen(onCourse: (String) -> Unit, onInstructor: (String) -> Unit, 
         } catch (e: Exception) { error = e.localizedMessage
         } finally { loading = false }
     }
-    FadingLazyColumn(contentPadding = screenContentPadding(start = 16.dp, end = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    FadingLazyColumn(contentPadding = screenContentPadding(start = 16.dp, end = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             if (state.userId == null) {
                 Text("登入後即可儲存與同步收藏 · Sign in to save and sync favourites")
@@ -65,8 +66,8 @@ fun FavoritesScreen(onCourse: (String) -> Unit, onInstructor: (String) -> Unit, 
         if (state.userId != null && !loading && !state.loading && state.items.isEmpty() && state.error == null) item {
             Text("尚未收藏課程或講師 · No saved courses or instructors")
         }
-        itemsIndexed(unavailable.toList(), key = { _, it -> "unavailable:${it.type}:${it.itemId}" }) { index, key ->
-            Card(shape = com.lingubible.app.ui.components.getGroupedItemShape(index, unavailable.size)) {
+        itemsIndexed(unavailable.toList(), key = { _, it -> "unavailable:${it.type}:${it.itemId}" }) { _, key ->
+            Card(shape = RoundedCornerShape(18.dp)) {
                 Column(Modifier.padding(12.dp)) {
                     Text("${key.itemId} · 暫時無法載入 Unavailable")
                     TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { scope.launch {

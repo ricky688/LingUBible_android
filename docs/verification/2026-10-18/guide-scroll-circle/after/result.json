@@ -1,0 +1,15 @@
+{
+  "before": {
+    "header_y": 84,
+    "next_y": 905
+  },
+  "during": {
+    "header_y": 84,
+    "next_y": 905
+  },
+  "after": {
+    "header_y": 84,
+    "next_y": 905
+  },
+  "header_movement_px": 0
+}

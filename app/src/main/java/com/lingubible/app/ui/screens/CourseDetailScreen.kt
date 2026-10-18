@@ -353,7 +353,7 @@ fun CourseDetailScreen(
                                     contentPadding = screenContentPadding(
                                         start = 16.dp, top = 16.dp, end = 16.dp, bottom = fabHeight + 32.dp
                                     ),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
                                     item(key = "filters") { com.lingubible.app.ui.components.ReviewBrowserControls(uiState.reviews, reviewFilters, { reviewFilters = it }, filteredReviews.size) }
                                     if (filteredReviews.isEmpty()) item { Text("沒有符合篩選的評價 · No matching reviews") }

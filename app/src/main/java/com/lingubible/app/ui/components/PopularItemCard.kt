@@ -43,7 +43,7 @@ fun PopularCourseCard(
     val isDark = isAppDarkTheme()
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize)
+    val shape = rememberCardPressShape(interactionSource, restingCorner = 18.dp, uniformCorners = true)
 
     val cardBg = MaterialTheme.colorScheme.surfaceContainer
     val cardBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
@@ -197,7 +197,7 @@ fun PopularInstructorCard(
     val isDark = isAppDarkTheme()
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize)
+    val shape = rememberCardPressShape(interactionSource, restingCorner = 18.dp, uniformCorners = true)
 
     val cardBg = MaterialTheme.colorScheme.surfaceContainer
     val cardBorder = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)

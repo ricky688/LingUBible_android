@@ -12,20 +12,25 @@ import androidx.compose.ui.unit.Dp
 import com.lingubible.app.core.theme.AppMotion
 import com.lingubible.app.ui.components.getGroupedItemShape
 
-internal val LocalCardCornerRadius = staticCompositionLocalOf { 28.dp }
+internal val LocalCardCornerRadius = staticCompositionLocalOf { 18.dp }
 
 @Composable
 internal fun rememberCardPressShape(
     interactionSource: InteractionSource,
     groupIndex: Int = 0,
     groupSize: Int = 1,
-    restingCorner: Dp = LocalCardCornerRadius.current
+    restingCorner: Dp = LocalCardCornerRadius.current,
+    uniformCorners: Boolean = true
 ): RoundedCornerShape {
     val isPressed by interactionSource.collectIsPressedAsState()
     val corner by animateDpAsState(
-        targetValue = if (isPressed) maxOf(8.dp, restingCorner - 12.dp) else restingCorner,
+        targetValue = if (isPressed) maxOf(8.dp, restingCorner - 8.dp) else restingCorner,
         animationSpec = AppMotion.press(),
         label = "cardPressCorner"
     )
-    return getGroupedItemShape(groupIndex, groupSize, outerRadius = corner)
+    return if (uniformCorners || groupSize <= 1) {
+        RoundedCornerShape(corner)
+    } else {
+        getGroupedItemShape(groupIndex, groupSize, outerRadius = corner)
+    }
 }

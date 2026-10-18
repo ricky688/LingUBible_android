@@ -165,7 +165,7 @@ fun ReviewsScreen(
                             .fillMaxSize()
                             .mouseScrollbar(listState),
                         contentPadding = screenContentPadding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = fabHeight + 40.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         item(key = "review-filters") {
                             ReviewBrowserControls(uiState.reviews, filters, { filters = it }, filtered.size)

@@ -51,7 +51,13 @@ fun GuideEntry(onClick: () -> Unit, isZh: Boolean) {
 fun GettingStartedGuideSheet(onDismiss: () -> Unit, onNavigate: (Screen) -> Unit) {
     val settings = koinInject<AppSettingsManager>()
     val language by settings.appLanguage.collectAsStateWithLifecycle()
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        // Keep list overscroll from dragging the guide and its pinned controls.
+        sheetGesturesEnabled = false,
+        dragHandle = null
+    ) {
         CompositionLocalProvider(LocalScreenBottomClearance provides 0.dp) {
             Column(Modifier.fillMaxWidth().fillMaxHeight(.94f)) {
                 Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {

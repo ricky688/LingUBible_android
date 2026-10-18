@@ -159,7 +159,7 @@ fun FirstClassHonoursContent(listState: LazyListState) {
         state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = screenContentPadding(start = 16.dp, end = 16.dp, top = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item("overview") {
             Column(
@@ -762,7 +762,7 @@ private fun HonoursProgrammeCard(
     val pctVal = cohort?.pct ?: 0.0
 
     val interactionSource = remember { MutableInteractionSource() }
-    val shape = rememberCardPressShape(interactionSource, groupIndex, groupSize, restingCorner = 22.dp)
+    val shape = rememberCardPressShape(interactionSource, restingCorner = 18.dp, uniformCorners = true)
 
     val animatedProgress by animateFloatAsState(
         targetValue = pctVal.toFloat().coerceIn(0f, 1f),
