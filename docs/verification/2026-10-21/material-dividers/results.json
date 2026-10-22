@@ -1,0 +1,12 @@
+{
+  "apkSha256": "ea38138ea971f19b9669064d70d67fe988c60acfb40bc45375fdaf4197c5a61f",
+  "installedApkMatchesBuild": true,
+  "device": "192.168.240.112:5555",
+  "android": 13,
+  "profileLightAndDarkInspected": true,
+  "originalDarkThemeRestored": true,
+  "appearanceSettingsInspected": true,
+  "timetableActionsDividerInspected": true,
+  "reviewFooterInspected": true,
+  "recentAndroidRuntimeFatal": false
+}

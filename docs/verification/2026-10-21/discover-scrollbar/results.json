@@ -1,0 +1,33 @@
+{
+  "device": "192.168.240.112:5555",
+  "android": 13,
+  "tests": {
+    "tests": 554,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "thumbY": {
+    "top": [
+      219,
+      351
+    ],
+    "middle-1": [
+      602,
+      744
+    ],
+    "middle-2": [
+      635,
+      778
+    ],
+    "bottom": [
+      741,
+      927
+    ]
+  },
+  "shortScrollMovesThumb": true,
+  "thumbAboveSystemNavigation": true,
+  "installedApkMatchesBuild": true,
+  "apkSha256": "7558cad89cc154bdb256070b9092701806a6b1755c04e7b0e19e249018756290",
+  "rawArtemisStderrAccessible": false
+}

@@ -533,7 +533,6 @@ fun TimetableGrid(
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )
-                    HorizontalDivider()
                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Text("學分 Credits:", style = MaterialTheme.typography.labelMedium, color = textMuted)
                         Text(
@@ -591,6 +590,7 @@ fun TimetableGrid(
             },
             confirmButton = {
                 Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HorizontalDivider()
                     Button(
                         shapes = AppButtonDefaults.shapes(),
                         modifier = Modifier.fillMaxWidth(),

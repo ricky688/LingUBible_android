@@ -2,10 +2,15 @@ package com.lingubible.app.domain.repository
 
 import androidx.activity.ComponentActivity
 import com.lingubible.app.domain.model.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 interface AuthRepository {
     val currentUser: StateFlow<User?>
+    val isInitialSessionChecked: StateFlow<Boolean>
+        get() = MutableStateFlow(true)
+    val googleLinkedState: StateFlow<Boolean>
+        get() = MutableStateFlow(false)
     suspend fun login(email: String, password: String): Result<Session>
     suspend fun register(email: String, password: String, name: String): Result<User>
     suspend fun loginWithGoogle(activity: ComponentActivity): Result<User>

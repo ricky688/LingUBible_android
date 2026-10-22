@@ -11,6 +11,8 @@ import io.appwrite.enums.OAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class AppwriteAuthRepository(
     private val clientProvider: AppwriteClientProvider
@@ -19,13 +21,21 @@ class AppwriteAuthRepository(
     private val _currentUser = MutableStateFlow<User?>(null)
     override val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
+    private val _isInitialSessionChecked = MutableStateFlow(false)
+    override val isInitialSessionChecked: StateFlow<Boolean> = _isInitialSessionChecked.asStateFlow()
+
+    private val _googleLinkedState = MutableStateFlow(false)
+    override val googleLinkedState: StateFlow<Boolean> = _googleLinkedState.asStateFlow()
+
+    private val sessionCheckMutex = Mutex()
+
     override fun isValidEmail(email: String): Boolean {
-        return EmailValidator.isValidLingnanEmail(email)
+        return EmailValidator.isValidStudentEmail(email)
     }
 
     override suspend fun login(email: String, password: String): Result<Session> {
         if (!isValidEmail(email)) {
-            return Result.failure(IllegalArgumentException("Please use a valid Lingnan University email (@ln.hk or @ln.edu.hk)"))
+            return Result.failure(IllegalArgumentException("Please use a valid Lingnan University email (@ln.hk)"))
         }
 
         val account = clientProvider.account 
@@ -43,6 +53,7 @@ class AppwriteAuthRepository(
                 status = appwriteUser.status,
                 registrationDate = appwriteUser.registration
             )
+            _isInitialSessionChecked.value = true
 
             Result.success(
                 Session(
@@ -59,7 +70,7 @@ class AppwriteAuthRepository(
 
     override suspend fun register(email: String, password: String, name: String): Result<User> {
         if (!isValidEmail(email)) {
-            return Result.failure(IllegalArgumentException("Please use a valid Lingnan University email (@ln.hk or @ln.edu.hk)"))
+            return Result.failure(IllegalArgumentException("Please use a valid Lingnan University email (@ln.hk)"))
         }
 
         val account = clientProvider.account 
@@ -97,7 +108,7 @@ class AppwriteAuthRepository(
             if (!isValidEmail(appwriteUser.email)) {
                 account.deleteSession("current")
                 return Result.failure(
-                    IllegalArgumentException("Please use a valid Lingnan University Google account (@ln.hk or @ln.edu.hk)")
+                    IllegalArgumentException("Please use a valid Lingnan University Google account (@ln.hk)")
                 )
             }
 
@@ -110,6 +121,8 @@ class AppwriteAuthRepository(
                 registrationDate = appwriteUser.registration
             )
             _currentUser.value = user
+            _googleLinkedState.value = true
+            _isInitialSessionChecked.value = true
             Result.success(user)
         } catch (e: Exception) {
             Result.failure(e)
@@ -123,17 +136,25 @@ class AppwriteAuthRepository(
         return try {
             account.deleteSession("current")
             _currentUser.value = null
+            _googleLinkedState.value = false
+            _isInitialSessionChecked.value = true
             Result.success(Unit)
         } catch (e: Exception) {
             _currentUser.value = null
+            _googleLinkedState.value = false
+            _isInitialSessionChecked.value = true
             Result.failure(e)
         }
     }
 
-    override suspend fun checkSession(): Result<User?> {
-        val account = clientProvider.account ?: return Result.success(null)
+    override suspend fun checkSession(): Result<User?> = sessionCheckMutex.withLock {
+        val account = clientProvider.account
+        if (account == null) {
+            _isInitialSessionChecked.value = true
+            return@withLock Result.success(null)
+        }
 
-        return try {
+        return@withLock try {
             val appwriteUser = account.get()
             val user = User(
                 id = appwriteUser.id,
@@ -144,10 +165,19 @@ class AppwriteAuthRepository(
                 registrationDate = appwriteUser.registration
             )
             _currentUser.value = user
+            try {
+                val identities = account.listIdentities()
+                _googleLinkedState.value = identities.identities.any { it.provider.equals("google", ignoreCase = true) }
+            } catch (_: Exception) {
+                // Keep existing state if identity check fails
+            }
             Result.success(user)
         } catch (e: Exception) {
             _currentUser.value = null
+            _googleLinkedState.value = false
             Result.success(null)
+        } finally {
+            _isInitialSessionChecked.value = true
         }
     }
 
@@ -191,9 +221,10 @@ class AppwriteAuthRepository(
         return try {
             val identities = account.listIdentities()
             val linked = identities.identities.any { it.provider.equals("google", ignoreCase = true) }
+            _googleLinkedState.value = linked
             Result.success(linked)
         } catch (e: Exception) {
-            Result.success(false)
+            Result.success(_googleLinkedState.value)
         }
     }
 
@@ -207,6 +238,7 @@ class AppwriteAuthRepository(
                 ?: return Result.failure(IllegalStateException("No Google account linked"))
 
             account.deleteIdentity(googleIdentity.id)
+            _googleLinkedState.value = false
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

@@ -1,0 +1,13 @@
+{
+  "tests": {
+    "tests": 555,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "apkSha256": "0618fadbc9913a3f73d9cd28909708ed7336ecec9be50a69bdfead6e07d01878",
+  "installedApkVerified": true,
+  "liveSignInTested": false,
+  "existingSessionsRevoked": false,
+  "recoveryStillAcceptsBothDomains": true
+}

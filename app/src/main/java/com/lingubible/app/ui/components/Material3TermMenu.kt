@@ -219,8 +219,7 @@ fun Material3TermSelector(
                                 // Subtle divider between academic years
                                 if (index < yearList.lastIndex) {
                                     HorizontalDivider(
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                                        color = cardBorder.copy(alpha = 0.5f)
+                                        modifier = Modifier.padding(vertical = 4.dp)
                                     )
                                 }
                             }

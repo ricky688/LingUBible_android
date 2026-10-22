@@ -1,3 +1,55 @@
+## 2026-10-22 — Release v1.0.9 (Code 10): Settings Loading Indicator & Spreading Motion
+
+- **M3 Expressive Loading Indicator**: Added official `@OptIn(ExperimentalMaterial3ExpressiveApi::class) LoadingIndicator` to the Account card in `ProfileScreen.kt` while initial auth/session data is being retrieved.
+- **Spreading Transition Motion**: Configured outward spreading transition (`scaleOut` to 1.22x on exit, `scaleIn` from 0.78x on enter, combined with spring `SizeTransform`) when profile data finishes loading.
+- **Header Height Lock & Jitter Fix**: Resolved `'密碼'` and `'用戶名'` position jumping during expand/collapse by implementing `Modifier.keepSizeFadeVisibility(visible)` with fixed 48dp parent row height.
+- **Release Verification & Installation**: Built signed release AAB (`app-release.aab`) and APK (`app-release.apk`), passed all 556 unit tests (`BUILD SUCCESSFUL`), verified via `tools/verify-play-release.py` (PASS), and installed on Samsung Galaxy S24 Ultra (`SM_S9280`).
+
+## 2026-10-22 — Change-password form motion and backend wiring check
+
+- Confirmed Profile Save → AuthViewModel → AppwriteAuthRepository → Account.updatePassword(current/new password) wiring. No real password update was submitted, so end-to-end backend success is not claimed.
+- Added top-anchored Expressive spring expand/fade for the form and a fade for 修改密碼; Cancel reverses it. Kept global pressed shapes and existing validation/submission behavior.
+- Release built and installed on Waydroid; installed bytes verified. Open/cancel checked with empty fields and cropped recording. No password saved or account signed out. Unit suite not rerun for animation-only change; previous 555-test pass retained.
+- Evidence: `docs/verification/2026-10-22/password-form-motion/README.md`.
+
+## 2026-10-22 — Native login restricted to @ln.hk
+
+- User confirmed @ln.hk-only native sign-in. Added student-specific email guard for password login, registration and Google OAuth result validation; updated login hints and errors. Preserved broader institutional validation for existing-account password recovery and kept current sessions intact.
+- 555 unit tests passed, including spoofing/staff-domain rejection and existing recovery tests. Optimized release built and installed on Waydroid; installed bytes verified. No live sign-in or owner sign-out performed.
+- Evidence: `docs/verification/2026-10-22/student-email/README.md`. Web/backend policy unchanged.
+
+## 2026-10-21 — Full-width divider correction
+
+- Removed horizontal insets from profile navigation dividers, drawer separators and term-menu separators. Horizontal lines now fill available parent content width; retained structural card padding, vertical spacing and Material 3 theme defaults. Supersedes the earlier inset-divider choice.
+- Release build passed; installed on Waydroid, installed APK hash verified. Visually checked matching left/right edges on profile separators. No theme/data changes.
+- Evidence: `docs/verification/2026-10-21/full-width-dividers/README.md`. Cosmetic change; prior 554-test run not repeated. Existing timetable large-text/landscape findings remain open.
+
+## 2026-10-21 — Divider verification retest
+
+- Reran all existing unit tests: 554 passed, zero failures/errors/skips. Confirmed installed APK matches the divider release hash.
+- Direct Waydroid checks passed for profile separators in light/dark, GPA term separators/final actions, and visible timetable action divider at 200% text. Restored Dark, 100% text, portrait/rotation settings; no data-changing actions invoked.
+- Recorded two timetable layout findings: credits value wraps awkwardly at 200% text; short landscape headers/navigation crowd out the grid. No divider regression observed; no source changes in this testing turn.
+- Evidence and limits: `docs/verification/2026-10-21/material-dividers/retest/README.md`. Physical-device checks remain pending.
+
+## 2026-10-21 — Material 3 divider consistency
+
+- Replaced faint custom divider colors/thicknesses with native 1 dp, theme outlineVariant defaults across existing grouped UI separators. Added text-aligned inset profile navigation separators; moved the timetable popup divider above bottom actions. Kept Discover card spacing and connected-button styling.
+- Release build passed; installed as a matching-certificate update on Waydroid, installed bytes verified. Checked profile groups in light/dark, restored Dark, and inspected appearance settings, review footers and timetable popup. No user data actions invoked.
+- Screenshots, scope and build results: `docs/verification/2026-10-21/material-dividers/README.md`. Cosmetic change; no new tests or unit rerun. Physical/landscape/large-font/dynamic-color checks not repeated.
+
+## 2026-10-21 — Daily 閱讀更多 transition
+
+- Shared ReviewCard comment now uses `animateContentSize(AppMotion.spatial())`, smoothly expanding/collapsing the comment and repositioning its footer and following cards with existing Material 3 Expressive motion.
+- Optimized release built and installed on Waydroid as a matching-certificate update. Semantic layout checks and recording verified 閱讀更多 → full comment/收起 → three-line preview; app left collapsed in the feed.
+- Evidence and build details: `docs/verification/2026-10-21/review-expansion/README.md`. No new tests needed for the cosmetic modifier; preceding 554-test pass retained, not rerun. Physical-device/disabled-animation checks not repeated.
+
+## 2026-10-21 — Discover scrollbar fixed
+
+- Fixed pinned category headers incorrectly locking the shared lazy-list scrollbar position. Partial-row geometry now follows scrolling within tall Discover sections; the track respects measured bottom padding.
+- Reproduced on Waydroid: reviews moved by 200 pixels while the old thumb stayed at y=311–585. Final release confirmed moving thumb and navigation clearance at the bottom; returned to Discover top.
+- 554 unit tests passed (six scrollbar tests); optimized release APK built and installed as a matching-certificate update without clearing data. Installed bytes verified.
+- Screenshots, build output, test results and ARTEMIS trace details: `docs/verification/2026-10-21/discover-scrollbar/README.md`. Physical-device/landscape/large-font checks not repeated; no AAB or publishing.
+
 ## 2026-10-19 — Release v1.0.8 (Code 9): Independent Floating Cards & Seam Redesign
 
 - Redesigned card list connections across the entire app: replaced the cramped pseudo-grouping (which caused awkward 4dp inner corners, a 4dp crevice, and colliding double borders) with Independent Floating Expressive Cards.

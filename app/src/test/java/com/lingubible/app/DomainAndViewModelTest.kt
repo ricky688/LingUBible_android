@@ -34,6 +34,16 @@ class DomainAndViewModelTest {
     // Email Validation Tests
     // ====================================================
     @Test
+    fun `native student sign in only accepts ln hk`() {
+        assertTrue(EmailValidator.isValidStudentEmail(" Student@LN.HK "))
+        assertFalse(EmailValidator.isValidStudentEmail("staff@ln.edu.hk"))
+        assertFalse(EmailValidator.isValidStudentEmail("student@fake.ln.hk"))
+        assertFalse(EmailValidator.isValidStudentEmail("student@ln.hk.evil.com"))
+        assertFalse(EmailValidator.isValidStudentEmail("@ln.hk"))
+        assertFalse(EmailValidator.isValidStudentEmail(null))
+    }
+
+    @Test
     fun `valid lingnan emails are accepted`() {
         assertTrue(EmailValidator.isValidLingnanEmail("student@ln.hk"))
         assertTrue(EmailValidator.isValidLingnanEmail("prof.smith@ln.edu.hk"))
@@ -328,7 +338,10 @@ class DomainAndViewModelTest {
     // ====================================================
     // Fake Repositories & ViewModel Tests
     // ====================================================
-    private class FakeAuthRepository : AuthRepository {
+    private class FakeAuthRepository(
+        override val isInitialSessionChecked: StateFlow<Boolean> = MutableStateFlow(true),
+        override val googleLinkedState: StateFlow<Boolean> = MutableStateFlow(false)
+    ) : AuthRepository {
         private val _currentUser = MutableStateFlow<User?>(null)
         override val currentUser: StateFlow<User?> = _currentUser
 
@@ -506,6 +519,22 @@ class DomainAndViewModelTest {
         testScheduler.advanceUntilIdle()
         assertTrue(usernameUpdated)
         assertEquals("ricky", vm.uiState.value.currentUser?.name)
+    }
+
+    @Test
+    fun `auth viewmodel initial session loading state`() = runTest {
+        val isCheckedFlow = MutableStateFlow(false)
+        val authRepo = FakeAuthRepository(isInitialSessionChecked = isCheckedFlow)
+        val avatarRepo = FakeAvatarRepository()
+        val vm = AuthViewModel(authRepo, avatarRepo)
+
+        // Initially false -> loading is true
+        assertTrue(vm.uiState.value.isInitialSessionLoading)
+
+        // Session check completes
+        isCheckedFlow.value = true
+        testScheduler.advanceUntilIdle()
+        assertFalse(vm.uiState.value.isInitialSessionLoading)
     }
 
     @Test

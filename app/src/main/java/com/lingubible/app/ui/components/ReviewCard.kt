@@ -2,7 +2,7 @@ package com.lingubible.app.ui.components
 
 import com.lingubible.app.ui.common.hapticClick
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -216,6 +216,7 @@ fun ReviewCard(
                 Column {
                     Text(
                         text = review.comment,
+                        modifier = Modifier.animateContentSize(AppMotion.spatial()),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = if (isExpanded) Int.MAX_VALUE else 3,
@@ -240,10 +241,7 @@ fun ReviewCard(
             }
 
             TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showDetails = true }) { Text("完整評價 Full review · ${review.instructors.size} 講師／課節") }
-            HorizontalDivider(
-                color = borderColor.copy(alpha = 0.6f),
-                thickness = 0.5.dp
-            )
+            HorizontalDivider()
 
             Spacer(modifier = Modifier.height(10.dp))
 

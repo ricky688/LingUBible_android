@@ -14,6 +14,9 @@ object EmailValidator {
         if (email.isNullOrBlank()) return false
         return EMAIL_REGEX.matches(email.trim())
     }
+
+    fun isValidStudentEmail(email: String?): Boolean =
+        isValidLingnanEmail(email) && email.orEmpty().trim().endsWith("@ln.hk", ignoreCase = true)
 }
 
 object WordCountValidator {

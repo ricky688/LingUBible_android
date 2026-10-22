@@ -629,7 +629,7 @@ fun SettingsScreen(
                         }
                     }
 
-                    HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+                    HorizontalDivider()
 
                     // High Contrast Borders Switch
                     Row(
@@ -663,7 +663,7 @@ fun SettingsScreen(
                         )
                     }
 
-                    HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+                    HorizontalDivider()
 
                     // Tactile Haptics Switch
                     Row(

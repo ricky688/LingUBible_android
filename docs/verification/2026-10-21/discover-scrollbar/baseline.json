@@ -1,0 +1,27 @@
+{
+  "device": "192.168.240.112:5555",
+  "android": 13,
+  "installedVersionBefore": "1.0.7 (8)",
+  "scrollAction": {
+    "start": [
+      240,
+      700
+    ],
+    "end": [
+      240,
+      500
+    ],
+    "durationMs": 800
+  },
+  "thumbBeforeY": [
+    311,
+    585
+  ],
+  "thumbAfterY": [
+    311,
+    585
+  ],
+  "result": "Indicator stuck while content moved",
+  "artemisTrace": "1ff4a9c4-6203-4805-b995-d4e653d011f1",
+  "artemisNote": "Four requested scroll actions verified in trace. Stopped after actions completed because final response stalled; raw daemon log path unavailable locally."
+}

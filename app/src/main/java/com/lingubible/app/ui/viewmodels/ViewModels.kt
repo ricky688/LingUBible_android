@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 // ==========================================
 data class AuthUiState(
     val isLoading: Boolean = false,
+    val isInitialSessionLoading: Boolean = false,
     val errorMessage: String? = null,
     val successMessage: String? = null,
     val currentUser: User? = null,
@@ -40,10 +41,27 @@ class AuthViewModel(
     private val authRepository: AuthRepository,
     private val avatarRepository: AvatarRepository
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(AuthUiState())
+    private val _uiState = MutableStateFlow(
+        AuthUiState(
+            isInitialSessionLoading = !authRepository.isInitialSessionChecked.value,
+            currentUser = authRepository.currentUser.value,
+            currentAvatar = avatarRepository.currentAvatar.value,
+            isGoogleLinked = authRepository.googleLinkedState.value
+        )
+    )
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            authRepository.isInitialSessionChecked.collect { checked ->
+                _uiState.update { it.copy(isInitialSessionLoading = !checked) }
+            }
+        }
+        viewModelScope.launch {
+            authRepository.googleLinkedState.collect { linked ->
+                _uiState.update { it.copy(isGoogleLinked = linked) }
+            }
+        }
         viewModelScope.launch {
             authRepository.currentUser.collect { user ->
                 _uiState.update { it.copy(currentUser = user) }
@@ -161,8 +179,8 @@ class AuthViewModel(
     }
 
     fun login(email: String, password: String, onSuccess: () -> Unit) {
-        if (!EmailValidator.isValidLingnanEmail(email)) {
-            _uiState.update { it.copy(errorMessage = "Please enter a valid Lingnan University email (@ln.hk or @ln.edu.hk)") }
+        if (!EmailValidator.isValidStudentEmail(email)) {
+            _uiState.update { it.copy(errorMessage = "Please enter a valid Lingnan University email (@ln.hk)") }
             return
         }
 
@@ -190,8 +208,8 @@ class AuthViewModel(
         name: String,
         onSuccess: () -> Unit
     ) {
-        if (!EmailValidator.isValidLingnanEmail(email)) {
-            _uiState.update { it.copy(errorMessage = "Please enter a valid Lingnan University email (@ln.hk or @ln.edu.hk)") }
+        if (!EmailValidator.isValidStudentEmail(email)) {
+            _uiState.update { it.copy(errorMessage = "Please enter a valid Lingnan University email (@ln.hk)") }
             return
         }
 

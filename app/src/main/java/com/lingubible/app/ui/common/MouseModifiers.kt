@@ -99,16 +99,26 @@ fun Modifier.mouseScrollbar(
     val visibleItems = layoutInfo.visibleItemsInfo
     val totalItemsCount = layoutInfo.totalItemsCount
 
-    if (visibleItems.isNotEmpty() && totalItemsCount > 0) {
-        val firstVisible = visibleItems.first().index
-        val visibleCount = visibleItems.size
-
-        if (visibleCount < totalItemsCount) {
-            val viewHeight = size.height
+    if (totalItemsCount > 0 && (state.canScrollBackward || state.canScrollForward)) {
+        // Pinned headers remain visible after their row has scrolled offscreen.
+        val first = visibleItems.firstOrNull { it.index == state.firstVisibleItemIndex }
+        val last = visibleItems.lastOrNull { it.index >= state.firstVisibleItemIndex }
+        if (first != null && last != null) {
+            val spacing = layoutInfo.mainAxisItemSpacing
+            val firstPosition = first.index +
+                (state.firstVisibleItemScrollOffset.toFloat() / (first.size + spacing).coerceAtLeast(1)).coerceIn(0f, 1f)
+            val lastPosition = last.index +
+                ((layoutInfo.viewportEndOffset - last.offset).toFloat() / (last.size + spacing).coerceAtLeast(1)).coerceIn(0f, 1f)
+            // Lists include measured navigation clearance in their trailing padding.
+            val viewHeight = (size.height - layoutInfo.afterContentPadding).coerceAtLeast(0f)
             val minThumbHeight = 36.dp.toPx()
-            val thumbHeight = scrollbarThumbHeight(viewHeight, visibleCount.toFloat() / totalItemsCount, minThumbHeight)
+            val thumbHeight = scrollbarThumbHeight(viewHeight, (lastPosition - firstPosition) / totalItemsCount, minThumbHeight)
             val scrollableRange = viewHeight - thumbHeight
-            val scrollProgress = (firstVisible.toFloat() / (totalItemsCount - visibleCount)).coerceIn(0f, 1f)
+            val scrollProgress = when {
+                !state.canScrollBackward -> 0f
+                !state.canScrollForward -> 1f
+                else -> scrollbarProgress(firstPosition, lastPosition, totalItemsCount)
+            }
             val thumbOffsetY = scrollProgress * scrollableRange
 
             drawRoundRect(
@@ -147,6 +157,12 @@ fun Modifier.mouseScrollbar(
             cornerRadius = CornerRadius(width.toPx() / 2, width.toPx() / 2)
         )
     }
+}
+
+/** Fractional rows keep mixed-height sections continuous without counting pinned headers. */
+internal fun scrollbarProgress(firstPosition: Float, lastPosition: Float, totalItemsCount: Int): Float {
+    val scrollableItems = totalItemsCount - (lastPosition - firstPosition)
+    return if (scrollableItems > 0f) (firstPosition / scrollableItems).coerceIn(0f, 1f) else 0f
 }
 
 /** Resize can briefly draw a viewport smaller than the preferred thumb, including zero. */

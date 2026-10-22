@@ -1,0 +1,21 @@
+{
+  "expandedButton": [
+    51,
+    634
+  ],
+  "collapsedButtonBefore": [
+    64,
+    336
+  ],
+  "collapsedButtonAfter": [
+    64,
+    341
+  ],
+  "expansionVerified": true,
+  "collapseVerified": true,
+  "installedApkMatchesBuild": true,
+  "apkSha256": "2a6d29bf2aafb723768dc36745759dd876da722e23da73c3bc9c54ba54581b8d",
+  "recentAndroidRuntimeFatal": false,
+  "artemisTrace": "8ea9ae2b-b08d-450b-97b4-6708f190bd34",
+  "artemisNote": "Expansion tap explored; stopped task when response stalled. Final optimized-build expand/collapse checked with semantic layout locators and recording."
+}

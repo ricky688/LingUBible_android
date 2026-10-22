@@ -463,7 +463,7 @@ private fun WebCalendarEventItem(
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Spacer(modifier = Modifier.height(10.dp))
-                    HorizontalDivider(color = itemBorder, thickness = 0.8.dp)
+                    HorizontalDivider()
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),

@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -31,8 +32,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -56,7 +60,7 @@ import com.lingubible.app.ui.viewmodels.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ProfileScreen(
     onNavigateToAuth: () -> Unit,
@@ -132,7 +136,73 @@ fun ProfileScreen(
                 )
             }
 
-            if (user != null) {
+            val accountSectionState = when {
+                uiState.isInitialSessionLoading -> AccountSectionState.LOADING
+                user != null -> AccountSectionState.LOGGED_IN
+                else -> AccountSectionState.GUEST
+            }
+
+            AnimatedContent(
+                targetState = accountSectionState,
+                transitionSpec = {
+                    val enterTransition = scaleIn(
+                        initialScale = 0.78f,
+                        transformOrigin = TransformOrigin.Center,
+                        animationSpec = AppMotion.spatial()
+                    ) + fadeIn(animationSpec = AppMotion.effects())
+
+                    val exitTransition = scaleOut(
+                        targetScale = 1.22f,
+                        transformOrigin = TransformOrigin.Center,
+                        animationSpec = AppMotion.spatial()
+                    ) + fadeOut(animationSpec = AppMotion.effects())
+
+                    enterTransition.togetherWith(exitTransition)
+                        .using(SizeTransform(clip = false) { _, _ -> AppMotion.spatial() })
+                },
+                label = "AccountSectionSpreadingTransition",
+                modifier = Modifier.fillMaxWidth()
+            ) { targetState ->
+                when (targetState) {
+                    AccountSectionState.LOADING -> {
+                        // ==========================================
+                        // Card 1: 帳戶載入中 (Account Loading Indicator)
+                        // ==========================================
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            ),
+                            border = BorderStroke(1.dp, cardBorderColor)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 44.dp, horizontal = 24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                LoadingIndicator(
+                                    modifier = Modifier.size(48.dp),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = if (isZh) "正在載入帳戶資訊..." else "Loading account information...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                    AccountSectionState.LOGGED_IN -> {
+                        if (user != null) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(18.dp)
+                            ) {
                 // ==========================================
                 // Card 1: 個人資料 (Personal Profile)
                 // ==========================================
@@ -173,7 +243,7 @@ fun ProfileScreen(
                             }
                         }
 
-                        HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+                        HorizontalDivider()
 
                         // 1.1 頭像 (Avatar Section)
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -267,7 +337,7 @@ fun ProfileScreen(
                             }
                         }
 
-                        HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+                        HorizontalDivider()
 
                         // 1.2 電子郵件 (Email Section - Readonly)
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -310,10 +380,10 @@ fun ProfileScreen(
                             )
                         }
 
-                        HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+                        HorizontalDivider()
 
                         // 1.3 用戶名 (Username Section)
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -336,30 +406,38 @@ fun ProfileScreen(
                                     )
                                 }
 
-                                if (!isEditingUsername) {
-                                    OutlinedButton(
-                                        onClick = hapticClick {
+                                OutlinedButton(
+                                    onClick = hapticClick {
+                                        if (!isEditingUsername) {
                                             editUsernameValue = user.name
                                             isEditingUsername = true
-                                        },
-                                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
-                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                                    ) {
-                                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = if (isZh) "修改用戶名" else "Change",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
+                                        }
+                                    },
+                                    enabled = !isEditingUsername,
+                                    modifier = Modifier.keepSizeFadeVisibility(visible = !isEditingUsername),
+                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                                ) {
+                                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = if (isZh) "修改用戶名" else "Change",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
                             }
 
-                            if (!isEditingUsername) {
+                            AnimatedVisibility(
+                                visible = !isEditingUsername,
+                                enter = expandVertically(AppMotion.spatial(), expandFrom = Alignment.Top) + fadeIn(AppMotion.effects()),
+                                exit = shrinkVertically(AppMotion.spatial(), shrinkTowards = Alignment.Top) + fadeOut(AppMotion.effects())
+                            ) {
                                 Surface(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp),
                                     shape = RoundedCornerShape(12.dp),
                                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                                     border = BorderStroke(1.dp, cardBorderColor.copy(alpha = 0.5f))
@@ -372,8 +450,17 @@ fun ProfileScreen(
                                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
                                     )
                                 }
-                            } else {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            }
+
+                            AnimatedVisibility(
+                                visible = isEditingUsername,
+                                enter = expandVertically(AppMotion.spatial(), expandFrom = Alignment.Top) + fadeIn(AppMotion.effects()),
+                                exit = shrinkVertically(AppMotion.spatial(), shrinkTowards = Alignment.Top) + fadeOut(AppMotion.effects())
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(top = 8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
                                     OutlinedTextField(
                                         value = editUsernameValue,
                                         onValueChange = { editUsernameValue = it },
@@ -427,10 +514,10 @@ fun ProfileScreen(
                             }
                         }
 
-                        HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+                        HorizontalDivider()
 
                         // 1.4 密碼 (Password Section)
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -453,31 +540,40 @@ fun ProfileScreen(
                                     )
                                 }
 
-                                if (!isEditingPassword) {
-                                    OutlinedButton(
-                                        onClick = hapticClick {
+                                OutlinedButton(
+                                    onClick = hapticClick {
+                                        if (!isEditingPassword) {
                                             currentPasswordValue = ""
                                             newPasswordValue = ""
                                             confirmPasswordValue = ""
                                             isEditingPassword = true
-                                        },
-                                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
-                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                                    ) {
-                                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = if (isZh) "修改密碼" else "Change Password",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
+                                        }
+                                    },
+                                    enabled = !isEditingPassword,
+                                    modifier = Modifier.keepSizeFadeVisibility(visible = !isEditingPassword),
+                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp)),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                                ) {
+                                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = if (isZh) "修改密碼" else "Change Password",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
                             }
 
-                            if (isEditingPassword) {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            AnimatedVisibility(
+                                visible = isEditingPassword,
+                                enter = expandVertically(AppMotion.spatial(), expandFrom = Alignment.Top) + fadeIn(AppMotion.effects()),
+                                exit = shrinkVertically(AppMotion.spatial(), shrinkTowards = Alignment.Top) + fadeOut(AppMotion.effects())
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(top = 8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
                                     OutlinedTextField(
                                         value = currentPasswordValue,
                                         onValueChange = { currentPasswordValue = it },
@@ -737,71 +833,76 @@ fun ProfileScreen(
                         }
                     }
                 }
-            } else {
-                // ==========================================
-                // Guest User State
-                // ==========================================
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    ),
-                    border = BorderStroke(1.dp, cardBorderColor)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        SmartAvatar(
-                            avatar = customAvatar,
-                            userId = "guest",
-                            size = 72.dp,
-                            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
-                            onClick = { showAvatarModal = true }
-                        )
-
-                        Text(
-                            text = if (isZh) "訪客用戶" else "Guest User",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        OutlinedButton(
-                            onClick = hapticClick { showAvatarModal = true },
-                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
+            }
+        }
+    }
+    AccountSectionState.GUEST -> {
+                        // ==========================================
+                        // Guest User State
+                        // ==========================================
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            ),
+                            border = BorderStroke(1.dp, cardBorderColor)
                         ) {
-                            Icon(Icons.Default.Palette, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = if (isZh) "自定義頭像" else "Customize Avatar",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
+                            Column(
+                                modifier = Modifier.padding(20.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                SmartAvatar(
+                                    avatar = customAvatar,
+                                    userId = "guest",
+                                    size = 72.dp,
+                                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                                    onClick = { showAvatarModal = true }
+                                )
 
-                        Text(
-                            text = if (isZh) "使用嶺南大學學生電郵 (@ln.hk) 登入以解鎖所有功能" else "Sign in with your @ln.hk student email to unlock all features",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
+                                Text(
+                                    text = if (isZh) "訪客用戶" else "Guest User",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
 
-                        Spacer(modifier = Modifier.height(4.dp))
+                                OutlinedButton(
+                                    onClick = hapticClick { showAvatarModal = true },
+                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
+                                ) {
+                                    Icon(Icons.Default.Palette, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = if (isZh) "自定義頭像" else "Customize Avatar",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
 
-                        Button(
-                            onClick = hapticClick(onNavigateToAuth),
-                            shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(Icons.Default.Login, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (isZh) "使用嶺南郵箱登入 / 註冊" else "Sign In / Register with LN Email",
-                                fontWeight = FontWeight.Bold
-                            )
+                                Text(
+                                    text = if (isZh) "使用嶺南大學學生電郵 (@ln.hk) 登入以解鎖所有功能" else "Sign in with your @ln.hk student email to unlock all features",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Button(
+                                    onClick = hapticClick(onNavigateToAuth),
+                                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Default.Login, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = if (isZh) "使用嶺南郵箱登入 / 註冊" else "Sign In / Register with LN Email",
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -869,7 +970,7 @@ fun ProfileScreen(
                         )
                     }
 
-                    HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+                    HorizontalDivider()
 
                     // Language Switcher
                     Row(
@@ -914,10 +1015,10 @@ fun ProfileScreen(
                         )
                     }
 
-                    HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+                    HorizontalDivider()
 
                     com.lingubible.app.ui.components.GuideEntry(onNavigateToGuide, isZh)
-                    HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+                    HorizontalDivider()
 
                     // Navigation to full Appearance & Settings Screen
                     ListItem(
@@ -944,7 +1045,7 @@ fun ProfileScreen(
                             .pointerHoverIcon(PointerIcon.Hand)
                     )
 
-                    HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+                    HorizontalDivider()
 
                     ListItem(
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -952,7 +1053,7 @@ fun ProfileScreen(
                         leadingContent = { Icon(Icons.Default.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                         modifier = Modifier.clip(RoundedCornerShape(10.dp)).clickable(onClick = hapticClick(onNavigateToFavorites))
                     )
-                    HorizontalDivider(color = cardBorderColor.copy(alpha = 0.5f), thickness = 0.5.dp)
+                    HorizontalDivider()
 
                     // My Reviews
                     ListItem(
@@ -974,21 +1075,29 @@ fun ProfileScreen(
                 }
             }
 
-            if (user != null) {
-                Spacer(modifier = Modifier.height(18.dp))
-
-                OutlinedButton(
-                    onClick = hapticClick { viewModel.logout {} },
-                    modifier = Modifier.fillMaxWidth(),
-                    shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+            AnimatedVisibility(
+                visible = !uiState.isInitialSessionLoading && user != null,
+                enter = expandVertically(AppMotion.spatial(), expandFrom = Alignment.Top) + fadeIn(AppMotion.effects()),
+                exit = shrinkVertically(AppMotion.spatial(), shrinkTowards = Alignment.Top) + fadeOut(AppMotion.effects())
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 18.dp)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (isZh) "登出帳號" else "Sign Out", fontWeight = FontWeight.Bold)
+                    OutlinedButton(
+                        onClick = hapticClick { viewModel.logout {} },
+                        modifier = Modifier.fillMaxWidth(),
+                        shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(16.dp)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(if (isZh) "登出帳號" else "Sign Out", fontWeight = FontWeight.Bold)
+                    }
                 }
             }
 
@@ -1204,3 +1313,38 @@ fun ProfileScreen(
         }
     )
 }
+
+private enum class AccountSectionState {
+    LOADING,
+    LOGGED_IN,
+    GUEST
+}
+
+/**
+ * Retains the measured size in the layout tree and fades alpha.
+ * When invisible, the element takes up layout space so the parent Row height
+ * is locked and sibling text doesn't jitter or switch positions, but is unplaced
+ * and unclickable when fully faded.
+ */
+@Composable
+private fun Modifier.keepSizeFadeVisibility(visible: Boolean): Modifier {
+    val alpha by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = AppMotion.effects(),
+        label = "keepSizeAlpha"
+    )
+
+    return this
+        .graphicsLayer {
+            this.alpha = alpha
+        }
+        .layout { measurable, constraints ->
+            val placeable = measurable.measure(constraints)
+            layout(placeable.width, placeable.height) {
+                if (visible || alpha > 0.005f) {
+                    placeable.placeRelative(0, 0)
+                }
+            }
+        }
+}
+

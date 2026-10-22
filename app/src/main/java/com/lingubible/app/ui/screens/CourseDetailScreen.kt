@@ -265,9 +265,7 @@ fun CourseDetailScreen(
                         }
 
                         Spacer(modifier = Modifier.height(14.dp))
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.25f else 0.4f)
-                        )
+                        HorizontalDivider()
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // Expressive Course Syllabus Action Button (Web App Parity)

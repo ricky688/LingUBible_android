@@ -630,8 +630,7 @@ fun YearCard(
                 )
                 if (index < terms.lastIndex) {
                     HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 12.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        modifier = Modifier.padding(vertical = 12.dp)
                     )
                 }
             }
@@ -639,8 +638,7 @@ fun YearCard(
             // Add Term Button (if < 3 terms in this year)
             if (terms.size < 3) {
                 HorizontalDivider(
-                    modifier = Modifier.padding(top = 10.dp, bottom = 8.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    modifier = Modifier.padding(top = 10.dp, bottom = 8.dp)
                 )
                 Surface(
                     onClick = hapticClick(onAddTerm),
@@ -759,8 +757,7 @@ fun TermSection(
                 )
                 if (index < term.courses.lastIndex) {
                     HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                        modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
             }
@@ -1069,8 +1066,7 @@ fun CourseRow(
                     }
 
                     HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        modifier = Modifier.padding(vertical = 4.dp)
                     )
                     Text(
                         text = "不計入 GPA 之成績 · Non-GPA",

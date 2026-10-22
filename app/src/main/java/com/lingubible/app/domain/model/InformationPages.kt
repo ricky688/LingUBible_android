@@ -35,6 +35,14 @@ internal val ANDROID_FAQ = listOf(
 )
 
 internal val ANDROID_CHANGELOG = listOf(
+    InformationSection("1.0.9", InformationText("v1.0.9 · 用戶設定載入指標與擴散動效", "v1.0.9 · Settings Loading Indicator & Spreading Motion"), listOf(
+        InformationText("用戶設定頁面新增 Material 3 Expressive 變形載入指示器（LoadingIndicator），首次啟動清晰反饋。", "Added official Material 3 Expressive LoadingIndicator on User Settings for clear initial feedback."),
+        InformationText("帳戶載入完成後採用向外擴散（spreading）彈簧轉場動效，平滑無縫展現個人資料。", "Introduced an outward spreading spring transition animation when profile data finishes loading."),
+        InformationText("修復展開與收起修改密碼/用戶名時文字跳動位移問題，高度嚴格鎖定與零像素位移。", "Fixed password and username header text jumping during expand/collapse with locked row height."),
+        InformationText("全應用列表卡片升級為 18dp 獨立懸浮卡片，層次呼吸感全面提升。", "Upgraded list items across all directory screens into 18dp independent floating expressive cards."))),
+    InformationSection("1.0.8", InformationText("v1.0.8 · 獨立懸浮卡片與呼吸感優化", "v1.0.8 · Independent Floating Cards & Breathing Room"), listOf(
+        InformationText("重構所有列表項為獨立卡片（18dp 圓角與 10dp 間距），視覺層次更分明。", "Redesigned all list cards into independent floating cards with 18dp corners and 10dp spacing."),
+        InformationText("優化搜尋列與快速切換鍵佈局，提升觸控回饋與單手操作體驗。", "Refined search bars and quick filters for improved tactile feedback and one-handed reachability."))),
     InformationSection("1.0.7", InformationText("v1.0.7 · 課表學分去重與介面圓角動效升級", "v1.0.7 · Timetable Credit Deduplication & UI Corner Motion"), listOf(
         InformationText("修復包含講課與導修等多時段課程重複計算學分與課程數之問題，統計更準確。", "Fixed multi-section courses (e.g. Lecture + Tutorial) double counting credits and course count."),
         InformationText("全面套用 Material 3 Expressive 按鈕按壓圓角形狀變換（8dp pressed shape）。", "Applied Material 3 Expressive button press corner shape morphing (8dp pressed shape) across all screens."),

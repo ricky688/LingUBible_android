@@ -259,8 +259,7 @@ fun LingUBibleDrawerSheet(
 
                         if (catIndex < categories.size - 1) {
                             HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                                color = headerBorderColor
+                                modifier = Modifier.padding(vertical = 8.dp)
                             )
                         }
                     }
@@ -268,10 +267,7 @@ fun LingUBibleDrawerSheet(
             }
 
             // 3. Pinned Bottom Section (Theme Switcher, Language Switcher, and Version Footer)
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 20.dp),
-                color = headerBorderColor
-            )
+            HorizontalDivider()
 
             Column(
                 modifier = Modifier

@@ -192,7 +192,7 @@ fun AuthScreen(
                             value = email,
                             onValueChange = { email = it },
                             label = { Text("嶺南大學電郵 · Lingnan Email", maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            placeholder = { Text("@ln.hk / @ln.edu.hk", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            placeholder = { Text("@ln.hk", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                             modifier = Modifier.fillMaxWidth(),
