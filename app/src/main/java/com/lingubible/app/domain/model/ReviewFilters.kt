@@ -3,10 +3,12 @@ package com.lingubible.app.domain.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class ReviewSort(val label: String) {
-    DATE("日期 Date"), WORKLOAD("工作量 Workload"), DIFFICULTY("難度 Difficulty"),
-    USEFULNESS("實用性 Usefulness"), TEACHING("教學 Teaching"), GRADING("給分 Grading"),
-    GRADE("成績 Grade"), UPVOTES("推薦 Upvotes"), DOWNVOTES("不推薦 Downvotes")
+enum class ReviewSort(val label: String, val labelEn: String) {
+    DATE("日期 Date", "Date"), WORKLOAD("工作量 Workload", "Workload"), DIFFICULTY("難度 Difficulty", "Difficulty"),
+    USEFULNESS("實用性 Usefulness", "Usefulness"), TEACHING("教學 Teaching", "Teaching"), GRADING("給分 Grading", "Grading"),
+    GRADE("成績 Grade", "Grade"), UPVOTES("推薦 Upvotes", "Upvotes"), DOWNVOTES("不推薦 Downvotes", "Downvotes");
+
+    fun label(isZh: Boolean): String = if (isZh) label else labelEn
 }
 @Serializable
 data class ReviewFilters(

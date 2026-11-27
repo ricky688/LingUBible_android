@@ -13,7 +13,8 @@ import com.lingubible.app.domain.model.*
 data class TimetableExportColors(val background: Int, val surface: Int, val text: Int, val outline: Int)
 
 internal fun configuredTimetableImage(orientation: TimetableExportOrientation, term: TimetableTerm, sections: List<TimetableSection>,
-    conflicts: List<TimeConflict>, credits: Map<String, Int>, gridLines: Boolean, options: TimetableAppearance, colors: TimetableExportColors): Bitmap {
+    conflicts: List<TimeConflict>, credits: Map<String, Int>, gridLines: Boolean, options: TimetableAppearance, colors: TimetableExportColors,
+    isZh: Boolean = true): Bitmap {
     require(timetableAppearanceError(options, term) == null)
     val baseWidth = if (orientation == TimetableExportOrientation.LANDSCAPE) 2400 else 1440
     val baseHeight = if (orientation == TimetableExportOrientation.LANDSCAPE) 1400 else 2560
@@ -42,12 +43,12 @@ internal fun configuredTimetableImage(orientation: TimetableExportOrientation, t
             canvas.save(); canvas.clipRect(x, y, x + w, y + h); canvas.translate(x, y); layout.draw(canvas); canvas.restore()
         }
         paragraph(options.title.ifBlank { term.name }, 24f, 24f, baseWidth - 48f, 60f, 40f, colors.text)
-        paragraph("LingUBible · " + TimetableImageExport.computeSummaryText(sections, credits), 24f, 90f, baseWidth - 48f, 40f, 26f, colors.text)
+        paragraph("LingUBible · " + TimetableImageExport.computeSummaryText(sections, credits, isZh), 24f, 90f, baseWidth - 48f, 40f, 26f, colors.text)
         days.forEachIndexed { index, day ->
             val x = timeWidth + index * colWidth
             paint.color = colors.surface; paint.style = Paint.Style.FILL
             canvas.drawRect(x, header, x + colWidth, baseHeight - 24f, paint)
-            val label = com.lingubible.app.ui.components.DAYS_SUN_TO_SAT.first { it.code == day }.let { "${it.zh} ${it.en}" }
+            val label = com.lingubible.app.ui.components.DAYS_SUN_TO_SAT.first { it.code == day }.let { if (isZh) "${it.zh} ${it.en}" else it.en }
             paragraph(label, x + 10f, header + 20f, colWidth - 20f, 40f, 26f, colors.text)
         }
         paint.color = colors.outline; paint.style = Paint.Style.STROKE; paint.strokeWidth = 1f
@@ -71,7 +72,7 @@ internal fun configuredTimetableImage(orientation: TimetableExportOrientation, t
                 paint.color = Color.RED; paint.style = Paint.Style.STROKE; paint.strokeWidth = 4f
                 canvas.drawRoundRect(rect, 14f, 14f, paint)
             }
-            val lines = timetableBlockLines(section, meeting, options, credits[section.courseCode.uppercase()])
+            val lines = timetableBlockLines(section, meeting, options, credits[section.courseCode.uppercase()], isZh)
             paragraph(lines.joinToString("\n"), rect.left + 10f, rect.top + 8f, rect.width() - 20f, rect.height() - 16f,
                 if (orientation == TimetableExportOrientation.LANDSCAPE) 22f else 20f,
                 if (timetableUsesLightText(hex)) Color.WHITE else Color.BLACK)

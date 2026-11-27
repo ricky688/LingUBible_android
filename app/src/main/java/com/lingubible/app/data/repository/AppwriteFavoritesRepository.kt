@@ -40,7 +40,10 @@ class AppwriteFavoritesRepository(
         val userId = auth.currentUser.value?.id ?: return@withLock Result.success(Unit)
         mutableState.update { FavoritesState(userId, if (it.userId == userId) it.items else emptyMap(), loading = true) }
         try {
-            val db = requireNotNull(provider.tablesDB) { "收藏服務未就緒 · Favourites unavailable" }
+            val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+            val db = requireNotNull(provider.tablesDB) {
+                if (isZh) "收藏服務未就緒 · Favourites unavailable" else "Favourites unavailable"
+            }
             val items = mutableMapOf<FavoriteKey, String>()
             var cursor: String? = null
             do {
@@ -68,11 +71,18 @@ class AppwriteFavoritesRepository(
 
     suspend fun toggle(type: String, itemId: String): Result<Unit> = mutex.withLock {
         try {
+            val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
             require(type in setOf("course", "instructor") && itemId.isNotBlank())
-            val userId = requireNotNull(auth.currentUser.value?.id) { "請先登入以儲存收藏 · Sign in to save favourites" }
-            check(state.value.userId == userId && !state.value.loading) { "收藏同步中，請稍後重試 · Favourites are syncing; try again shortly" }
+            val userId = requireNotNull(auth.currentUser.value?.id) {
+                if (isZh) "請先登入以儲存收藏 · Sign in to save favourites" else "Sign in to save favourites"
+            }
+            check(state.value.userId == userId && !state.value.loading) {
+                if (isZh) "收藏同步中，請稍後重試 · Favourites are syncing; try again shortly" else "Favourites are syncing; try again shortly"
+            }
             val db = requireNotNull(provider.tablesDB)
-            check(provider.account?.get()?.id == userId) { "登入狀態已變更 · Please sign in again" }
+            check(provider.account?.get()?.id == userId) {
+                if (isZh) "登入狀態已變更 · Please sign in again" else "Please sign in again"
+            }
             val key = FavoriteKey(type, itemId)
             val shouldAdd = key !in state.value.items
             val rows = db.listRows("favorites", "user_favorites", listOf(

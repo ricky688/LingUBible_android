@@ -31,6 +31,8 @@ enum class TermPart(val code: String, val titleZh: String, val titleEn: String) 
     SUMMER("summer", "暑期學期", "Summer Term");
 
     val maxCourses: Int get() = if (this == SUMMER) 2 else 8
+
+    fun label(isZh: Boolean): String = if (isZh) titleZh else titleEn
 }
 
 @Serializable
@@ -323,7 +325,8 @@ class GpaHonsViewModel(
 
     fun pickCourseSuggestion(termId: String, courseId: String, course: Course) {
         val code = course.code.trim().uppercase()
-        val title = if (course.titleZh.isNotBlank()) "${course.titleZh} ${course.titleEn}" else course.titleEn
+        val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+        val title = if (isZh && course.titleZh.isNotBlank()) "${course.titleZh} ${course.titleEn}" else course.titleEn
         val cr = course.credits.toString()
         updateCourse(termId, courseId, code = code, title = title, credits = cr)
     }
@@ -404,19 +407,29 @@ class GpaHonsViewModel(
         if (_uiState.value.backupBusy) return
         val currentState = _uiState.value
         val currentSnapshot = snapshot()
-        runFileOperation("匯出失敗，請重新選擇儲存位置。 Export failed; choose another location.") {
+        val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+        runFileOperation(if (isZh) "匯出失敗，請重新選擇儲存位置。 Export failed; choose another location." else "Export failed; choose another location.") {
             withContext(fileDispatcher) {
-                val contents = if (asCsv) GpaBackup.csv(currentState) else GpaBackup.encode(currentSnapshot)
+                val contents = if (asCsv) GpaBackup.csv(currentState, isZh) else GpaBackup.encode(currentSnapshot)
                 val stream = context.contentResolver.openOutputStream(uri, "wt") ?: error("Cannot open output")
                 stream.use { it.write(contents.toByteArray(Charsets.UTF_8)) }
             }
-            _uiState.update { it.copy(backupMessage = if (asCsv) "CSV 已匯出 · CSV exported" else "備份已儲存 · Backup saved") }
+            _uiState.update {
+                it.copy(
+                    backupMessage = if (asCsv) {
+                        if (isZh) "CSV 已匯出 · CSV exported" else "CSV exported"
+                    } else {
+                        if (isZh) "備份已儲存 · Backup saved" else "Backup saved"
+                    }
+                )
+            }
         }
     }
 
     fun readCalculatorBackup(uri: Uri) {
         if (_uiState.value.backupBusy) return
-        runFileOperation("無法讀取此備份。請選擇有效的 LingUBible JSON 備份（最多 1 MB）。 Invalid or unreadable backup (max 1 MB).") {
+        val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+        runFileOperation(if (isZh) "無法讀取此備份。請選擇有效的 LingUBible JSON 備份（最多 1 MB）。 Invalid or unreadable backup (max 1 MB)." else "Invalid or unreadable backup (max 1 MB).") {
             val restored = withContext(fileDispatcher) {
                 val descriptor = try {
                     context.contentResolver.openFileDescriptor(uri, "r")
@@ -464,7 +477,13 @@ class GpaHonsViewModel(
     fun confirmCalculatorRestore() {
         val restored = _uiState.value.pendingRestore ?: return
         mutateDocument(restored.document, restored.targetCgpaInput, restored.remainingCreditsInput)
-        _uiState.update { it.copy(pendingRestore = null, backupMessage = "備份已還原，可按復原。 Backup restored; Undo is available.") }
+        val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+        _uiState.update {
+            it.copy(
+                pendingRestore = null,
+                backupMessage = if (isZh) "備份已還原，可按復原。 Backup restored; Undo is available." else "Backup restored; Undo is available."
+            )
+        }
     }
 
     fun dismissCalculatorRestore() { _uiState.update { it.copy(pendingRestore = null) } }

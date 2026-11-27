@@ -5,9 +5,11 @@ data class InstructorFilters(
     val languages: Set<String> = emptySet(), val showFormerStaff: Boolean = false,
     val sort: InstructorSort = InstructorSort.NAME, val descending: Boolean = false
 )
-enum class InstructorSort(val label: String) {
-    NAME("姓名 Name"), DEPARTMENT("學系 Department"), TEACHING("教學 Teaching"),
-    GRADING("給分 Grading"), REVIEWS("評價數 Reviews"), GPA("平均 GPA")
+enum class InstructorSort(val label: String, val labelEn: String) {
+    NAME("姓名 Name", "Name"), DEPARTMENT("學系 Department", "Department"), TEACHING("教學 Teaching", "Teaching"),
+    GRADING("給分 Grading", "Grading"), REVIEWS("評價數 Reviews", "Reviews"), GPA("平均 GPA", "Avg GPA");
+
+    fun label(isZh: Boolean): String = if (isZh) label else labelEn
 }
 fun filterInstructors(source: List<Instructor>, search: String, filters: InstructorFilters, termNames: Set<String> = emptySet()): List<Instructor> {
     val q = search.trim()

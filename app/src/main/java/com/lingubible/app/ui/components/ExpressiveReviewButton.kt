@@ -33,8 +33,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.LingnanRed
 import kotlinx.coroutines.flow.distinctUntilChanged
+import org.koin.compose.koinInject
 
 /**
  * Material 3 Expressive Squircle Shape with continuous superellipse curvature.
@@ -98,12 +102,16 @@ fun ExpressiveReviewFab(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     expanded: Boolean = true,
-    text: String = "撰寫評價",
+    text: String? = null,
     contentDescription: String = "Write Review",
     collapsedTranslationX: androidx.compose.ui.unit.Dp = 0.dp,
     collapsedTranslationY: androidx.compose.ui.unit.Dp = 0.dp,
     shape: Shape = SquircleShape(cornerRadius = 24.dp, smoothness = 0.75f)
 ) {
+    val settingsManager = koinInject<AppSettingsManager>()
+    val appLanguage by settingsManager.appLanguage.collectAsStateWithLifecycle()
+    val isZh = appLanguage == AppLanguage.ZH_TW
+    val resolvedText = text ?: if (isZh) "撰寫評價" else "Write review"
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
 
@@ -182,7 +190,7 @@ fun ExpressiveReviewFab(
                     modifier = Modifier.padding(start = 10.dp)
                 ) {
                     Text(
-                        text = text,
+                        text = resolvedText,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.3.sp,
@@ -202,8 +210,12 @@ fun ExpressiveReviewFab(
 fun ExpressiveInlineReviewButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    text: String = "搶先評價 Be First to Review"
+    text: String? = null
 ) {
+    val settingsManager = koinInject<AppSettingsManager>()
+    val appLanguage by settingsManager.appLanguage.collectAsStateWithLifecycle()
+    val isZh = appLanguage == AppLanguage.ZH_TW
+    val resolvedText = text ?: if (isZh) "搶先評價 Be First to Review" else "Be First to Review"
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
 
@@ -240,7 +252,7 @@ fun ExpressiveInlineReviewButton(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = text,
+            text = resolvedText,
             fontWeight = FontWeight.Bold,
             fontSize = 15.sp,
             color = Color.White

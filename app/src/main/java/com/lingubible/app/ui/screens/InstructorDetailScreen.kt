@@ -26,6 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.domain.model.*
 import com.lingubible.app.ui.components.*
@@ -55,6 +57,9 @@ fun InstructorDetailScreen(
     instructorRepository: InstructorRepository = koinInject(),
     reviewRepository: ReviewRepository = koinInject()
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val isDark = isAppDarkTheme()
     val listState = rememberLazyListState()
     var reviewsFocused by androidx.compose.runtime.saveable.rememberSaveable(instructorName, showReviews) { mutableStateOf(false) }
@@ -105,7 +110,7 @@ fun InstructorDetailScreen(
         if (isLoading) {
             M3LoadingState(
                 modifier = Modifier.fillMaxSize(),
-                message = "正在載入講師資料..."
+                message = if (isZh) "正在載入講師資料..." else "Loading instructor details..."
             )
         } else {
                 val entrance = rememberStaggeredEntrance(3)
@@ -165,7 +170,7 @@ fun InstructorDetailScreen(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     val zhName = instructor?.displayNameZh.orEmpty()
-                                    if (zhName.isNotBlank()) {
+                                    if (isZh && zhName.isNotBlank()) {
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
                                             text = zhName,
@@ -202,7 +207,7 @@ fun InstructorDetailScreen(
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = "${reviews.size} 則評價",
+                                            text = if (isZh) "${reviews.size} 則評價" else "${reviews.size} reviews",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -213,31 +218,35 @@ fun InstructorDetailScreen(
                     }
 
                     item(key = "detail-tabs") {
-                        ScrollableM3ButtonGroup(tab, listOf("任教記錄 History", "學生評價 Reviews", "成績分佈 Grades").mapIndexed { index, label ->
+                        val tabLabels = if (isZh) listOf("任教記錄 History", "學生評價 Reviews", "成績分佈 Grades") else listOf("History", "Reviews", "Grades")
+                        ScrollableM3ButtonGroup(tab, tabLabels.mapIndexed { index, label ->
                             M3ButtonGroupItem(label, onClick = { tab = index })
                         }, modifier = Modifier.staggeredEntrance(entrance, 1))
                     }
                     if (tab != 1) {
                         item(key = "history-filters") { Box(restEntrance) {
                             TeachingHistoryControls(teachingRecords, historyFilters) { historyFilters = it }
-                            historyError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
+                            historyError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text(if (isZh) "重試 Retry" else "Retry") } }
                         } }
                         if (tab == 2) {
                             item(key = "grades") { Box(restEntrance) {
-                                reviewError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
-                                if (distribution.isEmpty()) Text("沒有符合篩選的成績 · No matching grades")
+                                reviewError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text(if (isZh) "重試 Retry" else "Retry") } }
+                                if (distribution.isEmpty()) Text(if (isZh) "沒有符合篩選的成績 · No matching grades" else "No matching grades")
                                 else GradeDistributionChart(distribution)
                             } }
                         } else {
-                            item(key = "history-count") { Box(restEntrance) { Text("${history.size} / ${teachingRecords.size} 筆任教記錄 Teaching records") } }
-                            if (history.isEmpty()) item { Box(restEntrance) { Text("沒有符合篩選的任教記錄 · No matching teaching records") } }
+                            item(key = "history-count") { Box(restEntrance) { Text(if (isZh) "${history.size} / ${teachingRecords.size} 筆任教記錄 Teaching records" else "${history.size} / ${teachingRecords.size} teaching records") } }
+                            if (history.isEmpty()) item { Box(restEntrance) { Text(if (isZh) "沒有符合篩選的任教記錄 · No matching teaching records" else "No matching teaching records") } }
                             itemsIndexed(history, key = { _, it -> "teaching:${it.id}" }) { index, record -> Box(restEntrance) {
                                 Surface(shape = com.lingubible.app.ui.components.getGroupedItemShape(index, history.size, outerRadius = 16.dp), color = MaterialTheme.colorScheme.surfaceContainerLow,
                                     onClick = hapticClick { onCourse(record.courseCode) }) {
                                     ListItem(headlineContent = { Text(record.courseCode, style = MaterialTheme.typography.titleMedium) },
                                         supportingContent = { Column {
-                                            Text(teachingTermLabel(record))
-                                            Text(listOf(teachingSessionLabel(record.section), teachingLanguageLabel(record.teachingLanguage).ifBlank { "語言未知 Unknown language" }).filter { it.isNotBlank() }.joinToString(" · "))
+                                            Text(teachingTermLabel(record).let { if (isZh) it else it.replace(Regex("[\\u4e00-\\u9fff\\u3000-\\u303f\\uff00-\\uffef]+\\s*"), "").trim() })
+                                            Text(listOf(
+                                                teachingSessionLabel(record.section).let { if (isZh) it else it.replace(Regex("[\\u4e00-\\u9fff\\u3000-\\u303f\\uff00-\\uffef]+\\s*"), "").trim() },
+                                                teachingLanguageLabel(record.teachingLanguage).ifBlank { if (isZh) "語言未知 Unknown language" else "Unknown language" }
+                                            ).filter { it.isNotBlank() }.joinToString(" · "))
                                         } }, colors = ListItemDefaults.colors(containerColor = Color.Transparent))
                                 }
                             } }
@@ -247,7 +256,7 @@ fun InstructorDetailScreen(
                     item(key = "student-reviews") { Box(restEntrance) {
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "學生評價 Student Reviews (${reviews.size})",
+                            text = if (isZh) "學生評價 Student Reviews (${reviews.size})" else "Student Reviews (${reviews.size})",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -256,12 +265,12 @@ fun InstructorDetailScreen(
 
                     item(key = "review-filters") { Box(restEntrance) {
                         com.lingubible.app.ui.components.ReviewBrowserControls(reviews, reviewFilters, { reviewFilters = it }, filteredReviews.size)
-                        reviewError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text("重試 Retry") } }
+                        reviewError?.let { Text(it, color = MaterialTheme.colorScheme.error); TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { retry++ }) { Text(if (isZh) "重試 Retry" else "Retry") } }
                     } }
                     if (filteredReviews.isEmpty()) {
                         item { Box(restEntrance) {
                             Text(
-                                text = "沒有符合篩選的評價 · No matching reviews",
+                                text = if (isZh) "沒有符合篩選的評價 · No matching reviews" else "No matching reviews",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -292,7 +301,7 @@ fun InstructorDetailScreen(
                             )
                         } }
                     }
-                    if (reviewLimit < filteredReviews.size) item { Box(restEntrance) { OutlinedButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { reviewLimit += 30 }) { Text("載入更多 Load more") } } }
+                    if (reviewLimit < filteredReviews.size) item { Box(restEntrance) { OutlinedButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { reviewLimit += 30 }) { Text(if (isZh) "載入更多 Load more" else "Load more") } } }
                     }
             }
         }

@@ -43,12 +43,15 @@ import androidx.compose.ui.unit.sp
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lingubible.app.LocalComponentActivity
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.ui.components.FloatingCircles
 import com.lingubible.app.ui.components.M3ButtonGroup
 import com.lingubible.app.ui.components.M3LoadingIndicator
 import com.lingubible.app.ui.viewmodels.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +62,9 @@ fun AuthScreen(
     onForgotPassword: () -> Unit,
     viewModel: AuthViewModel = koinViewModel()
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val isDark = isAppDarkTheme()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -89,7 +95,7 @@ fun AuthScreen(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "嶺南大學課程評價平台",
+                    text = if (isZh) "嶺南大學課程評價平台" else "Lingnan University Course Review Platform",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -103,7 +109,7 @@ fun AuthScreen(
                 )
 
                 Text(
-                    text = "Reg科聖經 • 博訪博覽，慎選課席",
+                    text = if (isZh) "Reg科聖經 • 博訪博覽，慎選課席" else "Course Registration Bible • Explore widely, choose wisely",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -125,8 +131,8 @@ fun AuthScreen(
                             isLoginMode = false
                             viewModel.clearError()
                         },
-                        leadingText = "登入 Sign In",
-                        trailingText = "註冊 Register",
+                        leadingText = if (isZh) "登入 Sign In" else "Sign In",
+                        trailingText = if (isZh) "註冊 Register" else "Register",
                         height = 42.dp,
                         activeCornerRadius = 21.dp,
                         inactiveCornerRadius = 10.dp,
@@ -158,7 +164,11 @@ fun AuthScreen(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = if (uiState.isLoading) "Google 登入中… Signing in…" else "使用 Google 繼續 Continue with Google",
+                        text = if (isZh) {
+                            if (uiState.isLoading) "Google 登入中… Signing in…" else "使用 Google 繼續 Continue with Google"
+                        } else {
+                            if (uiState.isLoading) "Signing in…" else "Continue with Google"
+                        },
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -177,7 +187,7 @@ fun AuthScreen(
                             OutlinedTextField(
                                 value = name,
                                 onValueChange = { name = it },
-                                label = { Text("姓名或暱稱 · Name", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                label = { Text(if (isZh) "姓名或暱稱 · Name" else "Name", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                 leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp),
@@ -191,7 +201,7 @@ fun AuthScreen(
                         OutlinedTextField(
                             value = email,
                             onValueChange = { email = it },
-                            label = { Text("嶺南大學電郵 · Lingnan Email", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            label = { Text(if (isZh) "嶺南大學電郵 · Lingnan Email" else "Lingnan Email", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             placeholder = { Text("@ln.hk", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -206,7 +216,7 @@ fun AuthScreen(
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
-                            label = { Text("密碼 · Password", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            label = { Text(if (isZh) "密碼 · Password" else "Password", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                             visualTransformation = PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -228,7 +238,7 @@ fun AuthScreen(
                             OutlinedTextField(
                                 value = confirmPassword,
                                 onValueChange = { confirmPassword = it },
-                                label = { Text("確認密碼 · Confirm Password", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                label = { Text(if (isZh) "確認密碼 · Confirm Password" else "Confirm Password", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                 leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                                 visualTransformation = PasswordVisualTransformation(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -253,7 +263,7 @@ fun AuthScreen(
                         enabled = !uiState.isLoading,
                         shapes = AppButtonDefaults.shapes(),
                         modifier = Modifier.align(Alignment.End)
-                    ) { Text("忘記密碼？ Forgot password?") }
+                    ) { Text(if (isZh) "忘記密碼？ Forgot password?" else "Forgot password?") }
                 }
 
                 if (uiState.errorMessage != null) {
@@ -293,7 +303,11 @@ fun AuthScreen(
                         )
                     } else {
                         Text(
-                            text = if (isLoginMode) "登入 Sign In" else "註冊帳號 Create Account",
+                            text = if (isZh) {
+                                if (isLoginMode) "登入 Sign In" else "註冊帳號 Create Account"
+                            } else {
+                                if (isLoginMode) "Sign In" else "Create Account"
+                            },
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )

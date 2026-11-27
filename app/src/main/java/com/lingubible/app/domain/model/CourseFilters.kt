@@ -11,10 +11,12 @@ data class CourseFilters(
     val sort: CourseSort = CourseSort.CODE,
     val descending: Boolean = false
 )
-enum class CourseSort(val label: String) {
-    CODE("代碼 Code"), TITLE("名稱 Title"), DEPARTMENT("學系 Department"),
-    WORKLOAD("工作量 Workload"), DIFFICULTY("難度 Difficulty"),
-    USEFULNESS("實用性 Usefulness"), REVIEWS("評價數 Reviews"), GPA("平均 GPA")
+enum class CourseSort(val label: String, val labelEn: String) {
+    CODE("代碼 Code", "Code"), TITLE("名稱 Title", "Title"), DEPARTMENT("學系 Department", "Department"),
+    WORKLOAD("工作量 Workload", "Workload"), DIFFICULTY("難度 Difficulty", "Difficulty"),
+    USEFULNESS("實用性 Usefulness", "Usefulness"), REVIEWS("評價數 Reviews", "Reviews"), GPA("平均 GPA", "Avg GPA");
+
+    fun label(isZh: Boolean): String = if (isZh) label else labelEn
 }
 data class CourseTerm(val code: String, val label: String)
 

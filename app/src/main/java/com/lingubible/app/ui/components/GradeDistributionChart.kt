@@ -9,6 +9,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
@@ -22,14 +24,20 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.domain.model.GradeStatistics
 import com.lingubible.app.domain.util.GradeCalculator
+import org.koin.compose.koinInject
 
 @Composable
 fun GradeDistributionChart(
     distribution: Map<String, Int>,
     modifier: Modifier = Modifier
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val stats: GradeStatistics = GradeCalculator.calculateGradeStatistics(distribution)
     val paretoPoints = GradeCalculator.calculateParetoCurve(distribution)
     val maxCount = (distribution.values.maxOrNull() ?: 1).coerceAtLeast(1)
@@ -50,7 +58,7 @@ fun GradeDistributionChart(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        text = "成績分佈 Grade Distribution",
+                        text = if (isZh) "成績分佈 Grade Distribution" else "Grade Distribution",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -78,7 +86,7 @@ fun GradeDistributionChart(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Text(
-                                text = "平均 Mean GPA",
+                                text = if (isZh) "平均 Mean GPA" else "Mean GPA",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -100,7 +108,7 @@ fun GradeDistributionChart(
                     .fillMaxWidth()
                     .height(180.dp)
             ) {
-                Canvas(modifier = Modifier.fillMaxSize().semantics { contentDescription = "成績分佈 Grade distribution: " + GradeCalculator.GRADE_ORDER.filter { (distribution[it] ?: 0) > 0 }.joinToString { "$it: ${distribution[it]}" } }) {
+                Canvas(modifier = Modifier.fillMaxSize().semantics { contentDescription = (if (isZh) "成績分佈 Grade distribution: " else "Grade distribution: ") + GradeCalculator.GRADE_ORDER.filter { (distribution[it] ?: 0) > 0 }.joinToString { "$it: ${distribution[it]}" } }) {
                     val w = size.width
                     val h = size.height - 30f // Leave space for bottom labels
                     val barWidth = (w / grades.size) * 0.65f

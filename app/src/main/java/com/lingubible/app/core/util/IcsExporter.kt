@@ -221,8 +221,10 @@ object IcsExporter {
         push("DTSTAMP:$stamp")
         push("DTSTART;VALUE=DATE:$startStr")
         push("DTEND;VALUE=DATE:$endStr")
-        push("SUMMARY:${escapeText(event.displayTitle)}")
-        push("DESCRIPTION:${escapeText("${event.title}\n分類: ${event.category.labelZh}")}")
+        val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+        val categoryDesc = if (isZh) "分類: ${event.category.labelZh}" else "Category: ${event.category.labelEn}"
+        push("SUMMARY:${escapeText(event.displayTitle(isZh))}")
+        push("DESCRIPTION:${escapeText("${event.title}\n$categoryDesc")}")
         push("CATEGORIES:${escapeText(event.category.labelEn)}")
         push("END:VEVENT")
 
@@ -274,8 +276,10 @@ object IcsExporter {
             push("DTSTAMP:$stamp")
             push("DTSTART;VALUE=DATE:$startStr")
             push("DTEND;VALUE=DATE:$endStr")
-            push("SUMMARY:${escapeText(event.displayTitle)}")
-            push("DESCRIPTION:${escapeText("${event.title}\n分類: ${event.category.labelZh}")}")
+            val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+            val categoryDesc = if (isZh) "分類: ${event.category.labelZh}" else "Category: ${event.category.labelEn}"
+            push("SUMMARY:${escapeText(event.displayTitle(isZh))}")
+            push("DESCRIPTION:${escapeText("${event.title}\n$categoryDesc")}")
             push("CATEGORIES:${escapeText(event.category.labelEn)}")
             push("END:VEVENT")
         }
@@ -309,10 +313,12 @@ object IcsExporter {
             startMillis + 24 * 60 * 60 * 1000
         }
 
+        val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+        val categoryDesc = if (isZh) "分類: ${event.category.labelZh}" else "Category: ${event.category.labelEn}"
         return Intent(Intent.ACTION_INSERT).apply {
             data = CalendarContract.Events.CONTENT_URI
-            putExtra(CalendarContract.Events.TITLE, event.displayTitle)
-            putExtra(CalendarContract.Events.DESCRIPTION, "${event.title}\n分類: ${event.category.labelZh}")
+            putExtra(CalendarContract.Events.TITLE, event.displayTitle(isZh))
+            putExtra(CalendarContract.Events.DESCRIPTION, "${event.title}\n$categoryDesc")
             putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true)
             putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startMillis)
             putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endMillis)
@@ -341,7 +347,8 @@ object IcsExporter {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
-            val chooser = Intent.createChooser(shareIntent, "匯出日曆 Export Calendar")
+            val chooserTitle = if (com.lingubible.app.core.settings.AppSettingsManager.isZh) "匯出日曆 Export Calendar" else "Export Calendar"
+            val chooser = Intent.createChooser(shareIntent, chooserTitle)
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(chooser)
         }.onFailure { it.printStackTrace() }

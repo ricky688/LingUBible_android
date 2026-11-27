@@ -52,12 +52,16 @@ object HonoursCalculator {
         UPPER_SECOND(3.00, "乙等一級榮譽", "Upper Second (2:1)"),
         LOWER_SECOND(2.50, "乙等二級榮譽", "Lower Second (2:2)"),
         THIRD(2.00, "丙等榮譽", "Third Class Honours"),
-        PASS(1.67, "及格", "Pass")
+        PASS(1.67, "及格", "Pass");
+
+        fun label(isZh: Boolean): String = if (isZh) titleZh else titleEn
     }
 
     enum class YearAward(val titleZh: String, val titleEn: String) {
         PRESIDENTS_LIST("校長榮譽榜", "President's List"),
-        DEANS_LIST("院長榮譽榜", "Dean's List")
+        DEANS_LIST("院長榮譽榜", "Dean's List");
+
+        fun label(isZh: Boolean): String = if (isZh) titleZh else titleEn
     }
 
     enum class RequiredAvgStatus {

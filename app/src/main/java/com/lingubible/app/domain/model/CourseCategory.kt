@@ -4,7 +4,9 @@ data class CourseCategory(
     val code: String,
     val nameZh: String,
     val nameEn: String
-)
+) {
+    fun label(isZh: Boolean): String = if (isZh) nameZh else nameEn
+}
 
 val COURSE_CATEGORIES = listOf(
     CourseCategory("ALL", "全部", "All Departments"),

@@ -49,6 +49,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,9 +67,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.LingnanRed
 import com.lingubible.app.core.theme.isAppDarkTheme
 import com.lingubible.app.domain.model.TimeConflict
+import org.koin.compose.koinInject
 
 private fun formatDayZhEn(day: String): String = when (day.uppercase()) {
     "SUN" -> "週日 Sun"
@@ -78,6 +82,17 @@ private fun formatDayZhEn(day: String): String = when (day.uppercase()) {
     "THU" -> "週四 Thu"
     "FRI" -> "週五 Fri"
     "SAT" -> "週六 Sat"
+    else -> day
+}
+
+private fun formatDayEn(day: String): String = when (day.uppercase()) {
+    "SUN" -> "Sun"
+    "MON" -> "Mon"
+    "TUE" -> "Tue"
+    "WED" -> "Wed"
+    "THU" -> "Thu"
+    "FRI" -> "Fri"
+    "SAT" -> "Sat"
     else -> day
 }
 
@@ -103,6 +118,9 @@ fun TimeConflictAlertCard(
     if (conflicts.isEmpty()) return
 
     val isDark = isAppDarkTheme()
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     var isExpanded by remember { mutableStateOf(false) }
 
     // Subtle breathing pulse for warning border
@@ -234,7 +252,7 @@ fun TimeConflictAlertCard(
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        text = "時間衝突警示",
+                                        text = if (isZh) "時間衝突警示" else "Schedule Conflict",
                                         style = MaterialTheme.typography.titleSmall,
                                         fontWeight = FontWeight.ExtraBold,
                                         fontSize = 15.sp,
@@ -246,7 +264,7 @@ fun TimeConflictAlertCard(
                                         color = LingnanRed.copy(alpha = if (isDark) 0.35f else 0.15f)
                                     ) {
                                         Text(
-                                            text = "${conflicts.size} 處重疊",
+                                            text = if (isZh) "${conflicts.size} 處重疊" else "${conflicts.size} ${if (conflicts.size == 1) "clash" else "clashes"}",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = if (isDark) Color(0xFFFCA5A5) else LingnanRed,
@@ -256,7 +274,7 @@ fun TimeConflictAlertCard(
                                     }
                                 }
                                 Text(
-                                    text = "Schedule Conflict Detected · 課程上課時段重疊",
+                                    text = if (isZh) "Schedule Conflict Detected · 課程上課時段重疊" else "Overlapping class meeting times",
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 11.sp,
@@ -285,7 +303,7 @@ fun TimeConflictAlertCard(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = if (isExpanded) "收合" else "全部 (${conflicts.size})",
+                                        text = if (isExpanded) (if (isZh) "收合" else "Collapse") else (if (isZh) "全部 (${conflicts.size})" else "All (${conflicts.size})"),
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold,
                                         color = if (isDark) Color(0xFFFCA5A5) else Color(0xFFB91C1C)
@@ -413,7 +431,7 @@ fun TimeConflictAlertCard(
                                             )
                                             Spacer(modifier = Modifier.width(4.dp))
                                             Text(
-                                                text = "${formatDayZhEn(conflict.day)} · ${conflict.timeDescription}",
+                                                text = "${if (isZh) formatDayZhEn(conflict.day) else formatDayEn(conflict.day)} · ${conflict.timeDescription}",
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Bold,
                                                 color = if (isDark) Color(0xFFFCA5A5) else Color(0xFF991B1B),
@@ -422,7 +440,7 @@ fun TimeConflictAlertCard(
                                         }
 
                                         Text(
-                                            text = "時段衝堂 Clashing",
+                                            text = if (isZh) "時段衝堂 Clashing" else "Clashing",
                                             style = MaterialTheme.typography.labelSmall,
                                             color = if (isDark) Color(0xFFFCA5A5) else Color(0xFFDC2626),
                                             fontWeight = FontWeight.Bold,
@@ -450,7 +468,7 @@ fun TimeConflictAlertCard(
                                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                 ) {
                                     Text(
-                                        text = "在日曆中查看",
+                                        text = if (isZh) "在日曆中查看" else "View in Grid",
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 11.sp
@@ -471,7 +489,7 @@ fun TimeConflictAlertCard(
                                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                 ) {
                                     Text(
-                                        text = "調整班別解決衝突",
+                                        text = if (isZh) "調整班別解決衝突" else "Resolve Conflict",
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp

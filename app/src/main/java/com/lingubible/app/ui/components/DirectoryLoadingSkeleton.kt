@@ -7,6 +7,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
@@ -17,16 +19,26 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.lingubible.app.core.navigation.screenContentPadding
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
+import org.koin.compose.koinInject
 
 /** Reserves the directory's grouped-card layout without creating fake domain objects or actions. */
 @Composable
 internal fun DirectoryLoadingSkeleton(instructors: Boolean, modifier: Modifier = Modifier) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val alpha = rememberSkeletonAlpha(true)
     val color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.22f)
     FadingLazyColumn(
         modifier = modifier.fillMaxSize().clearAndSetSemantics {
-            contentDescription = if (instructors) "講師名錄 Instructor directory" else "課程列表 Course directory"
-            stateDescription = "載入中 Loading"
+            contentDescription = if (isZh) {
+                if (instructors) "講師名錄 Instructor directory" else "課程列表 Course directory"
+            } else {
+                if (instructors) "Instructor directory" else "Course directory"
+            }
+            stateDescription = if (isZh) "載入中 Loading" else "Loading"
         },
         contentPadding = screenContentPadding(),
         verticalArrangement = Arrangement.spacedBy(10.dp)

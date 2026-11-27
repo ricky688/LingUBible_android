@@ -11,6 +11,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.domain.model.ReviewEdit
 import com.lingubible.app.domain.repository.ReviewRepository
 import com.lingubible.app.ui.common.hapticClick
@@ -22,6 +24,9 @@ import org.koin.compose.koinInject
 
 @Composable
 fun ReviewEditor(reviewId: String, onDismiss: () -> Unit, onSaved: () -> Unit) {
+    val settingsManager = koinInject<AppSettingsManager>()
+    val appLanguage by settingsManager.appLanguage.collectAsStateWithLifecycle()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val repository = koinInject<ReviewRepository>()
     val scope = rememberCoroutineScope()
     val auth = koinInject<com.lingubible.app.domain.repository.AuthRepository>()
@@ -40,20 +45,20 @@ fun ReviewEditor(reviewId: String, onDismiss: () -> Unit, onSaved: () -> Unit) {
     Dialog(onDismissRequest = { if (!busy) onDismiss() }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(shape = MaterialTheme.shapes.extraLarge, modifier = Modifier.padding(16.dp).widthIn(max = 560.dp).fillMaxWidth().imePadding()) {
             Column(Modifier.padding(20.dp)) {
-                Text("修改評價 Edit review", style = MaterialTheme.typography.titleLarge)
+                Text(if (isZh) "修改評價 Edit review" else "Edit review", style = MaterialTheme.typography.titleLarge)
                 Column(Modifier.weight(1f, fill = false).fadingVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (busy) CircularProgressIndicator()
                     val value = draft
                     if (value != null) {
-                        ReviewChoice("成績 Grade", value.grade, ReviewEdit.GRADES, !busy) { draft = value.copy(grade = it) }
-                        ReviewChoice("評價語言 Language", value.language, listOf("en", "zh-TW", "zh-CN"), !busy) { draft = value.copy(language = it) }
-                        OutlinedTextField(value.comment, { draft = value.copy(comment = it) }, label = { Text("課程評價 Course comments") }, modifier = Modifier.fillMaxWidth(), minLines = 3, enabled = !busy)
-                        ReviewRating("工作量 Workload", value.workload, !busy) { draft = value.copy(workload = it) }
-                        ReviewRating("難度 Difficulty", value.difficulty, !busy) { draft = value.copy(difficulty = it) }
-                        ReviewRating("實用性 Usefulness", value.usefulness, !busy) { draft = value.copy(usefulness = it) }
+                        ReviewChoice(if (isZh) "成績 Grade" else "Grade", value.grade, ReviewEdit.GRADES, !busy) { draft = value.copy(grade = it) }
+                        ReviewChoice(if (isZh) "評價語言 Language" else "Language", value.language, listOf("en", "zh-TW", "zh-CN"), !busy) { draft = value.copy(language = it) }
+                        OutlinedTextField(value.comment, { draft = value.copy(comment = it) }, label = { Text(if (isZh) "課程評價 Course comments" else "Course comments") }, modifier = Modifier.fillMaxWidth(), minLines = 3, enabled = !busy)
+                        ReviewRating(if (isZh) "工作量 Workload" else "Workload", value.workload, !busy) { draft = value.copy(workload = it) }
+                        ReviewRating(if (isZh) "難度 Difficulty" else "Difficulty", value.difficulty, !busy) { draft = value.copy(difficulty = it) }
+                        ReviewRating(if (isZh) "實用性 Usefulness" else "Usefulness", value.usefulness, !busy) { draft = value.copy(usefulness = it) }
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text("匿名 Anonymous", modifier = Modifier.weight(1f))
-                            Switch(value.anonymous, hapticChange { draft = value.copy(anonymous = it) }, enabled = !busy, modifier = Modifier.semantics { contentDescription = "匿名評價 Anonymous review" })
+                            Text(if (isZh) "匿名 Anonymous" else "Anonymous", modifier = Modifier.weight(1f))
+                            Switch(value.anonymous, hapticChange { draft = value.copy(anonymous = it) }, enabled = !busy, modifier = Modifier.semantics { contentDescription = if (isZh) "匿名評價 Anonymous review" else "Anonymous review" })
                         }
                         value.instructors.forEachIndexed { index, element ->
                             val instructor = element.jsonObject
@@ -63,16 +68,16 @@ fun ReviewEditor(reviewId: String, onDismiss: () -> Unit, onSaved: () -> Unit) {
                                     if (i == index) JsonObject(instructor + (key to field)) else original
                                 }))
                             }
-                            ReviewRating("評分 Grading", instructor["grading"]?.jsonPrimitive?.doubleOrNull ?: -1.0, !busy) { update("grading", JsonPrimitive(it)) }
-                            ReviewRating("教學 Teaching", instructor["teaching"]?.jsonPrimitive?.doubleOrNull ?: -1.0, !busy) { update("teaching", JsonPrimitive(it)) }
-                            OutlinedTextField(instructor["comments"]?.jsonPrimitive?.contentOrNull.orEmpty(), { update("comments", JsonPrimitive(it)) }, label = { Text("講師評價 Instructor comments") }, minLines = 3, modifier = Modifier.fillMaxWidth(), enabled = !busy)
+                            ReviewRating(if (isZh) "評分 Grading" else "Grading", instructor["grading"]?.jsonPrimitive?.doubleOrNull ?: -1.0, !busy) { update("grading", JsonPrimitive(it)) }
+                            ReviewRating(if (isZh) "教學 Teaching" else "Teaching", instructor["teaching"]?.jsonPrimitive?.doubleOrNull ?: -1.0, !busy) { update("teaching", JsonPrimitive(it)) }
+                            OutlinedTextField(instructor["comments"]?.jsonPrimitive?.contentOrNull.orEmpty(), { update("comments", JsonPrimitive(it)) }, label = { Text(if (isZh) "講師評價 Instructor comments" else "Instructor comments") }, minLines = 3, modifier = Modifier.fillMaxWidth(), enabled = !busy)
                         }
                     }
                     error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                    if (draft == null && !busy) TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { error = null; retry++ }) { Text("重試 Retry") }
+                    if (draft == null && !busy) TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { error = null; retry++ }) { Text(if (isZh) "重試 Retry" else "Retry") }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onDismiss), enabled = !busy) { Text("取消 Cancel") }
+                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onDismiss), enabled = !busy) { Text(if (isZh) "取消 Cancel" else "Cancel") }
                     Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick {
                         val edit = draft ?: return@hapticClick
                         busy = true; error = null
@@ -80,7 +85,7 @@ fun ReviewEditor(reviewId: String, onDismiss: () -> Unit, onSaved: () -> Unit) {
                             repository.updateReview(reviewId, edit).onSuccess { onSaved() }.onFailure { error = it.localizedMessage }
                             busy = false
                         }
-                    }, enabled = draft != null && !busy) { Text("儲存 Save") }
+                    }, enabled = draft != null && !busy) { Text(if (isZh) "儲存 Save" else "Save") }
                 }
             }
         }

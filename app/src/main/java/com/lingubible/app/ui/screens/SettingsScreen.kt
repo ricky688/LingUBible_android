@@ -295,11 +295,17 @@ fun SettingsScreen(
                                 )
                                 Text(
                                     text = buildString {
-                                        append(if (customColorHex != null) "自訂顏色" else activeColorScheme.label(isZh))
+                                        append(
+                                            if (customColorHex != null) {
+                                                if (isZh) "自訂顏色" else "Custom color"
+                                            } else {
+                                                activeColorScheme.label(isZh)
+                                            }
+                                        )
                                         append(" · ")
                                         append(paletteStyle.label(isZh))
-                                        if (isInvertedColors) append(" · 反轉")
-                                        if (contrastLevel > 0f) append(" · 對比 ${String.format("%.1f", contrastLevel)}")
+                                        if (isInvertedColors) append(if (isZh) " · 反轉" else " · Inverted")
+                                        if (contrastLevel > 0f) append(if (isZh) " · 對比 ${String.format("%.1f", contrastLevel)}" else " · Contrast ${String.format("%.1f", contrastLevel)}")
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.primary,

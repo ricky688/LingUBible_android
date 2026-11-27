@@ -77,20 +77,28 @@ object GpaBackup {
             value.toDoubleOrNull()?.let { it.isFinite() && it in 0.0..maximum } == true)
 
     /** UTF-8 BOM and CRLF support spreadsheet readers; neutralize text formulas. */
-    fun csv(state: GpaHonsUiState): String {
+    fun csv(state: GpaHonsUiState, isZh: Boolean = true): String {
         fun cell(value: String): String {
             val safe = if (value.trimStart().firstOrNull() in listOf('=', '+', '-', '@')) "'$value" else value
             return "\"${safe.replace("\"", "\"\"")}\""
         }
-        val rows = mutableListOf(listOf(
-            "學年 Year", "年度 Academic year", "學期 Term", "課程 Course", "名稱 Title",
-            "學分 Credits", "成績 Grade", "績點 Grade point", "學期 GPA Term GPA", "累積 GPA CGPA"
-        ))
+        val headers = if (isZh) {
+            listOf(
+                "學年 Year", "年度 Academic year", "學期 Term", "課程 Course", "名稱 Title",
+                "學分 Credits", "成績 Grade", "績點 Grade point", "學期 GPA Term GPA", "累積 GPA CGPA"
+            )
+        } else {
+            listOf(
+                "Year", "Academic year", "Term", "Course", "Title",
+                "Credits", "Grade", "Grade point", "Term GPA", "CGPA"
+            )
+        }
+        val rows = mutableListOf(headers)
         state.document.terms.sortedWith(compareBy({ it.year }, { it.part.ordinal })).forEach { term ->
             term.courses.forEach { course ->
                 rows += listOf(
                     term.year.toString(), state.document.yearAcademic[term.year] ?: "${2021 + term.year}-${2022 + term.year}",
-                    "${term.part.titleZh} ${term.part.titleEn}", course.code, course.title,
+                    if (isZh) "${term.part.titleZh} ${term.part.titleEn}" else term.part.titleEn, course.code, course.title,
                     course.credits, course.grade, HonoursCalculator.getGradePoint(course.grade)?.toString().orEmpty(),
                     state.termStats[term.id]?.termGpa?.toString().orEmpty(), state.cgpa?.toString().orEmpty()
                 )

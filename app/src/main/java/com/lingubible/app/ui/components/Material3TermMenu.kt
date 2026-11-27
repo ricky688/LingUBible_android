@@ -34,6 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.LingnanRed
 import com.lingubible.app.core.theme.isAppDarkTheme
 import com.lingubible.app.core.theme.md_theme_dark_outlineVariant
@@ -43,6 +46,7 @@ import com.lingubible.app.domain.model.TimetableTerm
 import com.lingubible.app.domain.model.academicYear
 import com.lingubible.app.domain.model.termLabelEn
 import com.lingubible.app.domain.model.termLabelZh
+import org.koin.compose.koinInject
 
 /**
  * Material 3 Term Selector Menu.
@@ -59,6 +63,9 @@ fun Material3TermSelector(
     modifier: Modifier = Modifier
 ) {
     val expandedState = remember { MutableTransitionState(false) }
+    val settings = koinInject<AppSettingsManager>()
+    val language by settings.appLanguage.collectAsStateWithLifecycle()
+    val isZh = language == AppLanguage.ZH_TW
     val isDark = isAppDarkTheme()
     val density = LocalDensity.current
     val yOffsetPx = with(density) { 40.dp.roundToPx() }
@@ -172,7 +179,7 @@ fun Material3TermSelector(
                             yearList.forEachIndexed { index, year ->
                                 // Academic Year Subheader
                                 Text(
-                                    text = "$year 學年",
+                                    text = if (isZh) "$year 學年" else "$year Academic Year",
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary,
@@ -188,7 +195,7 @@ fun Material3TermSelector(
                                     DropdownMenuItem(
                                         text = {
                                             Text(
-                                                text = "${term.termLabelZh} ${term.termLabelEn}",
+                                                text = if (isZh) "${term.termLabelZh} ${term.termLabelEn}" else term.termLabelEn,
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                                                 color = if (isSelected) MaterialTheme.colorScheme.primary else textPrimary,

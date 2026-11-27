@@ -53,22 +53,24 @@ object DocumentDownloadHelper {
             val uri = saveToPublicDownloads(context, sanitizedFileName, bytes)
 
             withContext(Dispatchers.Main) {
-                Toast.makeText(
-                    context,
-                    "已下載至下載資料夾：$sanitizedFileName\nSaved to Downloads folder",
-                    Toast.LENGTH_LONG
-                ).show()
+                val msg = if (com.lingubible.app.core.settings.AppSettingsManager.isZh) {
+                    "已下載至下載資料夾：$sanitizedFileName\nSaved to Downloads folder"
+                } else {
+                    "Saved to Downloads: $sanitizedFileName"
+                }
+                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                 onSuccess?.invoke(uri)
             }
             Result.success(uri)
         } catch (e: Exception) {
             android.util.Log.e("DocumentDownloadHelper", "Failed to download document: ${e.message}", e)
             withContext(Dispatchers.Main) {
-                Toast.makeText(
-                    context,
-                    "下載失敗 / Download failed: ${e.localizedMessage ?: "Unknown error"}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val errMsg = if (com.lingubible.app.core.settings.AppSettingsManager.isZh) {
+                    "下載失敗 / Download failed: ${e.localizedMessage ?: "Unknown error"}"
+                } else {
+                    "Download failed: ${e.localizedMessage ?: "Unknown error"}"
+                }
+                Toast.makeText(context, errMsg, Toast.LENGTH_SHORT).show()
                 onError?.invoke(e)
             }
             Result.failure(e)
@@ -186,8 +188,13 @@ object DocumentDownloadHelper {
     fun shareDocument(
         context: Context,
         file: File,
-        title: String = "分享文件 / Share Document"
+        title: String? = null
     ) {
+        val chooserTitle = title ?: if (com.lingubible.app.core.settings.AppSettingsManager.isZh) {
+            "分享文件 / Share Document"
+        } else {
+            "Share Document"
+        }
         val uri = FileProvider.getUriForFile(
             context,
             "${context.packageName}.fileprovider",
@@ -198,7 +205,7 @@ object DocumentDownloadHelper {
             putExtra(Intent.EXTRA_STREAM, uri)
             flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         }
-        val chooser = Intent.createChooser(shareIntent, title).apply {
+        val chooser = Intent.createChooser(shareIntent, chooserTitle).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         context.startActivity(chooser)

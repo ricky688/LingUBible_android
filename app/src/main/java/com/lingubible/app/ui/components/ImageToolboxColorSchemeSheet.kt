@@ -1,7 +1,10 @@
 package com.lingubible.app.ui.components
 
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.ui.common.hapticChange
 import com.lingubible.app.ui.common.hapticClick
+import org.koin.compose.koinInject
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
@@ -58,6 +61,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.runtime.collectAsState
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -259,6 +263,9 @@ fun PaletteStyleDialog(
     onSelectStyle: (PaletteStyle) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -277,7 +284,7 @@ fun PaletteStyleDialog(
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("調色盤風格", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(if (isZh) "調色盤風格" else "Palette Style", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }
         },
         text = {
@@ -303,15 +310,17 @@ fun PaletteStyleDialog(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = style.titleZh,
+                                text = if (isZh) style.titleZh else style.titleEn,
                                 fontWeight = if (currentStyle == style) FontWeight.Bold else FontWeight.Normal,
                                 color = if (currentStyle == style) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
-                            Text(
-                                text = style.titleEn,
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            if (isZh) {
+                                Text(
+                                    text = style.titleEn,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -319,7 +328,7 @@ fun PaletteStyleDialog(
         },
         confirmButton = {
             TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
-                Text("完成")
+                Text(if (isZh) "完成" else "Done")
             }
         },
         shape = RoundedCornerShape(24.dp)
@@ -335,6 +344,9 @@ fun CustomColorPickerDialog(
     onColorSelected: (Color) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     var hue by remember {
         val hsv = FloatArray(3)
         android.graphics.Color.RGBToHSV(
@@ -377,7 +389,7 @@ fun CustomColorPickerDialog(
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("自訂主題顏色", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(if (isZh) "自訂主題顏色" else "Custom Theme Color", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }
         },
         text = {
@@ -403,7 +415,7 @@ fun CustomColorPickerDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Hue Rainbow Slider
-                Text("色相 (Hue)", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(if (isZh) "色相 (Hue)" else "Hue", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(6.dp))
                 Slider(
                     value = hue,
@@ -433,8 +445,8 @@ fun CustomColorPickerDialog(
                             } catch (_: Exception) {}
                         }
                     },
-                    label = { Text("Hex 色碼 · Hex Code", maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    placeholder = { Text("例如 #E53935", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    label = { Text(if (isZh) "Hex 色碼 · Hex Code" else "Hex Code", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    placeholder = { Text(if (isZh) "例如 #E53935" else "e.g. #E53935", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
@@ -450,12 +462,12 @@ fun CustomColorPickerDialog(
                 },
                 shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
             ) {
-                Text("套用")
+                Text(if (isZh) "套用" else "Apply")
             }
         },
         dismissButton = {
             TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onDismiss)) {
-                Text("取消")
+                Text(if (isZh) "取消" else "Cancel")
             }
         },
         shape = RoundedCornerShape(24.dp)
@@ -483,6 +495,9 @@ fun ImageToolboxColorSchemeSheet(
     onResetDefaults: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showPaletteStyleDialog by remember { mutableStateOf(false) }
     var showColorPickerDialog by remember { mutableStateOf(false) }
@@ -559,7 +574,7 @@ fun ImageToolboxColorSchemeSheet(
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = "色彩方案",
+                    text = if (isZh) "色彩方案" else "Color Scheme",
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     color = MaterialTheme.colorScheme.onSurface
@@ -604,13 +619,13 @@ fun ImageToolboxColorSchemeSheet(
                     Spacer(modifier = Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "調色盤風格",
+                            text = if (isZh) "調色盤風格" else "Palette Style",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = paletteStyle.titleZh,
+                            text = if (isZh) paletteStyle.titleZh else paletteStyle.titleEn,
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -666,13 +681,13 @@ fun ImageToolboxColorSchemeSheet(
                     Spacer(modifier = Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "顏色反轉",
+                            text = if (isZh) "顏色反轉" else "Invert Colors",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "若啟用，將會將主題顏色更換為相反顏色",
+                            text = if (isZh) "若啟用，將會將主題顏色更換為相反顏色" else "If enabled, inverts the theme colors",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             lineHeight = 16.sp
@@ -726,13 +741,13 @@ fun ImageToolboxColorSchemeSheet(
                     Spacer(modifier = Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "表情符號作為配色方案",
+                            text = if (isZh) "表情符號作為配色方案" else "Dynamic Color",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "使用表情符號原色作為應用程式配色方案，而不是手動定義的配色方案",
+                            text = if (isZh) "使用表情符號原色作為應用程式配色方案，而不是手動定義的配色方案" else "Use system dynamic colors as the app color scheme instead of a manual palette",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             lineHeight = 16.sp
@@ -788,7 +803,7 @@ fun ImageToolboxColorSchemeSheet(
                         }
                         Spacer(modifier = Modifier.width(14.dp))
                         Text(
-                            text = "對比",
+                            text = if (isZh) "對比" else "Contrast",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -839,7 +854,7 @@ fun ImageToolboxColorSchemeSheet(
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "簡單變體",
+                        text = if (isZh) "簡單變體" else "Color Presets",
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -947,7 +962,7 @@ fun ImageToolboxColorSchemeSheet(
                         .width(110.dp)
                 ) {
                     Text(
-                        text = "關閉",
+                        text = if (isZh) "關閉" else "Close",
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )

@@ -30,6 +30,9 @@ fun FavoriteButton(
     modifier: Modifier = Modifier,
     size: Dp = 20.dp
 ) {
+    val settingsManager: com.lingubible.app.core.settings.AppSettingsManager = org.koin.compose.koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == com.lingubible.app.core.settings.AppLanguage.ZH_TW
     val repository = org.koin.compose.koinInject<com.lingubible.app.data.repository.AppwriteFavoritesRepository>()
     val state by repository.state.collectAsStateWithLifecycle()
     val isToggled = com.lingubible.app.data.repository.FavoriteKey(type, itemId) in state.items
@@ -53,7 +56,7 @@ fun FavoriteButton(
             scope.launch {
                 try {
                     repository.toggle(type, itemId).onSuccess { triggerBounce = true }.onFailure {
-                        android.widget.Toast.makeText(context, it.localizedMessage ?: "收藏失敗 · Could not save favourite", android.widget.Toast.LENGTH_LONG).show()
+                        android.widget.Toast.makeText(context, it.localizedMessage ?: if (isZh) "收藏失敗 · Could not save favourite" else "Could not save favourite", android.widget.Toast.LENGTH_LONG).show()
                     }
                 } finally { busy = false }
             }

@@ -47,11 +47,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.ui.common.mouseScrollbar
 import com.lingubible.app.ui.components.*
 import com.lingubible.app.ui.viewmodels.CourseDetailViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
@@ -79,6 +82,9 @@ fun CourseDetailScreen(
     onNavigateToInstructor: (String) -> Unit = {},
     viewModel: CourseDetailViewModel = koinViewModel()
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val isDark = isAppDarkTheme()
@@ -86,7 +92,11 @@ fun CourseDetailScreen(
     var selectedTab by androidx.compose.runtime.saveable.rememberSaveable(courseCode, initialTab) { mutableIntStateOf(initialTab.coerceIn(0, 5)) }
     var activePdf by remember { mutableStateOf<ActivePdf?>(null) }
     LaunchedEffect(uiState.currentUser?.id) { activePdf = null }
-    val tabs = listOf("課程評價", "成績分佈", "歷屆試題", "任教記錄", "閱讀書目", "學習資料")
+    val tabs = if (isZh) {
+        listOf("課程評價", "成績分佈", "歷屆試題", "任教記錄", "閱讀書目", "學習資料")
+    } else {
+        listOf("Reviews", "Grades", "Past Papers", "Teaching", "Readings", "Materials")
+    }
 
     var reviewFilters by com.lingubible.app.ui.components.rememberReviewFilters(courseCode)
     val filteredReviews = remember(uiState.reviews, reviewFilters) { com.lingubible.app.domain.model.filterReviews(uiState.reviews, reviewFilters) }
@@ -115,9 +125,9 @@ fun CourseDetailScreen(
                     onClick = hapticClick(onNavigateToWriteReview),
                     expanded = isScrollingUp,
                     icon = {
-                        Icon(Icons.Filled.Create, contentDescription = "撰寫評價 · Write review")
+                        Icon(Icons.Filled.Create, contentDescription = if (isZh) "撰寫評價 · Write review" else "Write review")
                     },
-                    text = { Text("撰寫評價", fontWeight = FontWeight.Bold) },
+                    text = { Text(if (isZh) "撰寫評價" else "Write Review", fontWeight = FontWeight.Bold) },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier
@@ -133,7 +143,7 @@ fun CourseDetailScreen(
                     .fillMaxSize()
                     .padding(padding)
                     .consumeWindowInsets(padding),
-                message = "正在載入課程詳情..."
+                message = if (isZh) "正在載入課程詳情..." else "Loading course details..."
             )
         } else {
             val course = uiState.course
@@ -195,7 +205,7 @@ fun CourseDetailScreen(
                                         .padding(horizontal = 8.dp, vertical = 3.dp)
                                 ) {
                                     Text(
-                                        text = "${course?.credits ?: 3} 學分",
+                                        text = if (isZh) "${course?.credits ?: 3} 學分" else "${course?.credits ?: 3} Credits",
                                         color = BadgeTheme.FacultyTextLight,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
@@ -219,7 +229,7 @@ fun CourseDetailScreen(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        if (!course?.titleZh.isNullOrBlank()) {
+                        if (isZh && !course?.titleZh.isNullOrBlank()) {
                             Text(
                                 text = course!!.titleZh,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -247,7 +257,7 @@ fun CourseDetailScreen(
                                         .padding(horizontal = 8.dp, vertical = 3.dp)
                                 ) {
                                     Text(
-                                        text = if (rating > 0) String.format("%.1f ★", rating) else "未評分",
+                                        text = if (rating > 0) String.format("%.1f ★", rating) else if (isZh) "未評分" else "No rating",
                                         color = Color.White,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp
@@ -255,7 +265,7 @@ fun CourseDetailScreen(
                                 }
 
                                 Text(
-                                    text = "${course?.reviewCount ?: 0} 則評價",
+                                    text = if (isZh) "${course?.reviewCount ?: 0} 則評價" else "${course?.reviewCount ?: 0} reviews",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -279,7 +289,7 @@ fun CourseDetailScreen(
                             onClick = {
                                 viewModel.resolveAndOpenSyllabus(courseCode) { syl ->
                                     activePdf = ActivePdf(
-                                        title = "${course?.code ?: courseCode} 課程大綱",
+                                        title = if (isZh) "${course?.code ?: courseCode} 課程大綱" else "${course?.code ?: courseCode} Syllabus",
                                         fileName = syl.fileName,
                                         url = syl.viewUrl,
                                         bucketId = "course_syllabus",
@@ -341,12 +351,13 @@ fun CourseDetailScreen(
                             // Reviews Tab
                             if (uiState.reviewsError != null) {
                                 Column(Modifier.padding(24.dp)) {
-                                    Text("無法載入評價 · Could not load reviews", color = MaterialTheme.colorScheme.error)
-                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.loadCourseDetail(courseCode) }) { Text("重試 Retry") }
+                                    Text(if (isZh) "無法載入評價 · Could not load reviews" else "Could not load reviews", color = MaterialTheme.colorScheme.error)
+                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.loadCourseDetail(courseCode) }) { Text(if (isZh) "重試 Retry" else "Retry") }
                                 }
                             } else if (uiState.reviews.isEmpty()) {
                                 EmptyState(
-                                    message = "此課程尚無評價，快來搶先分享吧！"
+                                    message = if (isZh) "此課程尚無評價，快來搶先分享吧！" else "No reviews for this course yet. Be the first to share!",
+                                    actionText = if (isZh) "搶先評價 Be First to Review" else "Be First to Review"
                                 )
                             } else {
                                 FadingLazyColumn(
@@ -360,7 +371,7 @@ fun CourseDetailScreen(
                                     verticalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
                                     item(key = "filters") { com.lingubible.app.ui.components.ReviewBrowserControls(uiState.reviews, reviewFilters, { reviewFilters = it }, filteredReviews.size) }
-                                    if (filteredReviews.isEmpty()) item { Text("沒有符合篩選的評價 · No matching reviews") }
+                                    if (filteredReviews.isEmpty()) item { Text(if (isZh) "沒有符合篩選的評價 · No matching reviews" else "No matching reviews") }
                                     itemsIndexed(filteredReviews.take(reviewLimit), key = { _, it -> it.id }) { index, review ->
                                         ReviewCard(
                                             review = review,
@@ -371,7 +382,7 @@ fun CourseDetailScreen(
                                             }
                                         )
                                     }
-                                    if (reviewLimit < filteredReviews.size) item { OutlinedButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { reviewLimit += 30 }) { Text("載入更多 Load more") } }
+                                    if (reviewLimit < filteredReviews.size) item { OutlinedButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { reviewLimit += 30 }) { Text(if (isZh) "載入更多 Load more" else "Load more") } }
                                 }
                             }
                         }
@@ -392,7 +403,12 @@ fun CourseDetailScreen(
                                 courseCode, uiState.pastPapers, uiState.teachingRecords, uiState.currentUser != null,
                                 uiState.isPapersLoading, uiState.papersError,
                                 onRetry = { viewModel.loadPastPapers(courseCode) }, onSignIn = onNavigateToAuth,
-                                onView = { p -> activePdf = ActivePdf("${p.courseCode} 歷屆試題 (${p.academicYear} ${p.term})", p.fileName, p.viewUrl, "past_exam_papers", p.fileId) }
+                                onView = { p ->
+                                    activePdf = ActivePdf(
+                                        if (isZh) "${p.courseCode} 歷屆試題 (${p.academicYear} ${p.term})" else "${p.courseCode} Past Paper (${p.academicYear} ${p.term})",
+                                        p.fileName, p.viewUrl, "past_exam_papers", p.fileId
+                                    )
+                                }
                             )
                         }
                         4 -> com.lingubible.app.ui.components.CourseReadingsContent(uiState.course?.readings.orEmpty())
@@ -430,6 +446,9 @@ private fun AuthRequiredPastPapersCard(
     onNavigateToAuth: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -464,21 +483,27 @@ private fun AuthRequiredPastPapersCard(
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "登入以查閱歷屆試題",
+                text = if (isZh) "登入以查閱歷屆試題" else "Sign In to View Past Exam Papers",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
-            Text(
-                text = "Sign In to View Past Exam Papers",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
+            if (isZh) {
+                Text(
+                    text = "Sign In to View Past Exam Papers",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = "歷屆試題僅供嶺南大學學生查閱。請登入或註冊您的學校帳號以解鎖試題下載與檢視。\nPast exam papers are exclusively available to Lingnan University students. Please sign in or register with your student email.",
+                text = if (isZh) {
+                    "歷屆試題僅供嶺南大學學生查閱。請登入或註冊您的學校帳號以解鎖試題下載與檢視。\nPast exam papers are exclusively available to Lingnan University students. Please sign in or register with your student email."
+                } else {
+                    "Past exam papers are exclusively available to Lingnan University students. Please sign in or register with your student email."
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -500,7 +525,7 @@ private fun AuthRequiredPastPapersCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "立即登入 • Sign In",
+                    text = if (isZh) "立即登入 • Sign In" else "Sign In",
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -512,7 +537,7 @@ private fun AuthRequiredPastPapersCard(
 private fun EmptyState(
     message: String,
     onActionClick: (() -> Unit)? = null,
-    actionText: String = "搶先評價 Be First to Review"
+    actionText: String = "Be First to Review"
 ) {
     Column(
         modifier = Modifier

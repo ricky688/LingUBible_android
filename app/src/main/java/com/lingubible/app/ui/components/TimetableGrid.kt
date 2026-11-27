@@ -53,6 +53,9 @@ import java.io.File
 import java.util.Locale
 import com.lingubible.app.core.navigation.LocalScreenBottomClearance
 import com.lingubible.app.core.navigation.screenBottomPadding
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
+import org.koin.compose.koinInject
 
 data class DayInfo(
     val code: String,
@@ -89,6 +92,9 @@ fun TimetableGrid(
     appearance: TimetableAppearance = TimetableAppearance()
 ) {
     val isDark = isAppDarkTheme()
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val visibleDays = appearance.orderedDays.map { code -> DAYS_SUN_TO_SAT.first { it.code == code } }
     val (rangeStart, rangeEnd) = remember(selectedSections, appearance) { timetableMinuteRange(selectedSections, appearance) }
     val gridMinutes = rangeEnd - rangeStart
@@ -123,12 +129,12 @@ fun TimetableGrid(
                 try {
                     if (uri != null) {
                         withContext(Dispatchers.IO) { TimetableImageExport.saveToDocument(context, file, uri) }
-                        Toast.makeText(context, "已匯出課表 / Timetable saved", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, if (isZh) "已匯出課表 / Timetable saved" else "Timetable saved", Toast.LENGTH_SHORT).show()
                     }
                 } catch (e: Exception) {
                     if (uri != null) withContext(kotlinx.coroutines.NonCancellable + Dispatchers.IO) { runCatching { android.provider.DocumentsContract.deleteDocument(context.contentResolver, uri) } }
                     if (e is CancellationException) throw e
-                    Toast.makeText(context, "無法儲存課表，請重試 / Could not save timetable; please retry", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, if (isZh) "無法儲存課表，請重試 / Could not save timetable; please retry" else "Could not save timetable; please retry", Toast.LENGTH_LONG).show()
                 } finally {
                     file.delete()
                     exportingImage = false
@@ -162,7 +168,7 @@ fun TimetableGrid(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "課表尚無課程 No Courses in Timetable",
+                    text = if (isZh) "課表尚無課程 No Courses in Timetable" else "No Courses in Timetable",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (isDark) Color.White else Color(0xFF1E293B),
@@ -170,7 +176,7 @@ fun TimetableGrid(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "點擊下方按鈕搜尋並加選課程，即可即時預覽每週課表與時間衝突！",
+                    text = if (isZh) "點擊下方按鈕搜尋並加選課程，即可即時預覽每週課表與時間衝突！" else "Tap below to search and add courses to preview your weekly timetable and check for time conflicts.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = textMuted,
                     textAlign = TextAlign.Center
@@ -187,7 +193,7 @@ fun TimetableGrid(
                 ) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("加選課程 Add Courses", fontWeight = FontWeight.Bold)
+                    Text(if (isZh) "加選課程 Add Courses" else "Add Courses", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -212,7 +218,7 @@ fun TimetableGrid(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = appearance.title.ifBlank { "每週課表 Weekly timetable" },
+                    text = appearance.title.ifBlank { if (isZh) "每週課表 Weekly timetable" else "Weekly timetable" },
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (isDark) Color.White else Color(0xFF1E293B)
@@ -234,7 +240,7 @@ fun TimetableGrid(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (isDirectView) "直觀全覽 Direct" else "展開捲動 Scroll",
+                        text = if (isDirectView) (if (isZh) "直觀全覽 Direct" else "Direct") else (if (isZh) "展開捲動 Scroll" else "Scroll"),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = if (isDirectView) MaterialTheme.colorScheme.primary else textMuted,
@@ -252,7 +258,7 @@ fun TimetableGrid(
             ) {
                 Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("匯出 PNG/PDF")
+                Text(if (isZh) "匯出 PNG/PDF" else "Export PNG/PDF")
             }
         }
 
@@ -298,7 +304,7 @@ fun TimetableGrid(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "時間",
+                                text = if (isZh) "時間" else "Time",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = textMuted,
                                 fontWeight = FontWeight.SemiBold,
@@ -319,20 +325,30 @@ fun TimetableGrid(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center
                                 ) {
-                                    Text(
-                                        text = day.zh,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        fontSize = if (isDirectView) 11.sp else 13.sp,
-                                        color = if (isDark) Color.White else Color(0xFF0F172A)
-                                    )
-                                    Text(
-                                        text = day.en,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Medium,
-                                        fontSize = if (isDirectView) 9.sp else 11.sp,
-                                        color = textMuted
-                                    )
+                                    if (isZh) {
+                                        Text(
+                                            text = day.zh,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = if (isDirectView) 11.sp else 13.sp,
+                                            color = if (isDark) Color.White else Color(0xFF0F172A)
+                                        )
+                                        Text(
+                                            text = day.en,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Medium,
+                                            fontSize = if (isDirectView) 9.sp else 11.sp,
+                                            color = textMuted
+                                        )
+                                    } else {
+                                        Text(
+                                            text = day.en,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = if (isDirectView) 11.sp else 13.sp,
+                                            color = if (isDark) Color.White else Color(0xFF0F172A)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -342,11 +358,6 @@ fun TimetableGrid(
                     Box(
                         modifier = Modifier
                             .height(gridHeight)
-                            .fadingBlurEdges(
-                                scrollState = verticalScrollState,
-                                surfaceColor = fadeSurface,
-                                bottomInset = bottomClearance
-                            )
                             .verticalScroll(verticalScrollState)
                     ) {
                         // Record the full non-lazy body inside the scroll viewport, including off-screen rows.
@@ -489,7 +500,7 @@ fun TimetableGrid(
                 }
             },
             text = {
-                Column(modifier = Modifier.fillMaxWidth().fadingVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     // Expressive conflict warning callout if clashing
                     if (sectionConflicts.isNotEmpty()) {
                         Surface(
@@ -508,7 +519,7 @@ fun TimetableGrid(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "衝堂警告 · Conflict Notice",
+                                        text = if (isZh) "衝堂警告 · Conflict Notice" else "Conflict Notice",
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = if (isDark) Color(0xFFFCA5A5) else Color(0xFF991B1B)
@@ -518,7 +529,7 @@ fun TimetableGrid(
                                 sectionConflicts.forEach { conf ->
                                     val otherSec = if (conf.sectionA.id == section.id) conf.sectionB else conf.sectionA
                                     Text(
-                                        text = "• 與 ${otherSec.courseCode} (S${otherSec.section}) 在 ${conf.day} ${conf.timeDescription} 重疊",
+                                        text = if (isZh) "• 與 ${otherSec.courseCode} (S${otherSec.section}) 在 ${conf.day} ${conf.timeDescription} 重疊" else "• Overlaps with ${otherSec.courseCode} (S${otherSec.section}) on ${conf.day} ${conf.timeDescription}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = if (isDark) Color(0xFFFCA5A5) else Color(0xFFB91C1C),
                                         fontWeight = FontWeight.Medium
@@ -534,9 +545,9 @@ fun TimetableGrid(
                         fontWeight = FontWeight.SemiBold
                     )
                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("學分 Credits:", style = MaterialTheme.typography.labelMedium, color = textMuted)
+                        Text(if (isZh) "學分 Credits:" else "Credits:", style = MaterialTheme.typography.labelMedium, color = textMuted)
                         Text(
-                            text = credits?.toString() ?: "暫無資料 / Unavailable",
+                            text = credits?.toString() ?: (if (isZh) "暫無資料 / Unavailable" else "Unavailable"),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -549,7 +560,7 @@ fun TimetableGrid(
                     }
                     if (section.instructors.isNotEmpty()) {
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text("講師 Instructor:", style = MaterialTheme.typography.labelMedium, color = textMuted, modifier = Modifier.weight(1f))
+                            Text(if (isZh) "講師 Instructor:" else "Instructor:", style = MaterialTheme.typography.labelMedium, color = textMuted, modifier = Modifier.weight(1f))
                             Text(
                                 section.instructors.joinToString(", "),
                                 style = MaterialTheme.typography.labelMedium,
@@ -559,7 +570,7 @@ fun TimetableGrid(
                             )
                         }
                     }
-                    Text("上課時間 Meetings:", style = MaterialTheme.typography.labelMedium, color = textMuted)
+                    Text(if (isZh) "上課時間 Meetings:" else "Meetings:", style = MaterialTheme.typography.labelMedium, color = textMuted)
                     section.meetings.forEach { m ->
                         val isSelected = section.meetings.size > 1 && m == meeting
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -570,9 +581,9 @@ fun TimetableGrid(
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else textMuted
                             )
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("地點 Location:", style = MaterialTheme.typography.labelMedium, color = textMuted)
+                                Text(if (isZh) "地點 Location:" else "Location:", style = MaterialTheme.typography.labelMedium, color = textMuted)
                                 Text(
-                                    m.venue.ifBlank { "待定 TBD" },
+                                    m.venue.ifBlank { if (isZh) "待定 TBD" else "TBD" },
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Medium,
                                     textAlign = TextAlign.End,
@@ -582,7 +593,7 @@ fun TimetableGrid(
                         }
                     }
                     Text(
-                        "每週重複 Weekly · ${term.startDate} – ${term.endDate}",
+                        if (isZh) "每週重複 Weekly · ${term.startDate} – ${term.endDate}" else "Weekly · ${term.startDate} – ${term.endDate}",
                         style = MaterialTheme.typography.bodySmall,
                         color = textMuted
                     )
@@ -598,13 +609,13 @@ fun TimetableGrid(
                     ) {
                         Icon(Icons.Default.EventAvailable, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("加至日曆 Add to calendar", textAlign = TextAlign.Center)
+                        Text(if (isZh) "加至日曆 Add to calendar" else "Add to calendar", textAlign = TextAlign.Center)
                     }
                     OutlinedButton(
                         shapes = AppButtonDefaults.shapes(),
                         modifier = Modifier.fillMaxWidth(),
                         onClick = hapticClick { onExportMeetingIcs(section, meeting) }
-                    ) { Text("匯出此時段 Export meeting (.ics)", textAlign = TextAlign.Center) }
+                    ) { Text(if (isZh) "匯出此時段 Export meeting (.ics)" else "Export meeting (.ics)", textAlign = TextAlign.Center) }
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
@@ -621,13 +632,13 @@ fun TimetableGrid(
                         ) {
                             Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("移除 Remove")
+                            Text(if (isZh) "移除 Remove" else "Remove")
                         }
                         TextButton(
                             shapes = AppButtonDefaults.shapes(),
                             onClick = hapticClick { selectedMeetingForDialog = null },
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
-                        ) { Text("關閉 Close") }
+                        ) { Text(if (isZh) "關閉 Close" else "Close") }
                     }
                 }
             }
@@ -672,7 +683,7 @@ fun TimetableGrid(
                     } catch (_: Exception) {
                         pendingImagePath?.let { File(it).delete() }
                         pendingImagePath = null
-                        Toast.makeText(context, "無法擷取課表圖片，請重試 / Could not capture timetable; please retry", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, if (isZh) "無法擷取課表圖片，請重試 / Could not capture timetable; please retry" else "Could not capture timetable; please retry", Toast.LENGTH_LONG).show()
                     } finally {
                         exportingImage = false
                     }

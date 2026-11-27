@@ -54,6 +54,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.ui.common.mouseScrollbar
 import com.lingubible.app.ui.common.rememberCardPressShape
@@ -65,12 +67,13 @@ import com.lingubible.app.ui.viewmodels.HomeViewModel
 import com.lingubible.app.ui.viewmodels.InstructorsViewModel
 import com.lingubible.app.ui.viewmodels.ReviewsViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
-enum class HomeFeaturedTab(val title: String) {
-    POPULAR_COURSES("熱門課程"),
-    POPULAR_INSTRUCTORS("熱門講師"),
-    TOP_COURSES("最高評分課程"),
-    TOP_INSTRUCTORS("最高評分講師")
+enum class HomeFeaturedTab(val title: String, val titleEn: String) {
+    POPULAR_COURSES("熱門課程", "Popular Courses"),
+    POPULAR_INSTRUCTORS("熱門講師", "Popular Instructors"),
+    TOP_COURSES("最高評分課程", "Top Courses"),
+    TOP_INSTRUCTORS("最高評分講師", "Top Instructors")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,6 +91,9 @@ fun HomeScreen(
     instructorsViewModel: InstructorsViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel()
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val isDark = isAppDarkTheme()
     val homeState by homeViewModel.uiState.collectAsState()
     val coursesState by coursesViewModel.uiState.collectAsState()
@@ -100,7 +106,11 @@ fun HomeScreen(
     // Favorites local state
 
     // Rolling text actions
-    val tickerTexts = listOf("探索課程", "集思廣益", "明辨是非", "分享心得")
+    val tickerTexts = if (isZh) {
+        listOf("探索課程", "集思廣益", "明辨是非", "分享心得")
+    } else {
+        listOf("Explore Courses", "Share Insights", "Compare Reviews", "Plan Better")
+    }
 
     val listState = rememberLazyListState()
 
@@ -153,7 +163,7 @@ fun HomeScreen(
                     ) {
                         // Neon / Gradient title
                         Text(
-                            text = "嶺南大學課程評價平台",
+                            text = if (isZh) "嶺南大學課程評價平台" else "Lingnan University Course Review Platform",
                             fontSize = 26.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -171,7 +181,7 @@ fun HomeScreen(
 
                         // Reg Bible Tagline
                         Text(
-                            text = "Reg科聖經",
+                            text = if (isZh) "Reg科聖經" else "Course Registration Bible",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -181,7 +191,7 @@ fun HomeScreen(
 
                         // Subtitle
                         Text(
-                            text = "博訪博覽，慎選課席。",
+                            text = if (isZh) "博訪博覽，慎選課席。" else "Explore widely, choose wisely.",
                             fontSize = 15.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -195,7 +205,7 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "來這裡你可以 ",
+                                text = if (isZh) "來這裡你可以 " else "Here you can ",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -247,7 +257,11 @@ fun HomeScreen(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Text(
-                                        text = if (authState.currentUser != null) "探索課程" else "立即開始",
+                                        text = if (isZh) {
+                                            if (authState.currentUser != null) "探索課程" else "立即開始"
+                                        } else {
+                                            if (authState.currentUser != null) "Explore Courses" else "Get Started"
+                                        },
                                         color = Color.White,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
@@ -293,7 +307,7 @@ fun HomeScreen(
                         ) {
                             StatsCard(
                                 icon = Icons.Filled.VerifiedUser,
-                                title = "認證學生",
+                                title = if (isZh) "認證學生" else "Verified Students",
                                 value = studentsDisplay,
                                 change = studentsChange,
                                 isLoading = isStatsLoading,
@@ -302,7 +316,7 @@ fun HomeScreen(
                             )
                             StatsCard(
                                 icon = Icons.Filled.Star,
-                                title = "課程評價",
+                                title = if (isZh) "課程評價" else "Course Reviews",
                                 value = reviewsDisplay,
                                 change = reviewsChange,
                                 isLoading = isStatsLoading,
@@ -316,7 +330,7 @@ fun HomeScreen(
                         ) {
                             StatsCard(
                                 icon = Icons.Filled.Book,
-                                title = "涵蓋課程",
+                                title = if (isZh) "涵蓋課程" else "Courses Covered",
                                 value = coursesDisplay,
                                 change = coursesChange,
                                 isLoading = isStatsLoading,
@@ -325,7 +339,7 @@ fun HomeScreen(
                             )
                             StatsCard(
                                 icon = Icons.Filled.Person,
-                                title = "評價講師",
+                                title = if (isZh) "評價講師" else "Instructors",
                                 value = instructorsDisplay,
                                 change = instructorsChange,
                                 isLoading = isStatsLoading,
@@ -337,7 +351,7 @@ fun HomeScreen(
 
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "過去 30 天變化趨勢",
+                        text = if (isZh) "過去 30 天變化趨勢" else "30-day trend",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier.fillMaxWidth(),
@@ -357,7 +371,7 @@ fun HomeScreen(
                             .padding(bottom = 20.dp)
                     ) {
                         Text(
-                            text = "學業工具 Academic Tools",
+                            text = if (isZh) "學業工具 Academic Tools" else "Academic Tools",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -406,16 +420,18 @@ fun HomeScreen(
                                     }
                                     Column {
                                         Text(
-                                            text = "選課排程",
+                                            text = if (isZh) "選課排程" else "Timetable",
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 13.sp,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
-                                        Text(
-                                            text = "Timetable",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                                        if (isZh) {
+                                            Text(
+                                                text = "Timetable",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -458,16 +474,18 @@ fun HomeScreen(
                                     }
                                     Column {
                                         Text(
-                                            text = "校歷日程",
+                                            text = if (isZh) "校歷日程" else "Calendar",
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 13.sp,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
-                                        Text(
-                                            text = "Calendar",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                                        if (isZh) {
+                                            Text(
+                                                text = "Calendar",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -479,10 +497,10 @@ fun HomeScreen(
                 // 3. Featured Tabs (Frosted Glass Sticky Header)
                 // ==========================================
                 stickyHeader(key = "featured_tabs") {
-                    val tabItems = remember {
+                    val tabItems = remember(isZh) {
                         HomeFeaturedTab.entries.map { tab ->
                             M3ButtonGroupItem(
-                                label = tab.title,
+                                label = if (isZh) tab.title else tab.titleEn,
                                 onClick = { selectedTab = tab }
                             )
                         }
@@ -505,7 +523,8 @@ fun HomeScreen(
                                 items = tabItems,
                                 modifier = Modifier.fillMaxWidth(),
                                 height = 38.dp,
-                                spacing = 6.dp
+                                spacing = 6.dp,
+                                fillWidthWhenFits = true
                             )
                         }
                     }
@@ -552,7 +571,7 @@ fun HomeScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
-                                            text = "暫無課程資料",
+                                            text = if (isZh) "暫無課程資料" else "No courses available",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -586,7 +605,7 @@ fun HomeScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
-                                            text = "暫無講師資料",
+                                            text = if (isZh) "暫無講師資料" else "No instructors available",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -620,7 +639,7 @@ fun HomeScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
-                                            text = "暫無課程資料",
+                                            text = if (isZh) "暫無課程資料" else "No courses available",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -654,7 +673,7 @@ fun HomeScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
-                                            text = "暫無講師資料",
+                                            text = if (isZh) "暫無講師資料" else "No instructors available",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -690,16 +709,18 @@ fun HomeScreen(
                     ) {
                         Column {
                             Text(
-                                text = "最新評價",
+                                text = if (isZh) "最新評價" else "Latest Reviews",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            Text(
-                                text = "Latest Reviews",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            if (isZh) {
+                                Text(
+                                    text = "Latest Reviews",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                         TextButton(shapes = AppButtonDefaults.shapes(),
                             onClick = hapticClick { onNavigateToReviews() },
@@ -707,7 +728,7 @@ fun HomeScreen(
                             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                         ) {
                             Text(
-                                text = "查看更多",
+                                text = if (isZh) "查看更多" else "See more",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold
@@ -764,20 +785,22 @@ fun HomeScreen(
                                 }
                                 Spacer(modifier = Modifier.height(14.dp))
                                 Text(
-                                    text = "目前尚無最新評價",
+                                    text = if (isZh) "目前尚無最新評價" else "No reviews available yet",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "No reviews available yet",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                if (isZh) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "No reviews available yet",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "成為第一位分享選課體驗與評分的同學吧！",
+                                    text = if (isZh) "成為第一位分享選課體驗與評分的同學吧！" else "Be the first to share your course experience and rating!",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
@@ -797,7 +820,7 @@ fun HomeScreen(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("發表評價", fontWeight = FontWeight.Bold)
+                                    Text(if (isZh) "發表評價" else "Write a Review", fontWeight = FontWeight.Bold)
                                 }
                             }
                         }

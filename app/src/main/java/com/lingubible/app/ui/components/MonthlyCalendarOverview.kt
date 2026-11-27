@@ -42,13 +42,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.LingnanRed
 import com.lingubible.app.domain.model.AcademicEvent
+import org.koin.compose.koinInject
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 enum class CalendarViewMode {
     DAY3,
@@ -146,6 +151,9 @@ fun MonthlyCalendarOverview(
     modifier: Modifier = Modifier
 ) {
     val isDark = com.lingubible.app.core.theme.isAppDarkTheme()
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     var isExpanded by rememberSaveable { mutableStateOf(true) }
     var viewMode by rememberSaveable { mutableStateOf(CalendarViewMode.MONTH) }
 
@@ -257,7 +265,7 @@ fun MonthlyCalendarOverview(
                             modifier = Modifier.heightIn(min = 48.dp)
                         ) {
                             Text(
-                                text = "今天",
+                                text = if (isZh) "今天" else "Today",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -275,7 +283,7 @@ fun MonthlyCalendarOverview(
                             modifier = Modifier.heightIn(min = 48.dp)
                         ) {
                             Text(
-                                text = "學期開始",
+                                text = if (isZh) "學期開始" else "Term Start",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -352,23 +360,47 @@ fun MonthlyCalendarOverview(
                         horizontalArrangement = Arrangement.End
                     ) {
                         val headerTitle = when (viewMode) {
-                            CalendarViewMode.MONTH -> "${currentYearMonth.year}年${currentYearMonth.monthValue}月"
+                            CalendarViewMode.MONTH -> if (isZh) {
+                                "${currentYearMonth.year}年${currentYearMonth.monthValue}月"
+                            } else {
+                                "${currentYearMonth.month.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)} ${currentYearMonth.year}"
+                            }
                             CalendarViewMode.WEEK -> {
                                 val dayOfWeekVal = anchorDate.dayOfWeek.value % 7
                                 val sunday = anchorDate.minusDays(dayOfWeekVal.toLong())
                                 val saturday = sunday.plusDays(6)
-                                if (sunday.monthValue == saturday.monthValue) {
-                                    "${sunday.monthValue}月${sunday.dayOfMonth}日 – ${saturday.dayOfMonth}日"
+                                if (isZh) {
+                                    if (sunday.monthValue == saturday.monthValue) {
+                                        "${sunday.monthValue}月${sunday.dayOfMonth}日 – ${saturday.dayOfMonth}日"
+                                    } else {
+                                        "${sunday.monthValue}月${sunday.dayOfMonth}日 – ${saturday.monthValue}月${saturday.dayOfMonth}日"
+                                    }
                                 } else {
-                                    "${sunday.monthValue}月${sunday.dayOfMonth}日 – ${saturday.monthValue}月${saturday.dayOfMonth}日"
+                                    val startMonth = sunday.month.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+                                    if (sunday.monthValue == saturday.monthValue) {
+                                        "$startMonth ${sunday.dayOfMonth} – ${saturday.dayOfMonth}"
+                                    } else {
+                                        val endMonth = saturday.month.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+                                        "$startMonth ${sunday.dayOfMonth} – $endMonth ${saturday.dayOfMonth}"
+                                    }
                                 }
                             }
                             CalendarViewMode.DAY3 -> {
                                 val end = anchorDate.plusDays(2)
-                                if (anchorDate.monthValue == end.monthValue) {
-                                    "${anchorDate.monthValue}月${anchorDate.dayOfMonth}日 – ${end.dayOfMonth}日"
+                                if (isZh) {
+                                    if (anchorDate.monthValue == end.monthValue) {
+                                        "${anchorDate.monthValue}月${anchorDate.dayOfMonth}日 – ${end.dayOfMonth}日"
+                                    } else {
+                                        "${anchorDate.monthValue}月${anchorDate.dayOfMonth}日 – ${end.monthValue}月${end.dayOfMonth}日"
+                                    }
                                 } else {
-                                    "${anchorDate.monthValue}月${anchorDate.dayOfMonth}日 – ${end.monthValue}月${end.dayOfMonth}日"
+                                    val startMonth = anchorDate.month.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+                                    if (anchorDate.monthValue == end.monthValue) {
+                                        "$startMonth ${anchorDate.dayOfMonth} – ${end.dayOfMonth}"
+                                    } else {
+                                        val endMonth = end.month.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+                                        "$startMonth ${anchorDate.dayOfMonth} – $endMonth ${end.dayOfMonth}"
+                                    }
                                 }
                             }
                         }
@@ -419,9 +451,9 @@ fun MonthlyCalendarOverview(
                 // 2. Material 3 Expressive Connected Button Group (三天 | 週 | 月)
                 val viewModeModes = remember { listOf(CalendarViewMode.DAY3, CalendarViewMode.WEEK, CalendarViewMode.MONTH) }
                 val viewModeItems = listOf(
-                    M3ButtonGroupItem("三天 3 days", Icons.Outlined.ViewWeek) { viewMode = CalendarViewMode.DAY3 },
-                    M3ButtonGroupItem("週 Week", Icons.Outlined.DateRange) { viewMode = CalendarViewMode.WEEK },
-                    M3ButtonGroupItem("月 Month", Icons.Outlined.CalendarMonth) { viewMode = CalendarViewMode.MONTH }
+                    M3ButtonGroupItem(if (isZh) "三天 3 days" else "3 days", Icons.Outlined.ViewWeek) { viewMode = CalendarViewMode.DAY3 },
+                    M3ButtonGroupItem(if (isZh) "週 Week" else "Week", Icons.Outlined.DateRange) { viewMode = CalendarViewMode.WEEK },
+                    M3ButtonGroupItem(if (isZh) "月 Month" else "Month", Icons.Outlined.CalendarMonth) { viewMode = CalendarViewMode.MONTH }
                 )
                 val selectedModeIndex = viewModeModes.indexOf(viewMode)
 
@@ -532,7 +564,7 @@ fun MonthlyCalendarOverview(
                                 when (targetMode) {
                                     CalendarViewMode.MONTH -> {
                                         // Weekday Header Row (Sun - Sat) stays static pinned at top of month
-                                        val weekdays = listOf("週日", "週一", "週二", "週三", "週四", "週五", "週六")
+                                        val weekdays = if (isZh) listOf("週日", "週一", "週二", "週三", "週四", "週五", "週六") else listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.SpaceBetween
@@ -625,6 +657,7 @@ fun MonthlyCalendarOverview(
                                                         todayString = todayString,
                                                         selectedDate = selectedDate,
                                                         events = events,
+                                                        isZh = isZh,
                                                         maxLanes = 2,
                                                         onSelectDate = onSelectDate,
                                                         onSelectEvent = onSelectEvent,
@@ -669,7 +702,7 @@ fun MonthlyCalendarOverview(
                                                 (0..6).map { currentSunday.plusDays(it.toLong()) }
                                             }
 
-                                            val weekdays = listOf("週日", "週一", "週二", "週三", "週四", "週五", "週六")
+                                            val weekdays = if (isZh) listOf("週日", "週一", "週二", "週三", "週四", "週五", "週六") else listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
                                             Column(modifier = Modifier.fillMaxWidth()) {
                                                 Row(
                                                     modifier = Modifier.fillMaxWidth(),
@@ -698,6 +731,7 @@ fun MonthlyCalendarOverview(
                                                     todayString = todayString,
                                                     selectedDate = selectedDate,
                                                     events = events,
+                                                    isZh = isZh,
                                                     maxLanes = 4,
                                                     onSelectDate = onSelectDate,
                                                     onSelectEvent = onSelectEvent,
@@ -744,14 +778,18 @@ fun MonthlyCalendarOverview(
                                                     horizontalArrangement = Arrangement.SpaceBetween
                                                 ) {
                                                     threeDays.forEach { d ->
-                                                        val dayName = when (d.dayOfWeek) {
-                                                            DayOfWeek.SUNDAY -> "週日 (${d.monthValue}/${d.dayOfMonth})"
-                                                            DayOfWeek.MONDAY -> "週一 (${d.monthValue}/${d.dayOfMonth})"
-                                                            DayOfWeek.TUESDAY -> "週二 (${d.monthValue}/${d.dayOfMonth})"
-                                                            DayOfWeek.WEDNESDAY -> "週三 (${d.monthValue}/${d.dayOfMonth})"
-                                                            DayOfWeek.THURSDAY -> "週四 (${d.monthValue}/${d.dayOfMonth})"
-                                                            DayOfWeek.FRIDAY -> "週五 (${d.monthValue}/${d.dayOfMonth})"
-                                                            DayOfWeek.SATURDAY -> "週六 (${d.monthValue}/${d.dayOfMonth})"
+                                                        val dayName = if (isZh) {
+                                                            when (d.dayOfWeek) {
+                                                                DayOfWeek.SUNDAY -> "週日 (${d.monthValue}/${d.dayOfMonth})"
+                                                                DayOfWeek.MONDAY -> "週一 (${d.monthValue}/${d.dayOfMonth})"
+                                                                DayOfWeek.TUESDAY -> "週二 (${d.monthValue}/${d.dayOfMonth})"
+                                                                DayOfWeek.WEDNESDAY -> "週三 (${d.monthValue}/${d.dayOfMonth})"
+                                                                DayOfWeek.THURSDAY -> "週四 (${d.monthValue}/${d.dayOfMonth})"
+                                                                DayOfWeek.FRIDAY -> "週五 (${d.monthValue}/${d.dayOfMonth})"
+                                                                DayOfWeek.SATURDAY -> "週六 (${d.monthValue}/${d.dayOfMonth})"
+                                                            }
+                                                        } else {
+                                                            "${d.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)} (${d.monthValue}/${d.dayOfMonth})"
                                                         }
                                                         Text(
                                                             text = dayName,
@@ -773,6 +811,7 @@ fun MonthlyCalendarOverview(
                                                     todayString = todayString,
                                                     selectedDate = selectedDate,
                                                     events = events,
+                                                    isZh = isZh,
                                                     maxLanes = 5,
                                                     onSelectDate = onSelectDate,
                                                     onSelectEvent = onSelectEvent,
@@ -802,6 +841,7 @@ private fun GoogleCalendarWeekRow(
     todayString: String,
     selectedDate: String?,
     events: List<AcademicEvent>,
+    isZh: Boolean,
     maxLanes: Int = 2,
     onSelectDate: (String?) -> Unit,
     onSelectEvent: (AcademicEvent) -> Unit,
@@ -966,7 +1006,7 @@ private fun GoogleCalendarWeekRow(
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(
-                    text = p.event.displayTitle,
+                    text = if (isZh) p.event.displayTitle else p.event.title,
                     color = Color.White,
                     fontSize = 8.5.sp,
                     fontWeight = FontWeight.Bold,

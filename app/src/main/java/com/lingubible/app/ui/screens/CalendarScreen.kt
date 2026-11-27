@@ -25,11 +25,14 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import com.lingubible.app.core.navigation.LocalTopBarState
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.ui.components.FrostedGlassHeader
 import com.lingubible.app.ui.components.SchoolCalendarView
 import com.lingubible.app.ui.viewmodels.AcademicCalendarViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 /**
  * Dedicated School Calendar (校歷日程) Screen.
@@ -48,6 +51,9 @@ fun CalendarScreen(
     val topBarState = LocalTopBarState.current
     val context = LocalContext.current
     val isDark = com.lingubible.app.core.theme.isAppDarkTheme()
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val calendarState by calendarViewModel.uiState.collectAsStateWithLifecycle()
 
     val containerBg = MaterialTheme.colorScheme.background
@@ -96,13 +102,13 @@ fun CalendarScreen(
                     ) {
                         Column {
                             Text(
-                                text = "嶺大校曆",
+                                text = if (isZh) "嶺大校曆" else "Lingnan Academic Calendar",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "2026-27 學年校曆",
+                                text = if (isZh) "2026-27 學年校曆" else "2026-27 Academic Year",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = textMuted
                             )
@@ -125,7 +131,7 @@ fun CalendarScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "匯出全校校歷",
+                                text = if (isZh) "匯出全校校歷" else "Export All (.ics)",
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 12.sp
                             )

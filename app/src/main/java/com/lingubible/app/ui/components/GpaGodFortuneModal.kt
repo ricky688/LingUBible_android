@@ -68,11 +68,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.domain.calculator.GpaFortune
 import com.lingubible.app.domain.calculator.GpaFortuneRepository
 import com.lingubible.app.ui.common.hapticClick
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -81,6 +85,9 @@ fun GpaGodFortuneModal(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val settings = koinInject<AppSettingsManager>()
+    val language by settings.appLanguage.collectAsStateWithLifecycle()
+    val isZh = language == AppLanguage.ZH_TW
     val haptic = LocalHapticFeedback.current
     val isFourFlat = cgpa != null && cgpa >= 4.0
     var currentFortune by remember {
@@ -151,12 +158,12 @@ fun GpaGodFortuneModal(
                                 .background(Color(0xFFDC2626), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("吉", color = Color.White, fontWeight = FontWeight.Black, fontSize = 16.sp)
+                            Text(if (isZh) "吉" else "A+", color = Color.White, fontWeight = FontWeight.Black, fontSize = if (isZh) 16.sp else 13.sp)
                         }
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(
-                                    text = "GPA God 靈籤祈福",
+                                    text = if (isZh) "GPA God 靈籤祈福" else "GPA God Fortune",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -168,7 +175,11 @@ fun GpaGodFortuneModal(
                                 )
                             }
                             Text(
-                                text = if (isFourFlat) "4.0 滿分神蹟顯靈 · 廣東話解籤" else "過三望四保 Grade 庇佑 · 廣東話解籤",
+                                text = if (isZh) {
+                                    if (isFourFlat) "4.0 滿分神蹟顯靈 · 廣東話解籤" else "過三望四保 Grade 庇佑 · 廣東話解籤"
+                                } else {
+                                    if (isFourFlat) "4.0 Perfect GPA Miracle · Oracle" else "Blessings for Good Grades · Oracle"
+                                },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -180,7 +191,7 @@ fun GpaGodFortuneModal(
                     ) {
                         Icon(
                             Icons.Default.Close,
-                            contentDescription = "關閉",
+                            contentDescription = if (isZh) "關閉" else "Close",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
@@ -211,13 +222,13 @@ fun GpaGodFortuneModal(
                                 modifier = Modifier.rotate(shakeRotation.value)
                             )
                             Text(
-                                text = "誠心祈求 GPA God 中...",
+                                text = if (isZh) "誠心祈求 GPA God 中..." else "Drawing your GPA God fortune...",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFF59E0B)
                             )
                             Text(
-                                text = "搖緊籤筒 · 爛 Grade 退散 · 靚 Curve 降臨",
+                                text = if (isZh) "搖緊籤筒 · 爛 Grade 退散 · 靚 Curve 降臨" else "Shaking the bamboo cylinder · Good curves ahead",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -236,7 +247,7 @@ fun GpaGodFortuneModal(
                                 shadowElevation = 2.dp
                             ) {
                                 Text(
-                                    text = currentFortune.grade,
+                                    text = currentFortune.grade(isZh),
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Black,
                                     color = Color.White,
@@ -246,7 +257,7 @@ fun GpaGodFortuneModal(
 
                             // Fortune Title
                             Text(
-                                text = currentFortune.title,
+                                text = currentFortune.title(isZh),
                                 style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp),
                                 fontWeight = FontWeight.ExtraBold,
                                 textAlign = TextAlign.Center,
@@ -273,12 +284,12 @@ fun GpaGodFortuneModal(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
-                                    currentFortune.poem.forEach { line ->
+                                    currentFortune.poem(isZh).forEach { line ->
                                         Text(
                                             text = line,
                                             style = MaterialTheme.typography.bodyLarge.copy(
                                                 fontSize = 16.sp,
-                                                letterSpacing = 1.sp
+                                                letterSpacing = if (isZh) 1.sp else 0.sp
                                             ),
                                             fontWeight = FontWeight.Bold,
                                             textAlign = TextAlign.Center,
@@ -303,19 +314,19 @@ fun GpaGodFortuneModal(
                                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
                                         Text(
-                                            text = "【解曰】",
+                                            text = if (isZh) "【解曰】" else "Oracle Reading",
                                             style = MaterialTheme.typography.labelLarge,
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFFF59E0B)
                                         )
                                         Text(
-                                            text = "嶺南白話指點",
+                                            text = if (isZh) "嶺南白話指點" else "Lingnan Wisdom",
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                     Text(
-                                        text = currentFortune.interpretation,
+                                        text = currentFortune.interpretation(isZh),
                                         style = MaterialTheme.typography.bodyMedium,
                                         lineHeight = 22.sp,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -349,17 +360,17 @@ fun GpaGodFortuneModal(
                                                     .background(Color(0xFF10B981), CircleShape),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                Text("宜", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                                Text(if (isZh) "宜" else "✓", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                             }
                                             Text(
-                                                text = "GPA God 建議",
+                                                text = if (isZh) "GPA God 建議" else "Auspicious (Do)",
                                                 style = MaterialTheme.typography.labelSmall,
                                                 color = Color(0xFF10B981),
                                                 fontWeight = FontWeight.Bold
                                             )
                                         }
                                         Text(
-                                            text = currentFortune.oracleAppropriate,
+                                            text = currentFortune.oracleAppropriate(isZh),
                                             style = MaterialTheme.typography.bodySmall,
                                             fontWeight = FontWeight.Medium,
                                             color = MaterialTheme.colorScheme.onSurface
@@ -388,17 +399,17 @@ fun GpaGodFortuneModal(
                                                     .background(Color(0xFFEF4444), CircleShape),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                Text("忌", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                                Text(if (isZh) "忌" else "✕", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                             }
                                             Text(
-                                                text = "切忌踩雷",
+                                                text = if (isZh) "切忌踩雷" else "Avoid (Don't)",
                                                 style = MaterialTheme.typography.labelSmall,
                                                 color = Color(0xFFEF4444),
                                                 fontWeight = FontWeight.Bold
                                             )
                                         }
                                         Text(
-                                            text = currentFortune.oracleInappropriate,
+                                            text = currentFortune.oracleInappropriate(isZh),
                                             style = MaterialTheme.typography.bodySmall,
                                             fontWeight = FontWeight.Medium,
                                             color = MaterialTheme.colorScheme.onSurface
@@ -430,7 +441,7 @@ fun GpaGodFortuneModal(
                     ) {
                         Icon(Icons.Default.Casino, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("再求一籤")
+                        Text(if (isZh) "再求一籤" else "Draw Again")
                     }
 
                     Button(
@@ -441,7 +452,7 @@ fun GpaGodFortuneModal(
                             containerColor = Color(0xFFDC2626) // Auspicious Red
                         )
                     ) {
-                        Text("謝過 GPA God 🙇‍♂️")
+                        Text(if (isZh) "謝過 GPA God 🙇‍♂️" else "Thank GPA God 🙇‍♂️")
                     }
                 }
             }

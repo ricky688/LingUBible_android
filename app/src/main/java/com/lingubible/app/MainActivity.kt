@@ -47,7 +47,6 @@ import com.lingubible.app.core.navigation.Screen
 import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.settings.ThemeMode
 import com.lingubible.app.ui.components.CatFootstepsOverlay
-import com.lingubible.app.ui.components.DiscoverTopBarGlass
 import com.lingubible.app.ui.components.GettingStartedGuideSheet
 import com.lingubible.app.ui.components.shouldShowGettingStarted
 import com.lingubible.app.ui.components.rememberCatWalkState
@@ -369,11 +368,6 @@ fun LingUBibleMainScreen() {
                             navController = navController,
                             modifier = Modifier.fillMaxSize()
                         )
-                        // Draw over the list, immediately below the measured top bar.
-                        // This decorative layer neither reserves space nor intercepts touches.
-                        if (currentDestination?.hasRoute<Screen.Home>() == true && isTopBarVisible) {
-                            DiscoverTopBarGlass()
-                        }
                     }
                 }
             }

@@ -79,6 +79,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -123,10 +124,13 @@ import com.lingubible.app.domain.model.TimetableTerm
 import com.lingubible.app.domain.model.TimetableAppearance
 import com.lingubible.app.core.util.TimetableExportColors
 import androidx.compose.ui.graphics.toArgb
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.ui.common.hapticClick
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.compose.koinInject
 
 /**
  * Material 3 Expressive Preview Modal for Timetable Image Export.
@@ -149,6 +153,9 @@ fun TimetableExportPreviewModal(
     appearance: TimetableAppearance? = null
 ) {
     val isDark = isAppDarkTheme()
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val exportColors = TimetableExportColors(MaterialTheme.colorScheme.background.toArgb(), MaterialTheme.colorScheme.surfaceContainer.toArgb(), MaterialTheme.colorScheme.onSurface.toArgb(), MaterialTheme.colorScheme.outlineVariant.toArgb())
 
     // Default orientation is Landscape as specified
@@ -236,17 +243,26 @@ fun TimetableExportPreviewModal(
                             }
                         }
                         Column {
-                            Text(
-                                text = "課表圖片匯出預覽",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "Timetable Image Export Preview",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            if (isZh) {
+                                Text(
+                                    text = "課表圖片匯出預覽",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Timetable Image Export Preview",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            } else {
+                                Text(
+                                    text = "Timetable Export Preview",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
 
@@ -269,7 +285,7 @@ fun TimetableExportPreviewModal(
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     TimetableExportFormat.entries.forEach { choice ->
-                        FilterChip(selected = format == choice, onClick = hapticClick { format = choice }, label = { Text(if (choice == TimetableExportFormat.PNG) "圖片 PNG" else "列印 PDF") }, modifier = Modifier.weight(1f))
+                        FilterChip(selected = format == choice, onClick = hapticClick { format = choice }, label = { Text(if (choice == TimetableExportFormat.PNG) (if (isZh) "圖片 PNG" else "PNG Image") else (if (isZh) "列印 PDF" else "Print PDF")) }, modifier = Modifier.weight(1f))
                     }
                 }
 
@@ -280,8 +296,8 @@ fun TimetableExportPreviewModal(
                 ) {
                     // Landscape Option
                     OrientationChoiceCard(
-                        title = "橫向寬螢幕",
-                        subtitle = "Landscape (預設)",
+                        title = if (isZh) "橫向寬螢幕" else "Landscape",
+                        subtitle = if (isZh) "Landscape (預設)" else "Wide (Default)",
                         aspectLabel = "16:9",
                         icon = Icons.Default.StayCurrentLandscape,
                         isSelected = selectedOrientation == TimetableExportOrientation.LANDSCAPE,
@@ -291,8 +307,8 @@ fun TimetableExportPreviewModal(
 
                     // Portrait Option
                     OrientationChoiceCard(
-                        title = "直向標準手機",
-                        subtitle = "Portrait (手機比例)",
+                        title = if (isZh) "直向標準手機" else "Portrait",
+                        subtitle = if (isZh) "Portrait (手機比例)" else "Mobile Ratio",
                         aspectLabel = "9:16",
                         icon = Icons.Default.StayCurrentPortrait,
                         isSelected = selectedOrientation == TimetableExportOrientation.PORTRAIT,
@@ -335,13 +351,13 @@ fun TimetableExportPreviewModal(
                             )
                             Column {
                                 Text(
-                                    text = "顯示課表格線 (預設開啟)",
+                                    text = if (isZh) "顯示課表格線 (預設開啟)" else "Show Grid Lines (Default ON)",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Show Grid Lines (時間欄與各星期分隔線)",
+                                    text = if (isZh) "Show Grid Lines (時間欄與各星期分隔線)" else "Time column and weekday dividers",
                                     style = MaterialTheme.typography.bodySmall,
                                     fontSize = 11.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -415,7 +431,7 @@ fun TimetableExportPreviewModal(
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                     Text(
-                                        text = "繪製課表預覽中... / Generating preview...",
+                                        text = if (isZh) "繪製課表預覽中... / Generating preview..." else "Generating preview...",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -459,7 +475,7 @@ fun TimetableExportPreviewModal(
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Text(
-                                        text = "全螢幕放大檢視",
+                                        text = if (isZh) "全螢幕放大檢視" else "Fullscreen Zoom",
                                         style = MaterialTheme.typography.labelSmall,
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
@@ -508,9 +524,11 @@ fun TimetableExportPreviewModal(
                             Column {
                                 Text(
                                     text = if (orientation == TimetableExportOrientation.LANDSCAPE) {
-                                        "${2400 * (appearance?.resolution ?: 2) / 2} × ${1400 * (appearance?.resolution ?: 2) / 2} · 橫向 Landscape"
+                                        if (isZh) "${2400 * (appearance?.resolution ?: 2) / 2} × ${1400 * (appearance?.resolution ?: 2) / 2} · 橫向 Landscape"
+                                        else "${2400 * (appearance?.resolution ?: 2) / 2} × ${1400 * (appearance?.resolution ?: 2) / 2} · Landscape"
                                     } else {
-                                        "${1440 * (appearance?.resolution ?: 2) / 2} × ${2560 * (appearance?.resolution ?: 2) / 2} · 直向 Portrait"
+                                        if (isZh) "${1440 * (appearance?.resolution ?: 2) / 2} × ${2560 * (appearance?.resolution ?: 2) / 2} · 直向 Portrait"
+                                        else "${1440 * (appearance?.resolution ?: 2) / 2} × ${2560 * (appearance?.resolution ?: 2) / 2} · Portrait"
                                     },
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
@@ -518,9 +536,9 @@ fun TimetableExportPreviewModal(
                                 )
                                 Text(
                                     text = if (orientation == TimetableExportOrientation.LANDSCAPE) {
-                                        "課堂卡片寬廣清晰，適合電腦、平板與列印保存"
+                                        if (isZh) "課堂卡片寬廣清晰，適合電腦、平板與列印保存" else "Wide course cards, ideal for desktop, tablet, and printing"
                                     } else {
-                                        "直向寬度自適應最適比例，完美符合手機螢幕與桌布分享"
+                                        if (isZh) "直向寬度自適應最適比例，完美符合手機螢幕與桌布分享" else "Tall mobile aspect ratio, ideal for phone screens and wallpaper sharing"
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     fontSize = 11.sp,
@@ -547,7 +565,7 @@ fun TimetableExportPreviewModal(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = "取消 Cancel",
+                            text = if (isZh) "取消 Cancel" else "Cancel",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Medium
                         )
@@ -568,7 +586,7 @@ fun TimetableExportPreviewModal(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "儲存 ${format.name} Save",
+                            text = if (isZh) "儲存 ${format.name} Save" else "Save ${format.name}",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -583,6 +601,7 @@ fun TimetableExportPreviewModal(
         TimetableFullscreenPreviewDialog(
             bitmap = previewBitmap!!,
             orientation = selectedOrientation,
+            isZh = isZh,
             onDismiss = { showFullscreenViewer = false },
             onConfirmSave = {
                 showFullscreenViewer = false
@@ -600,6 +619,7 @@ fun TimetableExportPreviewModal(
 private fun TimetableFullscreenPreviewDialog(
     bitmap: Bitmap,
     orientation: TimetableExportOrientation,
+    isZh: Boolean,
     onDismiss: () -> Unit,
     onConfirmSave: () -> Unit
 ) {
@@ -710,7 +730,11 @@ private fun TimetableFullscreenPreviewDialog(
                         modifier = Modifier.padding(start = 4.dp)
                     ) {
                         Text(
-                            text = if (orientation == TimetableExportOrientation.LANDSCAPE) "全螢幕課表檢視 · 橫向 16:9" else "全螢幕課表檢視 · 直向 9:16",
+                            text = if (isZh) {
+                                if (orientation == TimetableExportOrientation.LANDSCAPE) "全螢幕課表檢視 · 橫向 16:9" else "全螢幕課表檢視 · 直向 9:16"
+                            } else {
+                                if (orientation == TimetableExportOrientation.LANDSCAPE) "Fullscreen Timetable · Landscape 16:9" else "Fullscreen Timetable · Portrait 9:16"
+                            },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -718,7 +742,7 @@ private fun TimetableFullscreenPreviewDialog(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "雙指縮放 · 雙擊重設 · 拖曳檢視",
+                            text = if (isZh) "雙指縮放 · 雙擊重設 · 拖曳檢視" else "Pinch to zoom · Double-tap to reset · Drag to pan",
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 11.sp,
                             color = Color(0xFF94A3B8),
@@ -791,6 +815,7 @@ private fun TimetableFullscreenPreviewDialog(
 
                         // Prominent Primary Action Pill: Save
                         ExpressiveSaveButton(
+                            isZh = isZh,
                             onClick = onConfirmSave
                         )
                     }
@@ -938,6 +963,7 @@ private fun ExpressiveZoomResetButton(
  */
 @Composable
 private fun ExpressiveSaveButton(
+    isZh: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -974,7 +1000,7 @@ private fun ExpressiveSaveButton(
             )
             Spacer(modifier = Modifier.width(5.dp))
             Text(
-                text = "儲存 Save",
+                text = if (isZh) "儲存 Save" else "Save",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold
             )

@@ -43,8 +43,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.domain.model.*
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,6 +63,9 @@ fun CourseSectionSelector(
     modifier: Modifier = Modifier
 ) {
     val isDark = isAppDarkTheme()
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val cardBg = if (isDark) md_theme_dark_surfaceContainer else Color.White
     val cardBorder = if (isDark) md_theme_dark_outlineVariant else Color(0xFFE2E8F0)
     val textMuted = if (isDark) md_theme_dark_onSurfaceVariant else Color(0xFF64748B)
@@ -83,7 +89,7 @@ fun CourseSectionSelector(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "沒有找到匹配的課程 No matching courses found",
+                    text = if (isZh) "沒有找到匹配的課程 No matching courses found" else "No matching courses found",
                     color = textMuted,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -208,7 +214,7 @@ fun CourseSectionSelector(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = if (isSelected) "已加選" else "加選",
+                                        text = if (isSelected) (if (isZh) "已加選" else "Added") else (if (isZh) "加選" else "Add"),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp
                                     )
@@ -307,7 +313,7 @@ fun CourseSectionSelector(
                                         }
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = "時間衝突：與已選 ${potentialConflict.courseCode} (S${potentialConflict.section}) 時段重疊",
+                                            text = if (isZh) "時間衝突：與已選 ${potentialConflict.courseCode} (S${potentialConflict.section}) 時段重疊" else "Time conflict: overlaps with ${potentialConflict.courseCode} (S${potentialConflict.section})",
                                             style = MaterialTheme.typography.labelSmall,
                                             color = if (isDark) Color(0xFFFDE68A) else Color(0xFF92400E),
                                             fontWeight = FontWeight.Bold,
@@ -342,7 +348,7 @@ fun CourseSectionSelector(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = onSearchQueryChange,
-                    placeholder = { Text("搜尋課程代碼、名稱、講師或 CRN...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    placeholder = { Text(if (isZh) "搜尋課程代碼、名稱、講師或 CRN..." else "Search course code, title, instructor, or CRN...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Search,
@@ -376,10 +382,10 @@ fun CourseSectionSelector(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Quick-select button group
-                    val deptItems = remember(COURSE_CATEGORIES, selectedDepartment) {
+                    val deptItems = remember(COURSE_CATEGORIES, selectedDepartment, isZh) {
                         COURSE_CATEGORIES.map { cat ->
                             M3ButtonGroupItem(
-                                label = "${cat.nameZh} ${cat.code}",
+                                label = if (isZh) "${cat.nameZh} ${cat.code}" else if (cat.code.equals("ALL", ignoreCase = true)) "All" else cat.code,
                                 onClick = { onDepartmentSelect(cat.code) }
                             )
                         }
@@ -423,8 +429,8 @@ fun CourseSectionSelector(
                         modifier = Modifier
                             .height(36.dp)
                             .semantics {
-                                stateDescription = if (isGridExpanded) "已展開 Expanded" else "已收起 Collapsed"
-                                contentDescription = if (isGridExpanded) "收起學系分類網格 Collapse Category Grid" else "展開學系分類網格 Expand Category Grid"
+                                stateDescription = if (isGridExpanded) (if (isZh) "已展開 Expanded" else "Expanded") else (if (isZh) "已收起 Collapsed" else "Collapsed")
+                                contentDescription = if (isGridExpanded) (if (isZh) "收起學系分類網格 Collapse Category Grid" else "Collapse Category Grid") else (if (isZh) "展開學系分類網格 Expand Category Grid" else "Expand Category Grid")
                                 role = Role.Button
                             }
                             .pointerHoverIcon(PointerIcon.Hand)
@@ -483,7 +489,7 @@ fun CourseSectionSelector(
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "學系分類篩選",
+                                    text = if (isZh) "學系分類篩選" else "Department Filter",
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isDark) Color.White else Color(0xFF0F172A)
@@ -495,7 +501,7 @@ fun CourseSectionSelector(
                                 ) {
                                     val currentCat = COURSE_CATEGORIES.find { it.code.equals(selectedDepartment, ignoreCase = true) }
                                     Text(
-                                        text = "${currentCat?.nameZh ?: "全部"} (${selectedDepartment})",
+                                        text = if (isZh) "${currentCat?.nameZh ?: "全部"} (${selectedDepartment})" else "${currentCat?.nameEn ?: "All"} (${selectedDepartment})",
                                         color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Bold,
                                         style = MaterialTheme.typography.labelSmall,
@@ -510,7 +516,7 @@ fun CourseSectionSelector(
                                 modifier = Modifier
                                     .pointerHoverIcon(PointerIcon.Hand)
                                     .semantics {
-                                        contentDescription = "收起學系分類網格 Collapse Category Grid"
+                                        contentDescription = if (isZh) "收起學系分類網格 Collapse Category Grid" else "Collapse Category Grid"
                                     }
                             ) {
                                 Icon(
@@ -521,7 +527,7 @@ fun CourseSectionSelector(
                                 )
                                 Spacer(modifier = Modifier.width(2.dp))
                                 Text(
-                                    text = "收起",
+                                    text = if (isZh) "收起" else "Collapse",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = textMuted,
                                     fontWeight = FontWeight.SemiBold
@@ -566,6 +572,7 @@ fun CourseSectionSelector(
                                         CategoryGridChip(
                                             category = category,
                                             isSelected = selectedDepartment.equals(category.code, ignoreCase = true),
+                                            isZh = isZh,
                                             onClick = {
                                                 onDepartmentSelect(category.code)
                                             },
@@ -592,6 +599,7 @@ fun CourseSectionSelector(
 private fun CategoryGridChip(
     category: CourseCategory,
     isSelected: Boolean,
+    isZh: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -623,7 +631,7 @@ private fun CategoryGridChip(
             .semantics {
                 selected = isSelected
                 role = Role.RadioButton
-                stateDescription = if (isSelected) "已選取 Selected" else "未選取 Not Selected"
+                stateDescription = if (isSelected) (if (isZh) "已選取 Selected" else "Selected") else (if (isZh) "未選取 Not Selected" else "Not Selected")
             }
             .pointerHoverIcon(PointerIcon.Hand)
     ) {
@@ -647,14 +655,16 @@ private fun CategoryGridChip(
                         fontWeight = FontWeight.ExtraBold,
                         color = if (isSelected) Color.White else (if (isDark) Color.White else Color(0xFF0F172A))
                     )
-                    Text(
-                        text = category.nameZh,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) Color.White.copy(alpha = 0.95f) else (if (isDark) Color(0xFFCBD5E1) else Color(0xFF475569)),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    if (isZh) {
+                        Text(
+                            text = category.nameZh,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) Color.White.copy(alpha = 0.95f) else (if (isDark) Color(0xFFCBD5E1) else Color(0xFF475569)),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
 
                 if (isSelected) {

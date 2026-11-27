@@ -58,37 +58,53 @@ internal fun PasswordRecoveryScreen(viewModel: PasswordRecoveryViewModel, onSign
                 when (stage) {
                     RecoveryStage.REQUEST, RecoveryStage.SENT -> {
                         if (stage == RecoveryStage.SENT) Text(if (isZh) "如該電郵已註冊，您將收到重設連結。請查看垃圾郵件；連結一小時後失效且只能使用一次。" else "If an account exists, a reset link will arrive by email. Check spam too. The link expires in one hour and can be used once.", color = MaterialTheme.colorScheme.primary)
-                        OutlinedTextField(email, { email = it }, label = { Text("嶺南電郵 Lingnan email") }, singleLine = true,
+                        OutlinedTextField(email, { email = it }, label = { Text(if (isZh) "嶺南電郵 Lingnan email" else "Lingnan email") }, singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
-                        Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.beginRequest(email) }) { Text(if (stage == RecoveryStage.SENT) "重新寄送 Resend link" else "寄送重設連結 Send reset link") }
+                        Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.beginRequest(email) }) {
+                            Text(if (isZh) {
+                                if (stage == RecoveryStage.SENT) "重新寄送 Resend link" else "寄送重設連結 Send reset link"
+                            } else {
+                                if (stage == RecoveryStage.SENT) "Resend link" else "Send reset link"
+                            })
+                        }
                         HorizontalDivider()
                         Text(if (isZh) "已有連結？貼上電郵中的完整重設連結。" else "Already have a link? Paste the full reset link from your email.")
-                        OutlinedTextField(link, { if (it.length <= 2048) link = it }, label = { Text("重設連結 Reset link") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
-                        FilledTonalButton(shapes = AppButtonDefaults.shapes(), enabled = link.isNotBlank(), onClick = hapticClick { viewModel.openLink(link); link = "" }) { Text("開啟連結 Open link") }
+                        OutlinedTextField(link, { if (it.length <= 2048) link = it }, label = { Text(if (isZh) "重設連結 Reset link" else "Reset link") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
+                        FilledTonalButton(shapes = AppButtonDefaults.shapes(), enabled = link.isNotBlank(), onClick = hapticClick { viewModel.openLink(link); link = "" }) { Text(if (isZh) "開啟連結 Open link" else "Open link") }
                     }
                     RecoveryStage.VERIFYING -> {
                         key(verificationId) { SecurityVerification("forgotPassword", isZh, { viewModel.send(it, if (isZh) "zh-TW" else "en", dark) }, viewModel::verificationFailed) }
-                        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::newRequest)) { Text("取消 Cancel") }
+                        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::newRequest)) { Text(if (isZh) "取消 Cancel" else "Cancel") }
                     }
                     RecoveryStage.SENDING, RecoveryStage.VALIDATING -> {
                         LinearProgressIndicator(Modifier.fillMaxWidth())
-                        Text(if (stage == RecoveryStage.VALIDATING) "正在驗證連結… Checking link…" else "正在處理… Processing…")
+                        Text(if (isZh) {
+                            if (stage == RecoveryStage.VALIDATING) "正在驗證連結… Checking link…" else "正在處理… Processing…"
+                        } else {
+                            if (stage == RecoveryStage.VALIDATING) "Checking link…" else "Processing…"
+                        })
                     }
                     RecoveryStage.RESET -> {
-                        Text("12–40 字元，包含大寫、小寫、數字及符號；避免常見密碼。\n12–40 characters, with upper/lowercase letters, a number and a symbol. Avoid common passwords.", style = MaterialTheme.typography.bodyMedium)
-                        OutlinedTextField(password, { password = it }, label = { Text("新密碼 New password") }, singleLine = true, visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
-                        OutlinedTextField(confirmation, { confirmation = it }, label = { Text("再次輸入密碼 Confirm password") }, singleLine = true, isError = confirmation.isNotEmpty() && confirmation != password, visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
-                        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showPassword = !showPassword }) { Text(if (showPassword) "隱藏密碼 Hide passwords" else "顯示密碼 Show passwords") }
-                        Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.complete(password, confirmation) }) { Text("重設密碼 Reset password") }
+                        Text(if (isZh) "12–40 字元，包含大寫、小寫、數字及符號；避免常見密碼。\n12–40 characters, with upper/lowercase letters, a number and a symbol. Avoid common passwords." else "12–40 characters, with upper/lowercase letters, a number and a symbol. Avoid common passwords.", style = MaterialTheme.typography.bodyMedium)
+                        OutlinedTextField(password, { password = it }, label = { Text(if (isZh) "新密碼 New password" else "New password") }, singleLine = true, visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(confirmation, { confirmation = it }, label = { Text(if (isZh) "再次輸入密碼 Confirm password" else "Confirm password") }, singleLine = true, isError = confirmation.isNotEmpty() && confirmation != password, visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
+                        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showPassword = !showPassword }) {
+                            Text(if (isZh) {
+                                if (showPassword) "隱藏密碼 Hide passwords" else "顯示密碼 Show passwords"
+                            } else {
+                                if (showPassword) "Hide passwords" else "Show passwords"
+                            })
+                        }
+                        Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.complete(password, confirmation) }) { Text(if (isZh) "重設密碼 Reset password" else "Reset password") }
                     }
                     RecoveryStage.COMPLETE -> {
-                        Text("密碼已重設，請使用新密碼登入。\nPassword reset. Sign in with your new password.", color = MaterialTheme.colorScheme.primary)
+                        Text(if (isZh) "密碼已重設，請使用新密碼登入。\nPassword reset. Sign in with your new password." else "Password reset. Sign in with your new password.", color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
         }
-        state.error?.let { SupportErrorText(it) }
-        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.newRequest(); onSignIn() }) { Text("返回登入 Back to sign in") }
+        state.error?.let { SupportErrorText(it, isZh) }
+        TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.newRequest(); onSignIn() }) { Text(if (isZh) "返回登入 Back to sign in" else "Back to sign in") }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(InformationPage.FAQ, InformationPage.CONTACT, InformationPage.TERMS, InformationPage.PRIVACY).forEach { page ->
                 TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { onInfo(page) }) { Text(page.title(isZh)) }
@@ -98,17 +114,31 @@ internal fun PasswordRecoveryScreen(viewModel: PasswordRecoveryViewModel, onSign
 }
 
 @Composable
-internal fun SupportErrorText(error: SupportError) {
-    val text = when (error) {
-        SupportError.EMAIL -> "請輸入有效的嶺南電郵。\nEnter a valid @ln.hk or @ln.edu.hk email."
-        SupportError.PASSWORD -> "密碼不符合要求，請使用 12–40 字元及所需字元種類，並避免常見密碼。\nUse 12–40 characters with the required character types and avoid common passwords."
-        SupportError.MISMATCH -> "兩次輸入的密碼不相符。\nPasswords do not match."
-        SupportError.INVALID_LINK -> "連結無效、已過期或已使用，請重新申請。\nThis reset link is invalid, expired or already used. Request a new one."
-        SupportError.RATE_LIMIT -> "操作太頻繁，請稍後再試。\nToo many requests. Please try again later."
-        SupportError.CAPTCHA -> "安全驗證未完成，請檢查連線並重試。\nSecurity verification could not finish. Check your connection and retry."
-        SupportError.CONTACT -> "請填妥姓名（最多 10 個詞）、有效電郵及至少 30 個以空格分隔的詞的訊息。\nEnter a name (up to 10 words), valid email and message of at least 30 space-separated words."
-        SupportError.NETWORK -> "連線中斷或逾時，請檢查連線後再試。\nConnection failed or timed out. Check your connection and retry."
-        SupportError.SERVICE -> "服務暫時無法完成要求，請稍後重試。\nThe service could not complete this request. Please try again later."
+internal fun SupportErrorText(error: SupportError, isZh: Boolean = true) {
+    val text = if (isZh) {
+        when (error) {
+            SupportError.EMAIL -> "請輸入有效的嶺南電郵。\nEnter a valid @ln.hk or @ln.edu.hk email."
+            SupportError.PASSWORD -> "密碼不符合要求，請使用 12–40 字元及所需字元種類，並避免常見密碼。\nUse 12–40 characters with the required character types and avoid common passwords."
+            SupportError.MISMATCH -> "兩次輸入的密碼不相符。\nPasswords do not match."
+            SupportError.INVALID_LINK -> "連結無效、已過期或已使用，請重新申請。\nThis reset link is invalid, expired or already used. Request a new one."
+            SupportError.RATE_LIMIT -> "操作太頻繁，請稍後再試。\nToo many requests. Please try again later."
+            SupportError.CAPTCHA -> "安全驗證未完成，請檢查連線並重試。\nSecurity verification could not finish. Check your connection and retry."
+            SupportError.CONTACT -> "請填妥姓名（最多 10 個詞）、有效電郵及至少 30 個以空格分隔的詞的訊息。\nEnter a name (up to 10 words), valid email and message of at least 30 space-separated words."
+            SupportError.NETWORK -> "連線中斷或逾時，請檢查連線後再試。\nConnection failed or timed out. Check your connection and retry."
+            SupportError.SERVICE -> "服務暫時無法完成要求，請稍後重試。\nThe service could not complete this request. Please try again later."
+        }
+    } else {
+        when (error) {
+            SupportError.EMAIL -> "Enter a valid @ln.hk or @ln.edu.hk email."
+            SupportError.PASSWORD -> "Use 12–40 characters with the required character types and avoid common passwords."
+            SupportError.MISMATCH -> "Passwords do not match."
+            SupportError.INVALID_LINK -> "This reset link is invalid, expired or already used. Request a new one."
+            SupportError.RATE_LIMIT -> "Too many requests. Please try again later."
+            SupportError.CAPTCHA -> "Security verification could not finish. Check your connection and retry."
+            SupportError.CONTACT -> "Enter a name (up to 10 words), valid email and message of at least 30 space-separated words."
+            SupportError.NETWORK -> "Connection failed or timed out. Check your connection and retry."
+            SupportError.SERVICE -> "The service could not complete this request. Please try again later."
+        }
     }
     Text(text, color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite })
 }

@@ -23,15 +23,15 @@ fun FadingLazyColumn(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
-    bottomInset: Dp = LocalScreenBottomClearance.current,
+    @Suppress("UNUSED_PARAMETER") bottomInset: Dp = LocalScreenBottomClearance.current,
     content: LazyListScope.() -> Unit
 ) {
     LazyColumn(
-        modifier = modifier.fadingBlurEdges(lazyListState = state, bottomInset = bottomInset),
+        modifier = modifier,
         state = state, contentPadding = contentPadding,
         verticalArrangement = verticalArrangement, horizontalAlignment = horizontalAlignment, content = content
     )
 }
 
-fun Modifier.fadingVerticalScroll(state: ScrollState, bottomInset: Dp = 0.dp): Modifier =
-    fadingBlurEdges(scrollState = state, bottomInset = bottomInset).verticalScroll(state)
+fun Modifier.fadingVerticalScroll(state: ScrollState, @Suppress("UNUSED_PARAMETER") bottomInset: Dp = 0.dp): Modifier =
+    verticalScroll(state)

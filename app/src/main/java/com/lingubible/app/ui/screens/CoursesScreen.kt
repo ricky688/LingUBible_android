@@ -53,6 +53,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.domain.model.COURSE_CATEGORIES
 import com.lingubible.app.domain.model.CourseCategory
@@ -64,6 +66,7 @@ import com.lingubible.app.ui.components.ScrollableM3ButtonGroup
 import com.lingubible.app.ui.components.fadingBlurEdges
 import com.lingubible.app.ui.viewmodels.CoursesViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,6 +74,9 @@ fun CoursesScreen(
     onNavigateToCourse: (String) -> Unit,
     viewModel: CoursesViewModel = koinViewModel()
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val isDark = isAppDarkTheme()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val historyContext = LocalContext.current
@@ -103,7 +109,7 @@ fun CoursesScreen(
             onValueChange = {
                 viewModel.search(it)
             },
-            placeholder = { Text("搜尋課程代碼、名稱或學系...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            placeholder = { Text(if (isZh) "搜尋課程代碼、名稱或學系..." else "Search course code, title or department...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
             leadingIcon = {
                 Icon(
                     Icons.Filled.Search,
@@ -115,7 +121,7 @@ fun CoursesScreen(
                 Row {
                     RecentSearchesButton(searchHistory, "courses", viewModel::search)
                     IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { viewModel.loadFilterOptions(); showFilters = true }) {
-                        Icon(Icons.Filled.Tune, contentDescription = "篩選與排序 Filter and sort", tint = if (uiState.filters != com.lingubible.app.domain.model.CourseFilters()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.Filled.Tune, contentDescription = if (isZh) "篩選與排序 Filter and sort" else "Filter and sort", tint = if (uiState.filters != com.lingubible.app.domain.model.CourseFilters()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 if (searchInput.isNotEmpty()) {
                     IconButton(shapes = AppButtonDefaults.iconShapes(),
@@ -150,10 +156,10 @@ fun CoursesScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Quick-select button group
-            val subjectItems = remember(COURSE_CATEGORIES, uiState.selectedSubject) {
+            val subjectItems = remember(COURSE_CATEGORIES, uiState.selectedSubject, isZh) {
                 COURSE_CATEGORIES.map { cat ->
                     M3ButtonGroupItem(
-                        label = "${cat.nameZh} ${cat.code}",
+                        label = if (isZh) "${cat.nameZh} ${cat.code}" else if (cat.code == "ALL") "All" else cat.code,
                         onClick = {
                             if (cat.code == "ALL") {
                                 viewModel.filterSubject(null)
@@ -204,8 +210,16 @@ fun CoursesScreen(
                 modifier = Modifier
                     .height(36.dp)
                     .semantics {
-                        stateDescription = if (isGridExpanded) "已展開 Expanded" else "已收起 Collapsed"
-                        contentDescription = if (isGridExpanded) "收起學系分類網格 Collapse Category Grid" else "展開學系分類網格 Expand Category Grid"
+                        stateDescription = if (isZh) {
+                            if (isGridExpanded) "已展開 Expanded" else "已收起 Collapsed"
+                        } else {
+                            if (isGridExpanded) "Expanded" else "Collapsed"
+                        }
+                        contentDescription = if (isZh) {
+                            if (isGridExpanded) "收起學系分類網格 Collapse Category Grid" else "展開學系分類網格 Expand Category Grid"
+                        } else {
+                            if (isGridExpanded) "Collapse Category Grid" else "Expand Category Grid"
+                        }
                         role = Role.Button
                     }
                     .pointerHoverIcon(PointerIcon.Hand)
@@ -264,7 +278,7 @@ fun CoursesScreen(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "學系分類篩選",
+                            text = if (isZh) "學系分類篩選" else "Departments",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = if (isDark) Color.White else Color(0xFF0F172A)
@@ -276,7 +290,11 @@ fun CoursesScreen(
                         ) {
                             val currentCat = COURSE_CATEGORIES.find { it.code.equals(uiState.selectedSubject ?: "ALL", ignoreCase = true) }
                             Text(
-                                text = if (uiState.filters.subjects.size > 1) "多個學系 Multiple (${uiState.filters.subjects.size})" else "${currentCat?.nameZh ?: "全部"} (${uiState.selectedSubject ?: "ALL"})",
+                                text = if (uiState.filters.subjects.size > 1) {
+                                    if (isZh) "多個學系 Multiple (${uiState.filters.subjects.size})" else "Multiple (${uiState.filters.subjects.size})"
+                                } else {
+                                    "${if (isZh) currentCat?.nameZh ?: "全部" else currentCat?.nameEn ?: "All"} (${uiState.selectedSubject ?: "ALL"})"
+                                },
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.labelSmall,
@@ -291,7 +309,7 @@ fun CoursesScreen(
                         modifier = Modifier
                             .pointerHoverIcon(PointerIcon.Hand)
                             .semantics {
-                                contentDescription = "收起學系分類網格 Collapse Category Grid"
+                                contentDescription = if (isZh) "收起學系分類網格 Collapse Category Grid" else "Collapse Category Grid"
                             }
                     ) {
                         Icon(
@@ -302,7 +320,7 @@ fun CoursesScreen(
                         )
                         Spacer(modifier = Modifier.width(2.dp))
                         Text(
-                            text = "收起",
+                            text = if (isZh) "收起" else "Collapse",
                             style = MaterialTheme.typography.labelSmall,
                             color = textMuted,
                             fontWeight = FontWeight.SemiBold
@@ -353,6 +371,7 @@ fun CoursesScreen(
                                 CourseCategoryGridChip(
                                     category = category,
                                     isSelected = isSelected,
+                                    isZh = isZh,
                                     onClick = {
                                         if (category.code == "ALL") {
                                             viewModel.filterSubject(null)
@@ -383,11 +402,12 @@ fun CoursesScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             val countInfo = if (uiState.isLoading) {
-                "載入課程中..."
+                if (isZh) "載入課程中..." else "Loading courses..."
             } else {
-                val base = "共 ${uiState.courses.size} 門課程"
+                val base = if (isZh) "共 ${uiState.courses.size} 門課程" else "${uiState.courses.size} courses"
                 if (uiState.selectedSubject != null && !uiState.selectedSubject.equals("ALL", ignoreCase = true)) {
-                    val catName = COURSE_CATEGORIES.find { it.code.equals(uiState.selectedSubject, ignoreCase = true) }?.nameZh ?: ""
+                    val cat = COURSE_CATEGORIES.find { it.code.equals(uiState.selectedSubject, ignoreCase = true) }
+                    val catName = if (isZh) cat?.nameZh ?: "" else cat?.nameEn ?: ""
                     "$base · $catName (${uiState.selectedSubject})"
                 } else {
                     base
@@ -408,7 +428,7 @@ fun CoursesScreen(
                     modifier = Modifier.height(26.dp)
                 ) {
                     Text(
-                        text = "重設分類 Reset",
+                        text = if (isZh) "重設分類 Reset" else "Reset",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -420,7 +440,7 @@ fun CoursesScreen(
 
         if (uiState.errorMessage != null) {
             Text(uiState.errorMessage.orEmpty(), color = MaterialTheme.colorScheme.error)
-            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::loadCourses)) { Text("重試 Retry") }
+            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::loadCourses)) { Text(if (isZh) "重試 Retry" else "Retry") }
         }
 
         // Courses List
@@ -446,7 +466,7 @@ fun CoursesScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "找不到相關課程",
+                                text = if (isZh) "找不到相關課程" else "No matching courses found",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -486,9 +506,13 @@ fun CoursesScreen(
 private fun CourseCategoryGridChip(
     category: CourseCategory,
     isSelected: Boolean,
+    isZh: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val isDark = isAppDarkTheme()
     val interactionSource = remember { MutableInteractionSource() }
     val corner by AppButtonDefaults.pressCorner(interactionSource, 10.dp)
@@ -517,7 +541,11 @@ private fun CourseCategoryGridChip(
             .semantics {
                 selected = isSelected
                 role = Role.RadioButton
-                stateDescription = if (isSelected) "已選取 Selected" else "未選取 Not Selected"
+                stateDescription = if (isZh) {
+                    if (isSelected) "已選取 Selected" else "未選取 Not Selected"
+                } else {
+                    if (isSelected) "Selected" else "Not Selected"
+                }
             }
             .pointerHoverIcon(PointerIcon.Hand)
     ) {
@@ -542,7 +570,7 @@ private fun CourseCategoryGridChip(
                         color = if (isSelected) Color.White else (if (isDark) Color.White else Color(0xFF0F172A))
                     )
                     Text(
-                        text = category.nameZh,
+                        text = if (isZh) category.nameZh else category.nameEn,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         color = if (isSelected) Color.White.copy(alpha = 0.95f) else (if (isDark) Color(0xFFCBD5E1) else Color(0xFF475569)),

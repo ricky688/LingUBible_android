@@ -1,7 +1,6 @@
 package com.lingubible.app.ui.screens
 
 import com.lingubible.app.ui.components.AppButtonDefaults
-import com.lingubible.app.ui.components.fadingVerticalScroll
 import com.lingubible.app.ui.common.hapticClick
 
 import com.lingubible.app.core.navigation.screenBottomPadding
@@ -10,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.automirrored.filled.Redo
@@ -93,31 +93,31 @@ fun PlannerScreen(
     }
     if (showImport) AlertDialog(
         onDismissRequest = { showImport = false; timetableViewModel.cancelImport() },
-        title = { Text("匯入課表 Import timetable") },
+        title = { Text(if (isZh) "匯入課表 Import timetable" else "Import timetable") },
         text = {
-            Column(Modifier.fadingVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("貼上網頁或 App 分享的課表連結。確認後加入現有課表。\nPaste a web or app timetable link. Import adds to your saved timetable.")
-                OutlinedTextField(importLink, { importLink = it; timetableViewModel.cancelImport() }, label = { Text("課表連結 Timetable link") }, modifier = Modifier.fillMaxWidth(), enabled = !timetableState.importLoading)
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(if (isZh) "貼上網頁或 App 分享的課表連結。確認後加入現有課表。\nPaste a web or app timetable link. Import adds to your saved timetable." else "Paste a web or app timetable link. Import adds to your saved timetable.")
+                OutlinedTextField(importLink, { importLink = it; timetableViewModel.cancelImport() }, label = { Text(if (isZh) "課表連結 Timetable link" else "Timetable link") }, modifier = Modifier.fillMaxWidth(), enabled = !timetableState.importLoading)
                 if (timetableState.importLoading) CircularProgressIndicator()
                 timetableState.importError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 timetableState.importPreview?.let { preview ->
                     Text(preview.term.name, style = MaterialTheme.typography.titleMedium)
-                    Text("新增 ${preview.newCount} · 已存在 ${preview.existingCount} · 未找到 ${preview.missingIds.size}\nNew · Already saved · Not found")
+                    Text(if (isZh) "新增 ${preview.newCount} · 已存在 ${preview.existingCount} · 未找到 ${preview.missingIds.size}\nNew · Already saved · Not found" else "New ${preview.newCount} · Already saved ${preview.existingCount} · Not found ${preview.missingIds.size}")
                     if (preview.missingIds.isNotEmpty()) Text(preview.missingIds.joinToString(), style = MaterialTheme.typography.bodySmall)
-                    if (preview.conflictCount > 0) Text("${preview.conflictCount} 個時間衝突 · Time conflicts", color = MaterialTheme.colorScheme.error)
+                    if (preview.conflictCount > 0) Text(if (isZh) "${preview.conflictCount} 個時間衝突 · Time conflicts" else "${preview.conflictCount} time conflicts", color = MaterialTheme.colorScheme.error)
                 }
             }
         },
         confirmButton = { Button(shapes = AppButtonDefaults.shapes(), enabled = importLink.isNotBlank() && !timetableState.importLoading, onClick = hapticClick {
             if (timetableState.importPreview == null) timetableViewModel.prepareImport(importLink)
             else { timetableViewModel.confirmImport(); activeSubView = TimetableSubView.GRID; showImport = false }
-        }) { Text(if (timetableState.importPreview == null) "預覽 Preview" else "確認匯入 Import") } },
-        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showImport = false; timetableViewModel.cancelImport() }) { Text("取消 Cancel") } }
+        }) { Text(if (timetableState.importPreview == null) (if (isZh) "預覽 Preview" else "Preview") else (if (isZh) "確認匯入 Import" else "Import")) } },
+        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showImport = false; timetableViewModel.cancelImport() }) { Text(if (isZh) "取消 Cancel" else "Cancel") } }
     )
-    if (showClear) AlertDialog(onDismissRequest = { showClear = false }, title = { Text("清空此學期？ Clear this term?") },
-        text = { Text("清空後可按復原。其他學期不受影響。\nYou can undo this. Other terms are unchanged.") },
-        confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { timetableViewModel.clearAll(); showClear = false }) { Text("清空 Clear") } },
-        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showClear = false }) { Text("取消 Cancel") } })
+    if (showClear) AlertDialog(onDismissRequest = { showClear = false }, title = { Text(if (isZh) "清空此學期？ Clear this term?" else "Clear this term?") },
+        text = { Text(if (isZh) "清空後可按復原。其他學期不受影響。\nYou can undo this. Other terms are unchanged." else "You can undo this. Other terms are unchanged.") },
+        confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { timetableViewModel.clearAll(); showClear = false }) { Text(if (isZh) "清空 Clear" else "Clear") } },
+        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showClear = false }) { Text(if (isZh) "取消 Cancel" else "Cancel") } })
 
     val containerBg = MaterialTheme.colorScheme.background
     val cardBg = MaterialTheme.colorScheme.surfaceContainer
@@ -206,7 +206,7 @@ fun PlannerScreen(
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = "已選 ${timetableState.totalCredits} 學分",
+                            text = if (isZh) "已選 ${timetableState.totalCredits} 學分" else "${timetableState.totalCredits} Credits",
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.labelMedium,
@@ -220,7 +220,7 @@ fun PlannerScreen(
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = "${timetableState.distinctCourseCount} 門課程",
+                            text = if (isZh) "${timetableState.distinctCourseCount} 門課程" else "${timetableState.distinctCourseCount} ${if (timetableState.distinctCourseCount == 1) "Course" else "Courses"}",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium,
                             style = MaterialTheme.typography.labelMedium,
@@ -243,7 +243,7 @@ fun PlannerScreen(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "匯出日曆",
+                        text = if (isZh) "匯出日曆" else "Export .ics",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -254,31 +254,31 @@ fun PlannerScreen(
 }
 
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(shapes = AppButtonDefaults.iconShapes(), enabled = timetableState.canUndo && !timetableState.isLoading, onClick = hapticClick { timetableViewModel.undo() }) { Icon(Icons.AutoMirrored.Filled.Undo, "復原 Undo") }
-            IconButton(shapes = AppButtonDefaults.iconShapes(), enabled = timetableState.canRedo && !timetableState.isLoading, onClick = hapticClick { timetableViewModel.redo() }) { Icon(Icons.AutoMirrored.Filled.Redo, "重做 Redo") }
+            IconButton(shapes = AppButtonDefaults.iconShapes(), enabled = timetableState.canUndo && !timetableState.isLoading, onClick = hapticClick { timetableViewModel.undo() }) { Icon(Icons.AutoMirrored.Filled.Undo, if (isZh) "復原 Undo" else "Undo") }
+            IconButton(shapes = AppButtonDefaults.iconShapes(), enabled = timetableState.canRedo && !timetableState.isLoading, onClick = hapticClick { timetableViewModel.redo() }) { Icon(Icons.AutoMirrored.Filled.Redo, if (isZh) "重做 Redo" else "Redo") }
             Spacer(Modifier.weight(1f))
             if (timetableState.isLoading) CircularProgressIndicator(Modifier.size(24.dp))
             Box {
-                IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { menuOpen = true }) { Icon(Icons.Default.MoreVert, "課表工具 Timetable tools") }
+                IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { menuOpen = true }) { Icon(Icons.Default.MoreVert, if (isZh) "課表工具 Timetable tools" else "Timetable tools") }
                 DropdownMenu(menuOpen, { menuOpen = false }) {
-                    DropdownMenuItem(text = { Text("課表自訂 Customize timetable") }, enabled = !timetableState.isLoading, onClick = hapticClick { menuOpen = false; showAppearance = true })
-                    DropdownMenuItem(text = { Text("分享課表 Share link") }, enabled = timetableState.selectedSections.isNotEmpty() && !timetableState.isLoading, onClick = hapticClick {
+                    DropdownMenuItem(text = { Text(if (isZh) "課表自訂 Customize timetable" else "Customize timetable") }, enabled = !timetableState.isLoading, onClick = hapticClick { menuOpen = false; showAppearance = true })
+                    DropdownMenuItem(text = { Text(if (isZh) "分享課表 Share link" else "Share link") }, enabled = timetableState.selectedSections.isNotEmpty() && !timetableState.isLoading, onClick = hapticClick {
                         menuOpen = false
                         try {
                             val link = timetableShareLink(timetableState.selectedTerm, timetableState.selectedSections.map { it.id }.toSet())
                             context.startActivity(android.content.Intent.createChooser(android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                                 type = "text/plain"; putExtra(android.content.Intent.EXTRA_TEXT, link)
-                            }, "分享課表 Share timetable").addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
-                        } catch (e: Exception) { android.widget.Toast.makeText(context, e.localizedMessage ?: "無法分享 · Could not share", android.widget.Toast.LENGTH_LONG).show() }
+                            }, if (isZh) "分享課表 Share timetable" else "Share timetable").addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+                        } catch (e: Exception) { android.widget.Toast.makeText(context, e.localizedMessage ?: if (isZh) "無法分享 · Could not share" else "Could not share", android.widget.Toast.LENGTH_LONG).show() }
                     })
-                    DropdownMenuItem(text = { Text("匯入課表 Import link") }, onClick = hapticClick { menuOpen = false; timetableViewModel.cancelImport(); showImport = true })
-                    DropdownMenuItem(text = { Text("清空此學期 Clear term") }, enabled = timetableState.selectedSectionIds.isNotEmpty() && !timetableState.isLoading, onClick = hapticClick { menuOpen = false; showClear = true })
+                    DropdownMenuItem(text = { Text(if (isZh) "匯入課表 Import link" else "Import link") }, onClick = hapticClick { menuOpen = false; timetableViewModel.cancelImport(); showImport = true })
+                    DropdownMenuItem(text = { Text(if (isZh) "清空此學期 Clear term" else "Clear term") }, enabled = timetableState.selectedSectionIds.isNotEmpty() && !timetableState.isLoading, onClick = hapticClick { menuOpen = false; showClear = true })
                 }
             }
         }
         timetableState.errorMessage?.let { message ->
             Text(message, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 16.dp))
-            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { timetableViewModel.retry() }) { Text("重試 Retry") }
+            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { timetableViewModel.retry() }) { Text(if (isZh) "重試 Retry" else "Retry") }
         }
 
         // Material 3 Expressive Collision Warning Alert Card

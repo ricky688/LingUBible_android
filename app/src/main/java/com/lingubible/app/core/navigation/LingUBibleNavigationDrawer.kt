@@ -65,6 +65,8 @@ fun LingUBibleDrawerSheet(
     settingsManager: AppSettingsManager = koinInject()
 ) {
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
@@ -126,7 +128,7 @@ fun LingUBibleDrawerSheet(
                                 letterSpacing = 0.5.sp
                             )
                             Text(
-                                text = "嶺南大學課程資訊平台",
+                                text = if (isZh) "嶺南大學課程資訊平台" else "Lingnan University Course Hub",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = Color.White.copy(alpha = 0.9f)
                             )
@@ -146,7 +148,7 @@ fun LingUBibleDrawerSheet(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "嶺大同學必備指南",
+                                text = if (isZh) "嶺大同學必備指南" else "Essential Guide for Lingnan",
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White
@@ -177,7 +179,7 @@ fun LingUBibleDrawerSheet(
                     if (itemsInCategory.isNotEmpty()) {
                         // Category Header
                         Text(
-                            text = "${category.titleZh} ${category.titleEn}",
+                            text = if (isZh) "${category.titleZh} ${category.titleEn}" else category.titleEn,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
@@ -216,12 +218,12 @@ fun LingUBibleDrawerSheet(
                                 icon = {
                                     Icon(
                                         imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
-                                        contentDescription = "${destination.titleZh} ${destination.titleEn}"
+                                        contentDescription = if (isZh) "${destination.titleZh} ${destination.titleEn}" else destination.titleEn
                                     )
                                 },
                                 label = {
                                     Text(
-                                        text = "${destination.titleZh} ${destination.titleEn}",
+                                        text = if (isZh) "${destination.titleZh} ${destination.titleEn}" else destination.titleEn,
                                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                                         fontSize = 14.sp
                                     )
@@ -277,7 +279,6 @@ fun LingUBibleDrawerSheet(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val themeMode by settingsManager.themeMode.collectAsState()
-                val appLanguage by settingsManager.appLanguage.collectAsState()
 
                 // Row 1: Theme Mode Switcher
                 Row(
@@ -296,7 +297,7 @@ fun LingUBibleDrawerSheet(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = "主題 Theme",
+                            text = if (isZh) "主題 Theme" else "Theme",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B)
@@ -315,11 +316,12 @@ fun LingUBibleDrawerSheet(
                         ) {
                             ThemeMode.entries.forEach { mode ->
                                 val isSelected = themeMode == mode
-                                val (icon, label) = when (mode) {
-                                    ThemeMode.LIGHT -> Icons.Filled.LightMode to "淺色"
-                                    ThemeMode.DARK -> Icons.Filled.DarkMode to "深色"
-                                    ThemeMode.SYSTEM -> Icons.Filled.BrightnessAuto to "系統"
+                                val icon = when (mode) {
+                                    ThemeMode.LIGHT -> Icons.Filled.LightMode
+                                    ThemeMode.DARK -> Icons.Filled.DarkMode
+                                    ThemeMode.SYSTEM -> Icons.Filled.BrightnessAuto
                                 }
+                                val label = mode.label(isZh)
                                 Surface(
                                     shape = RoundedCornerShape(16.dp),
                                     color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
@@ -370,7 +372,7 @@ fun LingUBibleDrawerSheet(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = "語言 Language",
+                            text = if (isZh) "語言 Language" else "Language",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B)

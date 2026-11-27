@@ -26,10 +26,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -132,96 +134,82 @@ fun ScrollableM3ButtonGroup(
     activeCornerRadius: Dp = 20.dp,
     inactiveCornerRadius: Dp = 8.dp,
     showCheckmarkOnSelected: Boolean = true,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    fillWidthWhenFits: Boolean = false
 ) {
     val isDark = isAppDarkTheme()
     val sources = remember(items.size) { List(items.size) { MutableInteractionSource() } }
     val pressedIndex = sources.map { it.collectIsPressedAsState().value }.indexOfFirst { it }
     val focusIndex = connectedButtonFocusIndex(selectedIndex, pressedIndex, isDark)
     val scrollState = rememberScrollState()
-
-    val canScrollBackward = scrollState.value > 0
-    val canScrollForward = scrollState.value < scrollState.maxValue && scrollState.maxValue > 0
-
-    val leftFadeAlpha by animateFloatAsState(
-        targetValue = if (canScrollBackward) 1f else 0f,
-        animationSpec = androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow),
-        label = "leftFadeAlpha"
-    )
-    val rightFadeAlpha by animateFloatAsState(
-        targetValue = if (canScrollForward) 1f else 0f,
-        animationSpec = androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow),
-        label = "rightFadeAlpha"
-    )
-
-    val fadeWidth = 24.dp
     val isAlignEnd = horizontalArrangement == Arrangement.End
+    val layoutDirection = LocalLayoutDirection.current
+    val density = LocalDensity.current
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier.height(height),
         contentAlignment = if (isAlignEnd) Alignment.CenterEnd else Alignment.CenterStart
     ) {
-        Row(
+        val availWidthPx = with(density) {
+            val hPad = contentPadding.calculateLeftPadding(layoutDirection) +
+                contentPadding.calculateRightPadding(layoutDirection)
+            (maxWidth - hPad).roundToPx().coerceAtLeast(0)
+        }
+        val gapPx = with(density) { spacing.roundToPx() }
+
+        Layout(
             modifier = Modifier
-                .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
-                .drawWithContent {
-                    drawContent()
-                    val fadePx = fadeWidth.toPx()
-
-                    // Smooth leading edge fade-out transition
-                    if (canScrollBackward && leftFadeAlpha > 0.01f && fadePx > 0f) {
-                        drawRect(
-                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Black.copy(alpha = 1f - leftFadeAlpha.coerceIn(0f, 1f)),
-                                    Color.Black
-                                ),
-                                startX = 0f,
-                                endX = fadePx
-                            ),
-                            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
-                            topLeft = androidx.compose.ui.geometry.Offset.Zero,
-                            size = androidx.compose.ui.geometry.Size(fadePx, size.height)
-                        )
-                    }
-
-                    // Smooth trailing edge fade-out transition
-                    if (canScrollForward && rightFadeAlpha > 0.01f && fadePx > 0f) {
-                        drawRect(
-                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Black,
-                                    Color.Black.copy(alpha = 1f - rightFadeAlpha.coerceIn(0f, 1f))
-                                ),
-                                startX = size.width - fadePx,
-                                endX = size.width
-                            ),
-                            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
-                            topLeft = androidx.compose.ui.geometry.Offset(size.width - fadePx, 0f),
-                            size = androidx.compose.ui.geometry.Size(fadePx, size.height)
-                        )
-                    }
-                }
                 .horizontalScroll(scrollState)
                 .padding(contentPadding),
-            horizontalArrangement = if (isAlignEnd) Arrangement.spacedBy(spacing, Alignment.End) else Arrangement.spacedBy(spacing),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            items.forEachIndexed { index, item ->
-                M3ButtonGroupButton(
-                    selected = selectedIndex == index,
-                    focused = focusIndex == index,
-                    interactionSource = sources[index],
-                    onClick = item.onClick,
-                    label = item.label,
-                    icon = item.icon,
-                    isDark = isDark,
-                    activeCornerRadius = activeCornerRadius,
-                    inactiveCornerRadius = inactiveCornerRadius,
-                    showCheckmarkOnSelected = showCheckmarkOnSelected,
-                    index = index,
-                    count = items.size
-                )
+            content = {
+                items.forEachIndexed { index, item ->
+                    M3ButtonGroupButton(
+                        selected = selectedIndex == index,
+                        focused = focusIndex == index,
+                        interactionSource = sources[index],
+                        onClick = item.onClick,
+                        label = item.label,
+                        icon = item.icon,
+                        isDark = isDark,
+                        activeCornerRadius = activeCornerRadius,
+                        inactiveCornerRadius = inactiveCornerRadius,
+                        showCheckmarkOnSelected = showCheckmarkOnSelected,
+                        fillWidth = fillWidthWhenFits,
+                        index = index,
+                        count = items.size
+                    )
+                }
+            }
+        ) { measurables, constraints ->
+            val totalGaps = if (measurables.size > 1) (measurables.size - 1) * gapPx else 0
+            val naturalWidths = if (fillWidthWhenFits && measurables.isNotEmpty()) {
+                measurables.map { it.maxIntrinsicWidth(constraints.maxHeight) }
+            } else {
+                emptyList()
+            }
+            val naturalTotalWidth = naturalWidths.sum() + totalGaps
+
+            val placeables = if (fillWidthWhenFits && measurables.isNotEmpty() && naturalTotalWidth < availWidthPx) {
+                val extraTotal = availWidthPx - naturalTotalWidth
+                val extraEach = extraTotal / measurables.size
+                val remainder = extraTotal % measurables.size
+                measurables.mapIndexed { idx, measurable ->
+                    val targetW = naturalWidths[idx] + extraEach + if (idx < remainder) 1 else 0
+                    measurable.measure(constraints.copy(minWidth = targetW, maxWidth = targetW))
+                }
+            } else {
+                val childConstraints = constraints.copy(minWidth = 0)
+                measurables.map { it.measure(childConstraints) }
+            }
+
+            val totalWidth = (placeables.sumOf { it.width } + totalGaps).coerceAtLeast(0)
+            val layoutHeight = constraints.maxHeight
+            layout(totalWidth, layoutHeight) {
+                var x = 0
+                placeables.forEach { placeable ->
+                    placeable.placeRelative(x, (layoutHeight - placeable.height) / 2)
+                    x += placeable.width + gapPx
+                }
             }
         }
     }
@@ -279,6 +267,7 @@ private fun M3ButtonGroupButton(
     modifier: Modifier = Modifier,
     contentHorizontalPadding: Dp = 14.dp,
     equalWeight: Boolean = false,
+    fillWidth: Boolean = false,
     index: Int,
     count: Int
 ) {
@@ -372,7 +361,7 @@ private fun M3ButtonGroupButton(
             contentPadding = PaddingValues(0.dp),
             interactionSource = interactionSource
         ) {
-            val rowModifier = if (equalWeight) {
+            val rowModifier = if (equalWeight || fillWidth) {
                 Modifier.fillMaxSize()
             } else {
                 Modifier.fillMaxHeight()

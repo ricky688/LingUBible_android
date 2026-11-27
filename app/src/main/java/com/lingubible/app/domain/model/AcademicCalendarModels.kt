@@ -42,6 +42,8 @@ enum class CalendarCategory(
 
     val composeColor: Color
         get() = Color(android.graphics.Color.parseColor(colorHex))
+
+    fun label(isZh: Boolean): String = if (isZh) labelZh else labelEn
 }
 
 @Serializable
@@ -66,24 +68,43 @@ data class AcademicEvent(
     val secondaryTitle: String
         get() = if (titleTc.isNotBlank()) title else ""
 
+    fun displayTitle(isZh: Boolean): String =
+        if (isZh) displayTitle else title.ifBlank { titleTc }
+
+    fun secondaryTitle(isZh: Boolean): String =
+        if (isZh) secondaryTitle else ""
+
     val dateRangeDisplay: String
         get() {
             if (!isMultiDay) return start
             return "$start ~ $end"
         }
 
-    fun formatWebDateRange(): String {
+    fun formatWebDateRange(isZh: Boolean = com.lingubible.app.core.settings.AppSettingsManager.isZh): String {
         return try {
             val sParts = start.split("-")
             val sMonth = sParts[1].toInt()
             val sDay = sParts[2].toInt()
-            if (!isMultiDay || end == null) {
-                "${sMonth}月${sDay}日"
+            if (isZh) {
+                if (!isMultiDay || end == null) {
+                    "${sMonth}月${sDay}日"
+                } else {
+                    val eParts = end.split("-")
+                    val eMonth = eParts[1].toInt()
+                    val eDay = eParts[2].toInt()
+                    "${sMonth}月${sDay}日 – ${eMonth}月${eDay}日"
+                }
             } else {
-                val eParts = end.split("-")
-                val eMonth = eParts[1].toInt()
-                val eDay = eParts[2].toInt()
-                "${sMonth}月${sDay}日 – ${eMonth}月${eDay}日"
+                val sMonthName = java.time.Month.of(sMonth).getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.ENGLISH)
+                if (!isMultiDay || end == null) {
+                    "$sMonthName $sDay"
+                } else {
+                    val eParts = end.split("-")
+                    val eMonth = eParts[1].toInt()
+                    val eDay = eParts[2].toInt()
+                    val eMonthName = java.time.Month.of(eMonth).getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.ENGLISH)
+                    "$sMonthName $sDay – $eMonthName $eDay"
+                }
             }
         } catch (e: Exception) {
             dateRangeDisplay

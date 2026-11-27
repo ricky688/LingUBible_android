@@ -11,7 +11,7 @@ data class CourseReading(val title: String, val source: String, val required: Bo
 
 fun materialCourseCode(name: String): String? = Regex("^([A-Za-z]+[0-9]+)(?=[_ .-])").find(name)?.groupValues?.get(1)?.uppercase()
 
-fun parseCourseReadings(raw: String): List<CourseReading> {
+fun parseCourseReadings(raw: String, isZh: Boolean = com.lingubible.app.core.settings.AppSettingsManager.isZh): List<CourseReading> {
     val entries = runCatching { Json.parseToJsonElement(raw).jsonArray }.getOrNull() ?: return emptyList()
     return entries.mapNotNull { entry ->
         val item = entry as? JsonObject ?: return@mapNotNull null
@@ -39,6 +39,14 @@ fun parseCourseReadings(raw: String): List<CourseReading> {
             else -> null
         }
         val type = field("TYPE").lowercase()
-        CourseReading(title, source, "required" in type || "essential" in type, if (doi != null) "論文 Article" else if (url != null) "網站 Website" else "書籍 Book", url)
+        CourseReading(
+            title,
+            source,
+            "required" in type || "essential" in type,
+            if (doi != null) (if (isZh) "論文 Article" else "Article")
+            else if (url != null) (if (isZh) "網站 Website" else "Website")
+            else (if (isZh) "書籍 Book" else "Book"),
+            url
+        )
     }
 }

@@ -56,7 +56,9 @@ internal fun gpaNumber(value: Double?): String = value?.let { String.format(Loca
 @Composable
 fun GpaSectionTitle(title: String, subtitle: String) {
     Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-    Text(subtitle, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    if (subtitle.isNotBlank()) {
+        Text(subtitle, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 @Composable
@@ -145,14 +147,16 @@ internal fun GpaMetric(
                             softWrap = false,
                             overflow = TextOverflow.Ellipsis
                         )
-                        Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            softWrap = false,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        if (subtitle.isNotBlank()) {
+                            Text(
+                                text = subtitle,
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
                 if (badgeText != null) {
@@ -195,24 +199,25 @@ internal fun GpaMetric(
 @Composable
 fun GpaSummary(
     state: GpaHonsUiState,
+    isZh: Boolean = true,
     onOpenGpaGod: (() -> Unit)? = null
 ) {
     val isFourFlat = state.cgpa != null && state.cgpa >= 4.0
     GpaPanel {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             GpaMetric(
-                title = "累積 GPA",
-                subtitle = "Cumulative GPA",
+                title = if (isZh) "累積 GPA" else "Cumulative GPA",
+                subtitle = if (isZh) "Cumulative GPA" else "",
                 value = gpaNumber(state.cgpa),
                 icon = Icons.Default.School,
                 accentColor = if (isFourFlat) Color(0xFFF59E0B) else MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f),
-                badgeText = if (isFourFlat) "4.0 神蹟 ✨" else "求籤 🎋",
+                badgeText = if (isFourFlat) (if (isZh) "4.0 神蹟 ✨" else "4.0 Miracle ✨") else (if (isZh) "求籤 🎋" else "Fortune 🎋"),
                 onClick = onOpenGpaGod
             )
             GpaMetric(
-                title = "已計入學分",
-                subtitle = "GPA credits",
+                title = if (isZh) "已計入學分" else "GPA credits",
+                subtitle = if (isZh) "GPA credits" else "",
                 value = String.format(Locale.US, "%.0f", state.earnedCredits),
                 icon = Icons.Default.AutoStories,
                 accentColor = Color(0xFF3B82F6),
@@ -266,7 +271,7 @@ fun GpaSummary(
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "榮譽等級 · Classification",
+                        text = if (isZh) "榮譽等級 · Classification" else "Classification",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -280,20 +285,29 @@ fun GpaSummary(
                         },
                         label = "classificationTransition"
                     ) { (zh, en) ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
+                        if (isZh) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = zh,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (tier != null) classificationColor else MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = en,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else {
                             Text(
-                                text = zh,
+                                text = en,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = if (tier != null) classificationColor else MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = en,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -305,14 +319,14 @@ fun GpaSummary(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun GpaTargetCard(state: GpaHonsUiState, onTarget: (String) -> Unit, onRemaining: (String) -> Unit) {
+fun GpaTargetCard(state: GpaHonsUiState, onTarget: (String) -> Unit, onRemaining: (String) -> Unit, isZh: Boolean = true) {
     GpaPanel {
-        GpaSectionTitle("目標榮譽", "Target Honours")
+        GpaSectionTitle(if (isZh) "目標榮譽" else "Target Honours", if (isZh) "Target Honours" else "")
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 value = state.targetCgpaInput,
                 onValueChange = onTarget,
-                label = { Text("目標 GPA · Target", fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                label = { Text(if (isZh) "目標 GPA · Target" else "Target GPA", fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
@@ -321,7 +335,7 @@ fun GpaTargetCard(state: GpaHonsUiState, onTarget: (String) -> Unit, onRemaining
             OutlinedTextField(
                 value = state.remainingCreditsInput,
                 onValueChange = onRemaining,
-                label = { Text("剩餘學分 · Credits", fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                label = { Text(if (isZh) "剩餘學分 · Credits" else "Remaining Credits", fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 placeholder = { Text(maxOf(0, (120 - state.earnedCredits).toInt()).toString(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
@@ -330,7 +344,8 @@ fun GpaTargetCard(state: GpaHonsUiState, onTarget: (String) -> Unit, onRemaining
             )
         }
         Text(
-            "目標 GPA 0.00–4.00 · 留空預設以 120 − 已計學分推算",
+            if (isZh) "目標 GPA 0.00–4.00 · 留空預設以 120 − 已計學分推算"
+            else "Target GPA 0.00–4.00 · Leave blank to estimate with 120 − earned credits",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -338,7 +353,7 @@ fun GpaTargetCard(state: GpaHonsUiState, onTarget: (String) -> Unit, onRemaining
             value = (state.targetCgpaInput.toFloatOrNull() ?: 3.5f).coerceIn(0f, 4f),
             onValueChange = { onTarget(String.format(Locale.US, "%.2f", it)) },
             valueRange = 0f..4f,
-            modifier = Modifier.semantics { contentDescription = "目標累積 GPA · Target cGPA" }
+            modifier = Modifier.semantics { contentDescription = if (isZh) "目標累積 GPA · Target cGPA" else "Target cGPA" }
         )
         FlowRow(
             modifier = Modifier.animateContentSize(spring(stiffness = Spring.StiffnessMediumLow)),
@@ -353,7 +368,7 @@ fun GpaTargetCard(state: GpaHonsUiState, onTarget: (String) -> Unit, onRemaining
                     shape = RoundedCornerShape(12.dp),
                     label = {
                         Text(
-                            text = "${tier.titleZh} ${String.format(Locale.US, "%.2f", tier.minCgpa)}",
+                            text = "${if (isZh) tier.titleZh else tier.titleEn} ${String.format(Locale.US, "%.2f", tier.minCgpa)}",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         )
@@ -401,13 +416,13 @@ fun GpaTargetCard(state: GpaHonsUiState, onTarget: (String) -> Unit, onRemaining
                         RequiredAvgStatus.FEASIBLE -> {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "所需平均 GPA",
+                                    text = if (isZh) "所需平均 GPA" else "Required average GPA",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Required average in remaining courses",
+                                    text = if (isZh) "Required average in remaining courses" else "In remaining courses",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -433,7 +448,7 @@ fun GpaTargetCard(state: GpaHonsUiState, onTarget: (String) -> Unit, onRemaining
                         RequiredAvgStatus.ACHIEVED -> {
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
-                                    text = "已達目標推算條件",
+                                    text = if (isZh) "已達目標推算條件" else "Target achieved",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
@@ -448,13 +463,13 @@ fun GpaTargetCard(state: GpaHonsUiState, onTarget: (String) -> Unit, onRemaining
                         RequiredAvgStatus.IMPOSSIBLE -> {
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
-                                    text = "目標超出可達上限",
+                                    text = if (isZh) "目標超出可達上限" else "Target exceeds maximum",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.error
                                 )
                                 Text(
-                                    text = "Target exceeds maximum · 最高可能: ${gpaNumber(animatedResult.projectedCgpa)}",
+                                    text = if (isZh) "Target exceeds maximum · 最高可能: ${gpaNumber(animatedResult.projectedCgpa)}" else "Max possible: ${gpaNumber(animatedResult.projectedCgpa)}",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -463,13 +478,13 @@ fun GpaTargetCard(state: GpaHonsUiState, onTarget: (String) -> Unit, onRemaining
                         RequiredAvgStatus.NO_REMAINING -> {
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
-                                    text = "沒有剩餘學分",
+                                    text = if (isZh) "沒有剩餘學分" else "No remaining credits",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "No remaining credits · 最終 cGPA: ${gpaNumber(animatedResult.projectedCgpa)}",
+                                    text = if (isZh) "No remaining credits · 最終 cGPA: ${gpaNumber(animatedResult.projectedCgpa)}" else "Final cGPA: ${gpaNumber(animatedResult.projectedCgpa)}",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -486,7 +501,7 @@ private data class TrendPoint(val label: String, val term: Double?, val cumulati
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun GpaTrendCard(state: GpaHonsUiState) {
+fun GpaTrendCard(state: GpaHonsUiState, isZh: Boolean = true) {
     var honours by rememberSaveable { mutableStateOf(false) }
     var awards by rememberSaveable { mutableStateOf(false) }
     var fullScale by rememberSaveable { mutableStateOf(true) }
@@ -503,25 +518,25 @@ fun GpaTrendCard(state: GpaHonsUiState) {
         }
     }
     GpaPanel {
-        GpaSectionTitle("GPA 走勢", "Cumulative & Term GPA")
+        GpaSectionTitle(if (isZh) "GPA 走勢" else "GPA Trend", if (isZh) "Cumulative & Term GPA" else "")
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             FilterChip(
                 selected = honours,
                 onClick = hapticClick { honours = !honours },
                 shape = RoundedCornerShape(12.dp),
-                label = { Text("榮譽線 Honours") }
+                label = { Text(if (isZh) "榮譽線 Honours" else "Honours") }
             )
             FilterChip(
                 selected = awards,
                 onClick = hapticClick { awards = !awards },
                 shape = RoundedCornerShape(12.dp),
-                label = { Text("榮譽榜 Awards") }
+                label = { Text(if (isZh) "榮譽榜 Awards" else "Awards") }
             )
             FilterChip(
                 selected = fullScale,
                 onClick = hapticClick { fullScale = !fullScale },
                 shape = RoundedCornerShape(12.dp),
-                label = { Text(if (fullScale) "全刻度 0–4" else "自動刻度 Auto") }
+                label = { Text(if (fullScale) (if (isZh) "全刻度 0–4" else "Scale 0–4") else (if (isZh) "自動刻度 Auto" else "Auto Scale")) }
             )
         }
         if (points.none { it.term != null }) {
@@ -557,17 +572,26 @@ fun GpaTrendCard(state: GpaHonsUiState) {
                         )
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = "加入課程成績後即可查看走勢",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Enter course grades to see your GPA trend",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (isZh) {
+                            Text(
+                                text = "加入課程成績後即可查看走勢",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Enter course grades to see your GPA trend",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else {
+                            Text(
+                                text = "Enter course grades to see your GPA trend",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
             }
@@ -607,10 +631,28 @@ fun GpaTrendCard(state: GpaHonsUiState) {
                     points.forEachIndexed { index, point -> drawContext.canvas.nativeCanvas.drawText(point.label, x(index), size.height - 8.dp.toPx(), paint) }
                 }
             }
-            Text("實線：累積 GPA · Solid: cumulative\n虛線：學期 GPA · Dashed: term", style = MaterialTheme.typography.labelSmall)
-            if (honours) Text("榮譽界線 · Honours: 1.67 / 2.00 / 2.50 / 3.00 / 3.50", style = MaterialTheme.typography.labelSmall)
-            if (awards) Text("院長榜 3.30 · Dean’s / 校長榜 3.70 · President’s\n須同時符合年度學分及成績條件 · Credit and grade requirements also apply", style = MaterialTheme.typography.labelSmall)
-            points.forEach { Text("${it.label}   學期 ${gpaNumber(it.term)}   累積 ${gpaNumber(it.cumulative)}", style = MaterialTheme.typography.bodySmall) }
+            Text(
+                if (isZh) "實線：累積 GPA · Solid: cumulative\n虛線：學期 GPA · Dashed: term"
+                else "Solid: cumulative GPA · Dashed: term GPA",
+                style = MaterialTheme.typography.labelSmall
+            )
+            if (honours) Text(
+                if (isZh) "榮譽界線 · Honours: 1.67 / 2.00 / 2.50 / 3.00 / 3.50"
+                else "Honours thresholds: 1.67 / 2.00 / 2.50 / 3.00 / 3.50",
+                style = MaterialTheme.typography.labelSmall
+            )
+            if (awards) Text(
+                if (isZh) "院長榜 3.30 · Dean’s / 校長榜 3.70 · President’s\n須同時符合年度學分及成績條件 · Credit and grade requirements also apply"
+                else "Dean's List 3.30 / President's List 3.70\nCredit and grade requirements also apply",
+                style = MaterialTheme.typography.labelSmall
+            )
+            points.forEach {
+                Text(
+                    if (isZh) "${it.label}   學期 ${gpaNumber(it.term)}   累積 ${gpaNumber(it.cumulative)}"
+                    else "${it.label}   Term ${gpaNumber(it.term)}   Cumul. ${gpaNumber(it.cumulative)}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }

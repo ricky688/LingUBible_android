@@ -11,6 +11,15 @@ val REVIEW_REQUIREMENTS = linkedMapOf(
     "has_presentation" to "匯報 Presentation", "has_reading" to "閱讀 Reading",
     "has_attendance_requirement" to "出席要求 Attendance"
 )
+val REVIEW_REQUIREMENTS_EN = linkedMapOf(
+    "has_midterm" to "Midterm", "has_final" to "Final",
+    "has_quiz" to "Quiz", "has_group_project" to "Group project",
+    "has_individual_assignment" to "Individual assignment",
+    "has_presentation" to "Presentation", "has_reading" to "Reading",
+    "has_attendance_requirement" to "Attendance"
+)
+fun reviewRequirements(isZh: Boolean): Map<String, String> = if (isZh) REVIEW_REQUIREMENTS else REVIEW_REQUIREMENTS_EN
+fun reviewRequirementLabel(key: String, isZh: Boolean): String? = reviewRequirements(isZh)[key]
 val REVIEW_GRADES = listOf("A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F", "-1")
 fun validReviewRating(value: Double?): Boolean = value != null && value.isFinite() &&
     (value == -1.0 || (value in 0.0..5.0 && value * 2 == kotlin.math.floor(value * 2)))
@@ -70,21 +79,42 @@ data class ReviewForm(
     val comment: String = "", val anonymous: Boolean = true, val language: String = "en",
     val instructors: List<InstructorEvaluation> = emptyList()
 ) {
-    fun validate() {
-        require(courseCode.isNotBlank() && term.isNotBlank()) { "請選擇課程及學期 · Select a course and term" }
-        require(grade in REVIEW_GRADES) { "請選擇成績 · Select your grade" }
-        require(language in setOf("en", "zh-TW", "zh-CN")) { "請選擇評價語言 · Select review language" }
-        require(listOf(workload, difficulty, usefulness).all(::validReviewRating)) { "請完成課程評分 · Complete course ratings" }
-        require(WordCountValidator.isValid(comment, 5, 1000)) { "課程評價需 5–1000 字 · Course comments: 5–1000 words" }
-        require(instructors.isNotEmpty() && instructors.map { it.key }.distinct().size == instructors.size) { "請選擇講師及課節 · Select instructors and sessions" }
+    fun validate(isZh: Boolean = com.lingubible.app.core.settings.AppSettingsManager.isZh) {
+        require(courseCode.isNotBlank() && term.isNotBlank()) {
+            if (isZh) "請選擇課程及學期 · Select a course and term" else "Select a course and term"
+        }
+        require(grade in REVIEW_GRADES) {
+            if (isZh) "請選擇成績 · Select your grade" else "Select your grade"
+        }
+        require(language in setOf("en", "zh-TW", "zh-CN")) {
+            if (isZh) "請選擇評價語言 · Select review language" else "Select review language"
+        }
+        require(listOf(workload, difficulty, usefulness).all(::validReviewRating)) {
+            if (isZh) "請完成課程評分 · Complete course ratings" else "Complete course ratings"
+        }
+        require(WordCountValidator.isValid(comment, 5, 1000)) {
+            if (isZh) "課程評價需 5–1000 字 · Course comments: 5–1000 words" else "Course comments: 5–1000 words"
+        }
+        require(instructors.isNotEmpty() && instructors.map { it.key }.distinct().size == instructors.size) {
+            if (isZh) "請選擇講師及課節 · Select instructors and sessions" else "Select instructors and sessions"
+        }
         instructors.forEach { i ->
             val label = "${i.name} · ${i.session}"
             require(i.name.isNotBlank() && i.session.isNotBlank()) { "Invalid instructor/session" }
-            require(validReviewRating(i.grading) && (i.notAttended || validReviewRating(i.teaching))) { "$label: 請完成評分 · Complete ratings" }
-            require(i.requirements.isNotEmpty() && i.requirements.all { it in REVIEW_REQUIREMENTS }) { "$label: 請選擇至少一項課程要求 · Select at least one assessment requirement" }
-            require(WordCountValidator.isValid(i.comment, 5, 1000)) { "$label: 講師評價需 5–1000 字 · Instructor comments: 5–1000 words" }
+            require(validReviewRating(i.grading) && (i.notAttended || validReviewRating(i.teaching))) {
+                if (isZh) "$label: 請完成評分 · Complete ratings" else "$label: Complete ratings"
+            }
+            require(i.requirements.isNotEmpty() && i.requirements.all { it in REVIEW_REQUIREMENTS }) {
+                if (isZh) "$label: 請選擇至少一項課程要求 · Select at least one assessment requirement" else "$label: Select at least one assessment requirement"
+            }
+            require(WordCountValidator.isValid(i.comment, 5, 1000)) {
+                if (isZh) "$label: 講師評價需 5–1000 字 · Instructor comments: 5–1000 words" else "$label: Instructor comments: 5–1000 words"
+            }
             require(i.serviceLearning in setOf("none", "optional", "compulsory")) { "Invalid service-learning type" }
-            if (i.serviceLearning != "none") require(WordCountValidator.isValid(i.serviceDescription, if (i.serviceLearning == "compulsory") 5 else 0, 1000)) { "$label: 服務學習描述需 ${if (i.serviceLearning == "compulsory") "5–1000" else "0–1000"} 字 · Check service-learning description" }
+            if (i.serviceLearning != "none") require(WordCountValidator.isValid(i.serviceDescription, if (i.serviceLearning == "compulsory") 5 else 0, 1000)) {
+                if (isZh) "$label: 服務學習描述需 ${if (i.serviceLearning == "compulsory") "5–1000" else "0–1000"} 字 · Check service-learning description"
+                else "$label: Service-learning description must be ${if (i.serviceLearning == "compulsory") "5–1000" else "0–1000"} words"
+            }
         }
     }
     fun documentData(userId: String, username: String, submittedAt: String): Map<String, Any> {

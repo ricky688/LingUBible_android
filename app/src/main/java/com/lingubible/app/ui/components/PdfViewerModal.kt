@@ -53,11 +53,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.isAppDarkTheme
 import com.lingubible.app.data.remote.AppwriteClientProvider
 import com.lingubible.app.domain.util.DocumentDownloadHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -83,6 +86,9 @@ fun PdfViewerModal(
     clientProvider: AppwriteClientProvider? = null,
     onDismiss: () -> Unit
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val context = LocalContext.current
     val isDark = isAppDarkTheme()
     val scope = rememberCoroutineScope()
@@ -159,7 +165,7 @@ fun PdfViewerModal(
         } catch (e: Exception) {
             android.util.Log.e("PdfViewerModal", "Error loading/rendering PDF: ${e.message}", e)
             isLoading = false
-            errorMessage = e.localizedMessage ?: "無法開啟文件 / Unable to open PDF"
+            errorMessage = e.localizedMessage ?: if (isZh) "無法開啟文件 / Unable to open PDF" else "Unable to open PDF"
         }
     }
 
@@ -248,7 +254,7 @@ fun PdfViewerModal(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "正在載入文件...\nLoading document...",
+                            text = if (isZh) "正在載入文件...\nLoading document..." else "Loading document...",
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -289,7 +295,7 @@ fun PdfViewerModal(
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "無法載入文件\nUnable to Load Document",
+                            text = if (isZh) "無法載入文件\nUnable to Load Document" else "Unable to Load Document",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
@@ -310,7 +316,7 @@ fun PdfViewerModal(
                                 onClick = hapticClick(onDismiss),
                                 shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
                             ) {
-                                Text("關閉 Close")
+                                Text(if (isZh) "關閉 Close" else "Close")
                             }
                             Button(
                                 onClick = hapticClick {
@@ -335,7 +341,7 @@ fun PdfViewerModal(
                                 },
                                 shapes = AppButtonDefaults.shapes(shape = RoundedCornerShape(12.dp))
                             ) {
-                                Text("重試 Retry")
+                                Text(if (isZh) "重試 Retry" else "Retry")
                             }
                         }
                     }
@@ -570,7 +576,7 @@ fun PdfViewerModal(
                                         title = title
                                     )
                                 } ?: run {
-                                    Toast.makeText(context, "請等待文件載入完成\nPlease wait for document to load", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, if (isZh) "請等待文件載入完成\nPlease wait for document to load" else "Please wait for document to load", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         ) {

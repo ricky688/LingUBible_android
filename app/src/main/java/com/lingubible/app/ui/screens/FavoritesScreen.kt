@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lingubible.app.core.navigation.screenContentPadding
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.data.repository.AppwriteFavoritesRepository
 import com.lingubible.app.domain.model.Course
 import com.lingubible.app.domain.model.Instructor
@@ -24,6 +26,9 @@ import org.koin.compose.koinInject
 
 @Composable
 fun FavoritesScreen(onCourse: (String) -> Unit, onInstructor: (String) -> Unit, onSignIn: () -> Unit) {
+    val settings = koinInject<AppSettingsManager>()
+    val appLanguage by settings.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val repository = koinInject<AppwriteFavoritesRepository>()
     val courseRepository = koinInject<CourseRepository>()
     val instructorRepository = koinInject<InstructorRepository>()
@@ -53,34 +58,34 @@ fun FavoritesScreen(onCourse: (String) -> Unit, onInstructor: (String) -> Unit, 
     FadingLazyColumn(contentPadding = screenContentPadding(start = 16.dp, end = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             if (state.userId == null) {
-                Text("登入後即可儲存與同步收藏 · Sign in to save and sync favourites")
-                Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onSignIn)) { Text("登入 Sign in") }
+                Text(if (isZh) "登入後即可儲存與同步收藏 · Sign in to save and sync favourites" else "Sign in to save and sync favourites")
+                Button(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(onSignIn)) { Text(if (isZh) "登入 Sign in" else "Sign in") }
             } else {
                 TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { scope.launch { repository.refresh(); refresh++ } }, enabled = !state.loading && !loading) {
-                    Text("重新整理 Refresh")
+                    Text(if (isZh) "重新整理 Refresh" else "Refresh")
                 }
             }
         }
         if (state.loading || loading) item { CircularProgressIndicator() }
         if (error != null || state.error != null) item { Text(error ?: state.error.orEmpty(), color = MaterialTheme.colorScheme.error) }
         if (state.userId != null && !loading && !state.loading && state.items.isEmpty() && state.error == null) item {
-            Text("尚未收藏課程或講師 · No saved courses or instructors")
+            Text(if (isZh) "尚未收藏課程或講師 · No saved courses or instructors" else "No saved courses or instructors")
         }
         itemsIndexed(unavailable.toList(), key = { _, it -> "unavailable:${it.type}:${it.itemId}" }) { _, key ->
             Card(shape = RoundedCornerShape(18.dp)) {
                 Column(Modifier.padding(12.dp)) {
-                    Text("${key.itemId} · 暫時無法載入 Unavailable")
+                    Text(if (isZh) "${key.itemId} · 暫時無法載入 Unavailable" else "${key.itemId} · Unavailable")
                     TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { scope.launch {
                         repository.toggle(key.type, key.itemId).onFailure { error = it.localizedMessage }
-                    } }) { Text("移除收藏 Remove favourite") }
+                    } }) { Text(if (isZh) "移除收藏 Remove favourite" else "Remove favourite") }
                 }
             }
         }
-        if (courses.isNotEmpty()) item { Text("課程 Courses", style = MaterialTheme.typography.titleMedium) }
+        if (courses.isNotEmpty()) item { Text(if (isZh) "課程 Courses" else "Courses", style = MaterialTheme.typography.titleMedium) }
         itemsIndexed(courses, key = { _, it -> "course:${it.code}" }) { index, course ->
             PopularCourseCard(course, onClick = { onCourse(course.code) }, groupIndex = index, groupSize = courses.size)
         }
-        if (instructors.isNotEmpty()) item { Text("講師 Instructors", style = MaterialTheme.typography.titleMedium) }
+        if (instructors.isNotEmpty()) item { Text(if (isZh) "講師 Instructors" else "Instructors", style = MaterialTheme.typography.titleMedium) }
         itemsIndexed(instructors, key = { _, it -> "instructor:${it.name}" }) { index, instructor ->
             PopularInstructorCard(instructor, onClick = { onInstructor(instructor.name) }, groupIndex = index, groupSize = instructors.size)
         }

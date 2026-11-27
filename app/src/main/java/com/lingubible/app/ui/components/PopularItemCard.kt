@@ -26,10 +26,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.ui.common.rememberCardPressShape
 import com.lingubible.app.domain.model.Course
 import com.lingubible.app.domain.model.Instructor
+import org.koin.compose.koinInject
 import java.util.Locale
 
 @Composable
@@ -41,6 +45,9 @@ fun PopularCourseCard(
     groupSize: Int = 1
 ) {
     val isDark = isAppDarkTheme()
+    val settingsManager = koinInject<AppSettingsManager>()
+    val appLanguage by settingsManager.appLanguage.collectAsStateWithLifecycle()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val shape = rememberCardPressShape(interactionSource, restingCorner = 18.dp, uniformCorners = true)
@@ -100,7 +107,7 @@ fun PopularCourseCard(
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    if (course.titleZh.isNotBlank()) {
+                    if (isZh && course.titleZh.isNotBlank()) {
                         Text(
                             text = course.titleZh,
                             style = MaterialTheme.typography.bodySmall,
@@ -195,6 +202,9 @@ fun PopularInstructorCard(
     groupSize: Int = 1
 ) {
     val isDark = isAppDarkTheme()
+    val settingsManager = koinInject<AppSettingsManager>()
+    val appLanguage by settingsManager.appLanguage.collectAsStateWithLifecycle()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val shape = rememberCardPressShape(interactionSource, restingCorner = 18.dp, uniformCorners = true)
@@ -242,7 +252,7 @@ fun PopularInstructorCard(
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    if (instructor.displayNameZh.isNotBlank()) {
+                    if (isZh && instructor.displayNameZh.isNotBlank()) {
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = instructor.displayNameZh,

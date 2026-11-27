@@ -29,7 +29,10 @@ class AppwriteReviewRepository(
         require(reviewId.isNotBlank())
         val userId = requireNotNull(clientProvider.account) { "Sign in required" }.get().id
         val document = requireNotNull(clientProvider.databases).getDocument(dbId, reviewsCol, reviewId)
-        check(document.data["user_id"] == userId) { "你只能管理自己的評價 · You can only manage your own reviews" }
+        check(document.data["user_id"] == userId) {
+            if (com.lingubible.app.core.settings.AppSettingsManager.isZh) "你只能管理自己的評價 · You can only manage your own reviews"
+            else "You can only manage your own reviews"
+        }
         return document
     }
 
@@ -190,13 +193,18 @@ class AppwriteReviewRepository(
         form.validate()
         val db = requireNotNull(clientProvider.databases) { "Databases not initialized" }
         val user = requireNotNull(clientProvider.account) { "Sign in required" }.get()
-        require(user.id == submission.userId) { "帳戶已變更，請重新開啟表單 · Account changed; reopen the form" }
+        val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+        require(user.id == submission.userId) {
+            if (isZh) "帳戶已變更，請重新開啟表單 · Account changed; reopen the form" else "Account changed; reopen the form"
+        }
         // Recheck catalogue membership and eligibility at the write boundary, including restored drafts.
         val records = (courseRepository ?: AppwriteCourseRepository(clientProvider)).getTeachingRecords(form.courseCode).getOrThrow()
         require(form.instructors.all { evaluation -> records.any {
             it.term == form.term && it.instructorName == evaluation.name && it.section == evaluation.session &&
                 (it.serviceLearning == null || it.serviceLearning == evaluation.serviceLearning)
-        } }) { "課程／講師資料已變更，請重新選擇 · Course or instructor data changed; select again" }
+        } }) {
+            if (isZh) "課程／講師資料已變更，請重新選擇 · Course or instructor data changed; select again" else "Course or instructor data changed; select again"
+        }
         val eligibility = checkEligibility(user.id, form.courseCode, form.term)
         check(eligibility.canSubmit) { eligibilityMessage(eligibility.reasonKey) }
         require(clientProvider.account?.get()?.id == submission.userId) { "Account changed" }
@@ -370,9 +378,9 @@ class AppwriteReviewRepository(
     }
 }
 
-internal fun eligibilityMessage(key: String?): String = when (key) {
-    "review.termLimitExceeded" -> "本學期最多可提交 7 則評價 · Maximum 7 reviews per term"
-    "review.limitExceeded" -> "此課程最多可提交 2 則評價 · Maximum 2 reviews per course"
-    "review.limitReachedWithPass" -> "你已評價此課程；僅不及格後重修可再次提交 · Only a failed course can be reviewed again"
-    else -> "無法確認提交資格，請重試 · Could not verify eligibility; retry"
+internal fun eligibilityMessage(key: String?, isZh: Boolean = com.lingubible.app.core.settings.AppSettingsManager.isZh): String = when (key) {
+    "review.termLimitExceeded" -> if (isZh) "本學期最多可提交 7 則評價 · Maximum 7 reviews per term" else "Maximum 7 reviews per term"
+    "review.limitExceeded" -> if (isZh) "此課程最多可提交 2 則評價 · Maximum 2 reviews per course" else "Maximum 2 reviews per course"
+    "review.limitReachedWithPass" -> if (isZh) "你已評價此課程；僅不及格後重修可再次提交 · Only a failed course can be reviewed again" else "You have already reviewed this course; only a failed course can be reviewed again"
+    else -> if (isZh) "無法確認提交資格，請重試 · Could not verify eligibility; retry" else "Could not verify eligibility; please retry"
 }

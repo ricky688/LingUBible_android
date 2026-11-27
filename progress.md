@@ -1,3 +1,10 @@
+## 2026-11-27 — Release v1.0.11 (Code 12): Full English Mode Polish & Clean Scroll Edges
+
+- **Full English Mode Optimization**: Updated 75+ files across `core/`, `data/`, `domain/`, `ui/viewmodels/`, `ui/components/`, and `ui/screens/` so English mode (`isZh == false`) displays pure English without leftover Chinese or forced bilingual text, while Chinese mode (`isZh == true`) keeps bilingual components intact.
+- **Removed All Scroll Fade-Out Blur**: Disabled `FadingBlurModifier` / `ScrollFadingContainers`, removed horizontal `ScrollableM3ButtonGroup` fades, and removed `DiscoverTopBarGlass()` from `MainActivity.kt`.
+- **Discover Featured Tabs Layout**: Added `fillWidthWhenFits` using `maxIntrinsicWidth` single-pass measurement in `M3ButtonGroup.kt` and enabled it on `HomeScreen.kt` so the 4 featured tab buttons fill the full bar width evenly when they fit.
+- **R8 Release Build & Verification**: Verified all unit tests (`testDebugUnitTest`), built signed R8 APK and AAB, and validated via `tools/verify-play-release.py`.
+
 ## 2026-11-27 — Release v1.0.10 (Code 11): Container Transform, Query Optimization & App Links
 
 - **Material 3 Container Transform**: Added `ContainerTransform.kt` and integrated shared container transform transitions across `NavGraph.kt`, `CoursesScreen.kt`, `CourseDetailScreen.kt`, `InstructorsScreen.kt`, and `InstructorDetailScreen.kt`.

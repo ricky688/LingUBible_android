@@ -8,6 +8,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.domain.model.StudyMaterial
 import com.lingubible.app.domain.repository.AuthRepository
 import com.lingubible.app.domain.repository.MaterialRepository
@@ -21,6 +23,9 @@ internal class MaterialExport(val busy: Boolean, val error: String?, val clearEr
 
 @Composable
 internal fun rememberMaterialExport(bucket: String, zipName: String): MaterialExport {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val context = LocalContext.current
     val repository = koinInject<MaterialRepository>()
     val auth = koinInject<AuthRepository>()
@@ -42,20 +47,20 @@ internal fun rememberMaterialExport(bucket: String, zipName: String): MaterialEx
                 try {
                     withContext(Dispatchers.IO) {
                         suspend fun bytes(id: String): ByteArray {
-                            check(account != null && auth.currentUser.value?.id == account) { "登入狀態已變更 · Sign in again" }
+                            check(account != null && auth.currentUser.value?.id == account) { if (isZh) "登入狀態已變更 · Sign in again" else "Sign in again" }
                             val data = repository.downloadFileBytes(bucket, id).getOrThrow()
-                            check(auth.currentUser.value?.id == account) { "登入狀態已變更 · Sign in again" }
+                            check(auth.currentUser.value?.id == account) { if (isZh) "登入狀態已變更 · Sign in again" else "Sign in again" }
                             return data
                         }
                         val output = requireNotNull(context.contentResolver.openOutputStream(uri, "wt"))
                         if (chosen.size == 1) output.use { it.write(bytes(chosen.single().id)) }
                         else writeMaterialsZip(output, chosen, ::bytes)
                     }
-                    android.widget.Toast.makeText(context, "檔案已儲存 · Files saved", android.widget.Toast.LENGTH_LONG).show()
+                    android.widget.Toast.makeText(context, if (isZh) "檔案已儲存 · Files saved" else "Files saved", android.widget.Toast.LENGTH_LONG).show()
                 } catch (e: Exception) {
                     withContext(NonCancellable + Dispatchers.IO) { runCatching { DocumentsContract.deleteDocument(context.contentResolver, uri) } }
                     if (e is CancellationException) throw e
-                    error = e.localizedMessage ?: "下載失敗 · Download failed"
+                    error = e.localizedMessage ?: if (isZh) "下載失敗 · Download failed" else "Download failed"
                 } finally { pending = null; writing = false }
             }
         }
@@ -64,7 +69,7 @@ internal fun rememberMaterialExport(bucket: String, zipName: String): MaterialEx
         if (chosen.isNotEmpty() && pending == null && !writing) {
             error = null
             val account = auth.currentUser.value?.id
-            if (account == null) error = "請先登入 · Sign in first"
+            if (account == null) error = if (isZh) "請先登入 · Sign in first" else "Sign in first"
             else {
                 owner = account
                 pending = Json.encodeToString(chosen)
@@ -77,7 +82,7 @@ internal fun rememberMaterialExport(bucket: String, zipName: String): MaterialEx
                         type = mime
                         putExtra(Intent.EXTRA_TITLE, (single?.name ?: zipName).replace('/', '_').replace('\\', '_'))
                     })
-                } catch (e: Exception) { pending = null; error = e.localizedMessage ?: "無法開啟儲存位置 · Could not open file picker" }
+                } catch (e: Exception) { pending = null; error = e.localizedMessage ?: if (isZh) "無法開啟儲存位置 · Could not open file picker" else "Could not open file picker" }
             }
         }
     }

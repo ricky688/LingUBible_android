@@ -17,6 +17,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,9 +30,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.ui.common.mousePointer
 import com.lingubible.app.ui.common.rememberCardPressShape
+import org.koin.compose.koinInject
 
 @Composable
 fun StatsCard(
@@ -42,6 +47,9 @@ fun StatsCard(
     onClick: (() -> Unit)? = null,
     isLoading: Boolean = false
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val isDark = isAppDarkTheme()
     val bgColor = MaterialTheme.colorScheme.surfaceContainer
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
@@ -51,7 +59,7 @@ fun StatsCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .semantics { if (isLoading) stateDescription = "載入中 Loading" }
+            .semantics { if (isLoading) stateDescription = if (isZh) "載入中 Loading" else "Loading" }
             .then(if (onClick != null) Modifier.mousePointer().clickable(
                 interactionSource = interactionSource,
                 indication = null,

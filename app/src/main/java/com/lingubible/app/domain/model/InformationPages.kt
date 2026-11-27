@@ -35,6 +35,10 @@ internal val ANDROID_FAQ = listOf(
 )
 
 internal val ANDROID_CHANGELOG = listOf(
+    InformationSection("1.0.11", InformationText("v1.0.11 · 英文模式全面最佳化、移除捲動淡出遮罩與按鈕列寬度對齊", "v1.0.11 · Full English Mode Polish, Clean Scroll Edges & Button Bar Layout"), listOf(
+        InformationText("全面最佳化英文模式（EN）：切換至英文模式時所有頁面與彈窗改為純英文顯示，中文模式保留繁中與雙語元件。", "Optimized English mode across all screens and modals so EN mode renders pure English while Chinese mode retains bilingual components."),
+        InformationText("全面移除全應用捲動邊緣 fade-out blur 與探索頁 TopBar 下方白色漸層遮罩，畫面邊界更乾淨銳利。", "Removed all scroll fade-out blur overlays and the Discover top-bar frost edge for crisp, unmasked scroll boundaries."),
+        InformationText("探索頁精選按鈕列自動填滿容器寬度，消除右側空白。", "Expanded the Discover featured button bar to fill available width evenly without trailing whitespace."))),
     InformationSection("1.0.10", InformationText("v1.0.10 · 容器轉場動效、講師評價加速與 App Links 優化", "v1.0.10 · Container Transform, Faster Instructor Reviews & App Links"), listOf(
         InformationText("課程與講師列表點擊進入詳情頁新增 Material 3 容器轉場（Container Transform）動畫。", "Added Material 3 Container Transform transitions when opening course and instructor detail screens."),
         InformationText("優化講師評價與投票資料查詢，大幅縮短講師詳情頁載入時間。", "Optimized instructor review and vote queries for significantly faster instructor detail loading."),

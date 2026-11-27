@@ -118,7 +118,10 @@ class TimetableViewModel(
                     canUndo = undoHistory[term.id].orEmpty().isNotEmpty(), canRedo = redoHistory[term.id].orEmpty().isNotEmpty(), isLoading = false) }
             } catch (e: CancellationException) { throw e
             } catch (e: Exception) {
-                if (run == termGeneration) _uiState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "課表載入失敗 · Could not load timetable") }
+                if (run == termGeneration) _uiState.update {
+                    val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+                    it.copy(isLoading = false, errorMessage = e.localizedMessage ?: if (isZh) "課表載入失敗 · Could not load timetable" else "Could not load timetable")
+                }
             }
         }
     }
@@ -179,14 +182,18 @@ class TimetableViewModel(
             try {
                 val sections = repository.getSectionsForTerm(share.term)
                 val found = sections.filter { it.id in share.sectionIds }.map { it.id }.toSet()
-                check(found.isNotEmpty()) { "找不到連結中的課程 · No matching sections found" }
+                val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+                check(found.isNotEmpty()) { if (isZh) "找不到連結中的課程 · No matching sections found" else "No matching sections found" }
                 val existing = repository.getSelectedSectionIds(share.term.id)
                 val preview = TimetableImportPreview(share.term, sections, found, (found - existing).size,
                     (found intersect existing).size, share.sectionIds - found,
                     repository.findConflicts(sections.filter { it.id in existing || it.id in found }).size)
                 if (run == importGeneration) _uiState.update { it.copy(importLoading = false, importPreview = preview) }
             } catch (e: CancellationException) { throw e
-            } catch (e: Exception) { if (run == importGeneration) _uiState.update { it.copy(importLoading = false, importError = e.localizedMessage ?: "匯入失敗 · Import failed") } }
+            } catch (e: Exception) { if (run == importGeneration) _uiState.update {
+                val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+                it.copy(importLoading = false, importError = e.localizedMessage ?: if (isZh) "匯入失敗 · Import failed" else "Import failed")
+            } }
         }
     }
     fun confirmImport() {
@@ -228,7 +235,8 @@ class TimetableViewModel(
             calendarName = state.appearance.title.ifBlank { "LingUBible ${state.selectedTerm.name}" }
         )
         if (!icsText.contains("BEGIN:VEVENT")) {
-            Toast.makeText(context, "所選日期內沒有課堂 No meetings in the selected dates", Toast.LENGTH_LONG).show()
+            val msg = if (com.lingubible.app.core.settings.AppSettingsManager.isZh) "所選日期內沒有課堂 No meetings in the selected dates" else "No meetings in the selected dates"
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
             return
         }
         val fileName = "LingUBible_${state.selectedTerm.short}_Timetable.ics"
@@ -243,7 +251,8 @@ class TimetableViewModel(
             val code = section.courseCode.replace(Regex("[^A-Za-z0-9_-]"), "_")
             IcsExporter.shareIcs(context, text, "${code}_${term.short}_${meeting.day}_${meeting.startMinutes}.ics").getOrThrow()
         }.onFailure {
-            Toast.makeText(context, "無法匯出時段 / Could not export meeting", Toast.LENGTH_LONG).show()
+            val msg = if (com.lingubible.app.core.settings.AppSettingsManager.isZh) "無法匯出時段 / Could not export meeting" else "Could not export meeting"
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -253,10 +262,12 @@ class TimetableViewModel(
             val term = state.selectedTerm.copy(startDate = state.appearance.icsStart.ifBlank { state.selectedTerm.startDate }, endDate = state.appearance.icsEnd.ifBlank { state.selectedTerm.endDate })
             context.startActivity(IcsExporter.createTimetableMeetingInsertIntent(section, meeting, term))
         } catch (_: ActivityNotFoundException) {
-            Toast.makeText(context, "未安裝日曆程式，改為匯出 .ics / No calendar app; exporting .ics", Toast.LENGTH_LONG).show()
+            val msg = if (com.lingubible.app.core.settings.AppSettingsManager.isZh) "未安裝日曆程式，改為匯出 .ics / No calendar app; exporting .ics" else "No calendar app; exporting .ics"
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
             exportMeetingIcs(context, section, meeting)
         } catch (_: Exception) {
-            Toast.makeText(context, "無法開啟日曆 / Could not open calendar", Toast.LENGTH_LONG).show()
+            val msg = if (com.lingubible.app.core.settings.AppSettingsManager.isZh) "無法開啟日曆 / Could not open calendar" else "Could not open calendar"
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
         }
     }
 }

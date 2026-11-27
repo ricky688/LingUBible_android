@@ -115,7 +115,11 @@ class WriteReviewViewModel(
             it.term == s.form.term && it.instructorName == evaluation.name && it.section == evaluation.session &&
                 (it.serviceLearning == null || it.serviceLearning == evaluation.serviceLearning)
         } }
-        if (!validRecords) { _uiState.update { it.copy(errorMessage = "請重新選擇有效講師／課節 · Select valid instructors and sessions") }; return }
+        if (!validRecords) {
+            val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+            _uiState.update { it.copy(errorMessage = if (isZh) "請重新選擇有效講師／課節 · Select valid instructors and sessions" else "Select valid instructors and sessions") }
+            return
+        }
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
             val result = reviews.submitReview(ReviewSubmission(owner, s.form))

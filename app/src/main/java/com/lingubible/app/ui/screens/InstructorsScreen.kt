@@ -39,6 +39,8 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.ui.common.mouseScrollbar
 import com.lingubible.app.ui.components.M3ButtonGroupItem
@@ -49,6 +51,7 @@ import com.lingubible.app.ui.components.PopularInstructorCard
 import com.lingubible.app.ui.components.ScrollableM3ButtonGroup
 import com.lingubible.app.ui.viewmodels.InstructorsViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +59,9 @@ fun InstructorsScreen(
     onNavigateToInstructor: (String) -> Unit,
     viewModel: InstructorsViewModel = koinViewModel()
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val isDark = isAppDarkTheme()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val historyContext = LocalContext.current
@@ -81,7 +87,7 @@ fun InstructorsScreen(
                 onValueChange = {
                     viewModel.search(it)
                 },
-                placeholder = { Text("搜尋講師姓名...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                placeholder = { Text(if (isZh) "搜尋講師姓名..." else "Search instructor name...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 leadingIcon = {
                     Icon(
                         Icons.Filled.Search,
@@ -92,7 +98,7 @@ fun InstructorsScreen(
                 trailingIcon = {
                     Row {
                     RecentSearchesButton(searchHistory, "instructors", viewModel::search)
-                    IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { showFilters = true }) { Icon(Icons.Default.Tune, "篩選與排序 Filter and sort instructors") }
+                    IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick { showFilters = true }) { Icon(Icons.Default.Tune, if (isZh) "篩選與排序 Filter and sort instructors" else "Filter and sort instructors") }
                     if (searchInput.isNotEmpty()) {
                         IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick {
                             viewModel.search("")
@@ -121,10 +127,14 @@ fun InstructorsScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text("${uiState.instructors.size} / ${uiState.allInstructors.size} 位講師 Instructors", style = MaterialTheme.typography.labelLarge)
+            Text(
+                if (isZh) "${uiState.instructors.size} / ${uiState.allInstructors.size} 位講師 Instructors"
+                else "${uiState.instructors.size} / ${uiState.allInstructors.size} instructors",
+                style = MaterialTheme.typography.labelLarge
+            )
             (uiState.errorMessage ?: uiState.optionsError)?.let { message ->
                 Text(message, color = MaterialTheme.colorScheme.error)
-                TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::loadInstructors)) { Text("重試 Retry") }
+                TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::loadInstructors)) { Text(if (isZh) "重試 Retry" else "Retry") }
             }
             Spacer(Modifier.height(8.dp))
 
@@ -149,7 +159,7 @@ fun InstructorsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "找不到相關講師",
+                                    text = if (isZh) "找不到相關講師" else "No matching instructors found",
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

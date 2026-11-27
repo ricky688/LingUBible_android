@@ -41,22 +41,29 @@ enum class TimetableExportOrientation(
     val titleEn: String,
     val subtitleZh: String,
     val subtitleEn: String,
-    val resolutionLabel: String
+    val resolutionLabel: String,
+    val resolutionLabelEn: String
 ) {
     LANDSCAPE(
         titleZh = "橫向寬螢幕",
         titleEn = "Landscape",
         subtitleZh = "適合電腦 / 平板檢視與列印",
         subtitleEn = "For PC, Tablet & Print",
-        resolutionLabel = "2400 × 1400 (16:9 寬螢幕)"
+        resolutionLabel = "2400 × 1400 (16:9 寬螢幕)",
+        resolutionLabelEn = "2400 × 1400 (16:9 Widescreen)"
     ),
     PORTRAIT(
         titleZh = "直向標準手機",
         titleEn = "Portrait",
         subtitleZh = "標準手機比例，適合桌布與社群分享",
         subtitleEn = "Standard phone ratio (9:16) for wallpaper & stories",
-        resolutionLabel = "1440 × 2560 (9:16 手機比例)"
-    )
+        resolutionLabel = "1440 × 2560 (9:16 手機比例)",
+        resolutionLabelEn = "1440 × 2560 (9:16 Portrait)"
+    );
+
+    fun title(isZh: Boolean): String = if (isZh) titleZh else titleEn
+    fun subtitle(isZh: Boolean): String = if (isZh) subtitleZh else subtitleEn
+    fun resolutionLabel(isZh: Boolean): String = if (isZh) resolutionLabel else resolutionLabelEn
 }
 
 object TimetableImageExport {
@@ -125,7 +132,8 @@ object TimetableImageExport {
      */
     fun computeSummaryText(
         selectedSections: List<TimetableSection>,
-        creditsByCode: Map<String, Int> = emptyMap()
+        creditsByCode: Map<String, Int> = emptyMap(),
+        isZh: Boolean = true
     ): String {
         val distinctCourseCodes = selectedSections
             .map { it.courseCode.trim().uppercase(Locale.ROOT) }
@@ -134,7 +142,7 @@ object TimetableImageExport {
         val totalCredits = distinctCourseCodes.sumOf { code ->
             creditsByCode[code] ?: 3
         }
-        return "${distinctCourseCodes.size} 科課程 • 共 $totalCredits 學分"
+        return if (isZh) "${distinctCourseCodes.size} 科課程 • 共 $totalCredits 學分" else "${distinctCourseCodes.size} courses • $totalCredits credits"
     }
 
     private const val GRID_TOP = HEADER_HEIGHT + DAY_HEADER_HEIGHT
@@ -150,7 +158,8 @@ object TimetableImageExport {
         conflicts: List<TimeConflict> = emptyList(),
         isDark: Boolean = false,
         creditsByCode: Map<String, Int> = emptyMap(),
-        showGridLines: Boolean = true
+        showGridLines: Boolean = true,
+        isZh: Boolean = true
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(EXPORT_WIDTH, EXPORT_HEIGHT, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -212,7 +221,7 @@ object TimetableImageExport {
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
             isAntiAlias = true
         }
-        canvas.drawText("每週課表 • Weekly Timetable", 325f, 75f, subtitlePaint)
+        canvas.drawText(if (isZh) "每週課表 • Weekly Timetable" else "Weekly Timetable", 325f, 75f, subtitlePaint)
 
         // Right side: Term & Course Summary Info
         val termPaint = Paint().apply {
@@ -224,7 +233,7 @@ object TimetableImageExport {
         }
         canvas.drawText(term.name, EXPORT_WIDTH - 48f, 58f, termPaint)
 
-        val summaryText = computeSummaryText(selectedSections, creditsByCode)
+        val summaryText = computeSummaryText(selectedSections, creditsByCode, isZh)
         val summaryPaint = Paint().apply {
             color = textSecondary
             textSize = 21f
@@ -247,7 +256,7 @@ object TimetableImageExport {
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
         }
-        canvas.drawText("時間 Time", TIME_COL_WIDTH / 2f, HEADER_HEIGHT + 44f, timeHeaderPaint)
+        canvas.drawText(if (isZh) "時間 Time" else "Time", TIME_COL_WIDTH / 2f, HEADER_HEIGHT + 44f, timeHeaderPaint)
         canvas.drawLine(TIME_COL_WIDTH, HEADER_HEIGHT, TIME_COL_WIDTH, EXPORT_HEIGHT.toFloat(), borderPaint)
 
         // 7 Day Headers
@@ -269,8 +278,12 @@ object TimetableImageExport {
         for (i in DAYS_SUN_TO_SAT.indices) {
             val day = DAYS_SUN_TO_SAT[i]
             val cx = TIME_COL_WIDTH + i * DAY_COL_WIDTH + (DAY_COL_WIDTH / 2f)
-            canvas.drawText(day.zh, cx, HEADER_HEIGHT + 35f, dayZhPaint)
-            canvas.drawText(day.en, cx, HEADER_HEIGHT + 60f, dayEnPaint)
+            if (isZh) {
+                canvas.drawText(day.zh, cx, HEADER_HEIGHT + 35f, dayZhPaint)
+                canvas.drawText(day.en, cx, HEADER_HEIGHT + 60f, dayEnPaint)
+            } else {
+                canvas.drawText(day.en, cx, HEADER_HEIGHT + 46f, dayZhPaint)
+            }
 
             val dividerX = TIME_COL_WIDTH + (i + 1) * DAY_COL_WIDTH
             // Header divider line (always visible)
@@ -463,7 +476,7 @@ object TimetableImageExport {
                     val clashLeft = clashRight - clashBadgeWidth
                     val clashRect = RectF(clashLeft, badgeTop, clashRight, badgeBottom)
                     canvas.drawRoundRect(clashRect, 6f, 6f, clashBadgeBg)
-                    canvas.drawText("衝堂", clashRect.centerX(), badgeTop + 17f, clashBadgeText)
+                    canvas.drawText(if (isZh) "衝堂" else "Clash", clashRect.centerX(), badgeTop + 17f, clashBadgeText)
                     codeRightLimit = clashLeft - 6f
                 } else {
                     codeRightLimit = typeBadgeRect.left - 6f
@@ -535,7 +548,8 @@ object TimetableImageExport {
         conflicts: List<TimeConflict> = emptyList(),
         isDark: Boolean = false,
         creditsByCode: Map<String, Int> = emptyMap(),
-        showGridLines: Boolean = true
+        showGridLines: Boolean = true,
+        isZh: Boolean = true
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(PORTRAIT_WIDTH, PORTRAIT_HEIGHT, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -603,7 +617,7 @@ object TimetableImageExport {
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
             isAntiAlias = true
         }
-        canvas.drawText("每週課表 • Weekly Timetable", 112f, 115f, subtitlePaint)
+        canvas.drawText(if (isZh) "每週課表 • Weekly Timetable" else "Weekly Timetable", 112f, 115f, subtitlePaint)
 
         // Right side: Term & Course Summary Info
         val termPaint = Paint().apply {
@@ -615,7 +629,7 @@ object TimetableImageExport {
         }
         canvas.drawText(term.name, PORTRAIT_WIDTH - 36f, 70f, termPaint)
 
-        val summaryText = computeSummaryText(selectedSections, creditsByCode)
+        val summaryText = computeSummaryText(selectedSections, creditsByCode, isZh)
         val summaryPaint = Paint().apply {
             color = textSecondary
             textSize = 20f
@@ -638,7 +652,7 @@ object TimetableImageExport {
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
         }
-        canvas.drawText("時間 Time", portraitTimeColWidth / 2f, portraitHeaderHeight + 48f, timeHeaderPaint)
+        canvas.drawText(if (isZh) "時間 Time" else "Time", portraitTimeColWidth / 2f, portraitHeaderHeight + 48f, timeHeaderPaint)
         canvas.drawLine(portraitTimeColWidth, portraitHeaderHeight, portraitTimeColWidth, PORTRAIT_HEIGHT.toFloat(), borderPaint)
 
         // 7 Day Headers
@@ -660,8 +674,12 @@ object TimetableImageExport {
         for (i in DAYS_SUN_TO_SAT.indices) {
             val day = DAYS_SUN_TO_SAT[i]
             val cx = portraitTimeColWidth + i * portraitDayColWidth + (portraitDayColWidth / 2f)
-            canvas.drawText(day.zh, cx, portraitHeaderHeight + 36f, dayZhPaint)
-            canvas.drawText(day.en, cx, portraitHeaderHeight + 62f, dayEnPaint)
+            if (isZh) {
+                canvas.drawText(day.zh, cx, portraitHeaderHeight + 36f, dayZhPaint)
+                canvas.drawText(day.en, cx, portraitHeaderHeight + 62f, dayEnPaint)
+            } else {
+                canvas.drawText(day.en, cx, portraitHeaderHeight + 48f, dayZhPaint)
+            }
 
             val dividerX = portraitTimeColWidth + (i + 1) * portraitDayColWidth
             // Header divider line (always visible)
@@ -849,7 +867,7 @@ object TimetableImageExport {
                     val clashLeft = clashRight - clashBadgeWidth
                     val clashRect = RectF(clashLeft, badgeTop, clashRight, badgeBottom)
                     canvas.drawRoundRect(clashRect, 6f, 6f, clashBadgeBg)
-                    canvas.drawText("衝堂", clashRect.centerX(), badgeTop + 16f, clashBadgeText)
+                    canvas.drawText(if (isZh) "衝堂" else "Clash", clashRect.centerX(), badgeTop + 16f, clashBadgeText)
                     codeRightLimit = clashLeft - 4f
                 } else {
                     codeRightLimit = typeBadgeRect.left - 4f
@@ -905,13 +923,14 @@ object TimetableImageExport {
         creditsByCode: Map<String, Int> = emptyMap(),
         showGridLines: Boolean = true,
         appearance: TimetableAppearance? = null,
-        colors: TimetableExportColors? = null
+        colors: TimetableExportColors? = null,
+        isZh: Boolean = true
     ): Bitmap {
         if (appearance != null) return configuredTimetableImage(orientation, term, selectedSections, conflicts, creditsByCode, showGridLines, appearance,
-            colors ?: TimetableExportColors(if (isDark) Color.BLACK else Color.WHITE, if (isDark) 0xFF202020.toInt() else 0xFFF5F5F5.toInt(), if (isDark) Color.WHITE else Color.BLACK, Color.GRAY))
+            colors ?: TimetableExportColors(if (isDark) Color.BLACK else Color.WHITE, if (isDark) 0xFF202020.toInt() else 0xFFF5F5F5.toInt(), if (isDark) Color.WHITE else Color.BLACK, Color.GRAY), isZh)
         return when (orientation) {
-            TimetableExportOrientation.LANDSCAPE -> generateLandscapeBitmap(term, selectedSections, conflicts, isDark, creditsByCode, showGridLines)
-            TimetableExportOrientation.PORTRAIT -> generatePortraitBitmap(term, selectedSections, conflicts, isDark, creditsByCode, showGridLines)
+            TimetableExportOrientation.LANDSCAPE -> generateLandscapeBitmap(term, selectedSections, conflicts, isDark, creditsByCode, showGridLines, isZh)
+            TimetableExportOrientation.PORTRAIT -> generatePortraitBitmap(term, selectedSections, conflicts, isDark, creditsByCode, showGridLines, isZh)
         }
     }
 
@@ -953,9 +972,10 @@ object TimetableImageExport {
         showGridLines: Boolean = true,
         format: TimetableExportFormat = TimetableExportFormat.PNG,
         appearance: TimetableAppearance? = null,
-        colors: TimetableExportColors? = null
+        colors: TimetableExportColors? = null,
+        isZh: Boolean = true
     ): File = withContext(Dispatchers.IO) {
-        val bitmap = generateBitmap(orientation, term, selectedSections, conflicts, isDark, creditsByCode, showGridLines, appearance, colors)
+        val bitmap = generateBitmap(orientation, term, selectedSections, conflicts, isDark, creditsByCode, showGridLines, appearance, colors, isZh)
         try {
             val prefix = if (orientation == TimetableExportOrientation.LANDSCAPE) "timetable-landscape-" else "timetable-portrait-"
             val file = File.createTempFile(prefix, ".${format.extension}", context.cacheDir)

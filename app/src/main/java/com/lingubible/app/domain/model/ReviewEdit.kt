@@ -14,9 +14,13 @@ data class ReviewEdit(
     val language: String,
     val instructors: JsonArray
 ) {
-    fun patch(): Map<String, Any> {
-        require(WordCountValidator.isValid(comment, 5, 1000)) { "評價需 5–1000 字 · Review must contain 5–1000 words" }
-        require(grade in GRADES) { "請選擇有效成績 · Select a valid grade" }
+    fun patch(isZh: Boolean = com.lingubible.app.core.settings.AppSettingsManager.isZh): Map<String, Any> {
+        require(WordCountValidator.isValid(comment, 5, 1000)) {
+            if (isZh) "評價需 5–1000 字 · Review must contain 5–1000 words" else "Review must contain 5–1000 words"
+        }
+        require(grade in GRADES) {
+            if (isZh) "請選擇有效成績 · Select a valid grade" else "Select a valid grade"
+        }
         require(language in setOf("en", "zh-TW", "zh-CN")) { "Invalid review language" }
         require(listOf(workload, difficulty, usefulness).all(::validReviewRating)) { "Invalid course rating" }
         instructors.forEach {
@@ -25,7 +29,9 @@ data class ReviewEdit(
                 val rating = detail[key]?.jsonPrimitive?.doubleOrNull ?: -1.0
                 require(validReviewRating(rating)) { "Invalid instructor rating" }
             }
-            require(WordCountValidator.isValid(detail["comments"]?.jsonPrimitive?.contentOrNull, 5, 1000)) { "講師評價需 5–1000 字 · Instructor comments must contain 5–1000 words" }
+            require(WordCountValidator.isValid(detail["comments"]?.jsonPrimitive?.contentOrNull, 5, 1000)) {
+                if (isZh) "講師評價需 5–1000 字 · Instructor comments must contain 5–1000 words" else "Instructor comments must contain 5–1000 words"
+            }
         }
         return mapOf(
             "course_comments" to comment.trim(), "course_final_grade" to grade,

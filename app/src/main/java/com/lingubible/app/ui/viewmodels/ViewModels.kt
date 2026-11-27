@@ -326,7 +326,10 @@ class CoursesViewModel(
         if (_uiState.value.availableTerms.isNotEmpty()) return
         viewModelScope.launch {
             courseRepository.getTerms().onSuccess { terms -> _uiState.update { it.copy(availableTerms = terms, optionsError = null) } }
-                .onFailure { error -> _uiState.update { it.copy(optionsError = error.localizedMessage ?: "無法載入學期 · Could not load terms") } }
+                .onFailure { error -> _uiState.update {
+                    val isZh = com.lingubible.app.core.settings.AppSettingsManager.isZh
+                    it.copy(optionsError = error.localizedMessage ?: if (isZh) "無法載入學期 · Could not load terms" else "Could not load terms")
+                } }
         }
     }
     fun loadCourses() {
@@ -340,7 +343,10 @@ class CoursesViewModel(
                 val termCodes = if (request.filters.terms.isEmpty()) null else termCache[request.filters.terms]
                     ?: courseRepository.getCourseCodesForTerms(request.filters.terms).getOrThrow().also { termCache[request.filters.terms] = it }
                 val materialCodes = if (!request.filters.hasMaterials) null else {
-                    check(userId != null) { "請登入以篩選學習資料 · Sign in to filter study materials" }
+                    check(userId != null) {
+                        if (com.lingubible.app.core.settings.AppSettingsManager.isZh) "請登入以篩選學習資料 · Sign in to filter study materials"
+                        else "Sign in to filter study materials"
+                    }
                     materials ?: requireNotNull(materialRepository).getStudyMaterialCourseCodes().getOrThrow().also { materials = it }
                 }
                 kotlinx.coroutines.currentCoroutineContext().ensureActive()

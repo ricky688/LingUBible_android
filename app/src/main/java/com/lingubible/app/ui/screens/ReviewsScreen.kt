@@ -1,7 +1,6 @@
 package com.lingubible.app.ui.screens
 
 import com.lingubible.app.ui.components.AppButtonDefaults
-import com.lingubible.app.ui.components.FadingLazyColumn
 import com.lingubible.app.ui.common.hapticClick
 
 import com.lingubible.app.core.navigation.screenContentPadding
@@ -13,6 +12,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,7 +42,10 @@ import com.lingubible.app.ui.viewmodels.ReviewsViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,15 +57,18 @@ fun ReviewsScreen(
     viewModel: ReviewsViewModel = koinViewModel(parameters = { parametersOf(myReviewsOnly) })
 ) {
     val isDark = isAppDarkTheme()
+    val settingsManager = koinInject<AppSettingsManager>()
+    val appLanguage by settingsManager.appLanguage.collectAsStateWithLifecycle()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val repository = org.koin.compose.koinInject<com.lingubible.app.domain.repository.ReviewRepository>()
+    val repository = koinInject<com.lingubible.app.domain.repository.ReviewRepository>()
     val scope = rememberCoroutineScope()
     var editingId by remember { mutableStateOf<String?>(null) }
     var deleting by remember { mutableStateOf<com.lingubible.app.domain.model.Review?>(null) }
     var mutationBusy by remember { mutableStateOf(false) }
     var mutationError by remember { mutableStateOf<String?>(null) }
-    val auth = org.koin.compose.koinInject<com.lingubible.app.domain.repository.AuthRepository>()
+    val auth = koinInject<com.lingubible.app.domain.repository.AuthRepository>()
     val account by auth.currentUser.collectAsStateWithLifecycle()
     LaunchedEffect(account?.id) { editingId = null; deleting = null; mutationError = null }
     editingId?.let { id ->
@@ -71,8 +77,8 @@ fun ReviewsScreen(
     deleting?.let { review ->
         AlertDialog(
             onDismissRequest = { if (!mutationBusy) deleting = null },
-            title = { Text("刪除此評價？ Delete review?") },
-            text = { Text(mutationError ?: "${review.courseCode} · 刪除後無法復原。 This cannot be undone.") },
+            title = { Text(if (isZh) "刪除此評價？ Delete review?" else "Delete review?") },
+            text = { Text(mutationError ?: if (isZh) "${review.courseCode} · 刪除後無法復原。 This cannot be undone." else "${review.courseCode} · This cannot be undone.") },
             confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick {
                 mutationBusy = true; mutationError = null
                 scope.launch {
@@ -80,8 +86,8 @@ fun ReviewsScreen(
                         .onFailure { mutationError = it.localizedMessage }
                     mutationBusy = false
                 }
-            }, enabled = !mutationBusy) { Text("刪除 Delete", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { deleting = null }, enabled = !mutationBusy) { Text("取消 Cancel") } }
+            }, enabled = !mutationBusy) { Text(if (isZh) "刪除 Delete" else "Delete", color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { deleting = null }, enabled = !mutationBusy) { Text(if (isZh) "取消 Cancel" else "Cancel") } }
         )
     }
 
@@ -120,16 +126,16 @@ fun ReviewsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text("登入以查看我的評價 · Sign in to view your reviews")
+                Text(if (isZh) "登入以查看我的評價 · Sign in to view your reviews" else "Sign in to view your reviews")
                 Spacer(Modifier.height(16.dp))
                 Button(onClick = hapticClick(onNavigateToAuth), shapes = AppButtonDefaults.shapes()) {
-                    Text("登入 · Sign in")
+                    Text(if (isZh) "登入 · Sign in" else "Sign in")
                 }
             }
         } else if (uiState.isLoading && uiState.reviews.isEmpty()) {
             M3LoadingState(
                 modifier = Modifier.fillMaxSize(),
-                message = "正在載入評價資料..."
+                message = if (isZh) "正在載入評價資料..." else "Loading reviews..."
             )
         } else {
             M3PullToRefreshBox(
@@ -145,9 +151,9 @@ fun ReviewsScreen(
                     ) {
                         Text(
                             text = when {
-                                uiState.errorMessage != null -> "載入失敗，請重試 · Could not load reviews"
-                                myReviewsOnly -> "你尚未撰寫評價 · You haven’t written any reviews yet"
-                                else -> "目前尚無評價記錄 · No reviews yet"
+                                uiState.errorMessage != null -> if (isZh) "載入失敗，請重試 · Could not load reviews" else "Could not load reviews"
+                                myReviewsOnly -> if (isZh) "你尚未撰寫評價 · You haven’t written any reviews yet" else "You haven’t written any reviews yet"
+                                else -> if (isZh) "目前尚無評價記錄 · No reviews yet" else "No reviews yet"
                             },
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -155,11 +161,15 @@ fun ReviewsScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                         ExpressiveInlineReviewButton(
                             onClick = { if (uiState.errorMessage != null) viewModel.loadReviews() else onNavigateToWriteReview("") },
-                            text = if (uiState.errorMessage != null) "重試 · Retry" else "撰寫評價 · Write review"
+                            text = if (uiState.errorMessage != null) {
+                                if (isZh) "重試 · Retry" else "Retry"
+                            } else {
+                                if (isZh) "撰寫評價 · Write review" else "Write review"
+                            }
                         )
                     }
                 } else {
-                    FadingLazyColumn(
+                    LazyColumn(
                         state = listState,
                         modifier = Modifier
                             .fillMaxSize()
@@ -169,9 +179,16 @@ fun ReviewsScreen(
                     ) {
                         item(key = "review-filters") {
                             ReviewBrowserControls(uiState.reviews, filters, { filters = it }, filtered.size)
-                            uiState.errorMessage?.let { Text("更新失敗 · Refresh failed: $it", color = MaterialTheme.colorScheme.error) }
+                            uiState.errorMessage?.let {
+                                Text(
+                                    if (isZh) "更新失敗 · Refresh failed: $it" else "Refresh failed: $it",
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
-                        if (filtered.isEmpty()) item { Text("沒有符合篩選的評價 · No matching reviews") }
+                        if (filtered.isEmpty()) item {
+                            Text(if (isZh) "沒有符合篩選的評價 · No matching reviews" else "No matching reviews")
+                        }
                         itemsIndexed(filtered.take(visibleCount), key = { _, it -> it.id }) { index, review ->
                             ReviewCard(
                                 review = review,
@@ -184,14 +201,14 @@ fun ReviewsScreen(
                             )
                             if (myReviewsOnly) {
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { editingId = review.id }) { Text("修改 Edit") }
-                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { mutationError = null; deleting = review }) { Text("刪除 Delete", color = MaterialTheme.colorScheme.error) }
+                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { editingId = review.id }) { Text(if (isZh) "修改 Edit" else "Edit") }
+                                    TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { mutationError = null; deleting = review }) { Text(if (isZh) "刪除 Delete" else "Delete", color = MaterialTheme.colorScheme.error) }
                                 }
                             }
                         }
                         if (visibleCount < filtered.size) item(key = "more-reviews") {
                             OutlinedButton(onClick = hapticClick { visibleCount += 30 }, modifier = Modifier.fillMaxWidth(), shapes = AppButtonDefaults.shapes()) {
-                                Text("載入更多 Load more · ${minOf(visibleCount, filtered.size)}/${filtered.size}")
+                                Text(if (isZh) "載入更多 Load more · ${minOf(visibleCount, filtered.size)}/${filtered.size}" else "Load more · ${minOf(visibleCount, filtered.size)}/${filtered.size}")
                             }
                         }
                     }
@@ -230,7 +247,7 @@ fun ReviewsScreen(
             ExpressiveReviewFab(
                 onClick = { onNavigateToWriteReview("") },
                 expanded = isFabExpanded,
-                text = "撰寫評價",
+                text = if (isZh) "撰寫評價" else "Write review",
                 modifier = Modifier.onSizeChanged { fabHeight = with(density) { it.height.toDp() } }
             )
         }

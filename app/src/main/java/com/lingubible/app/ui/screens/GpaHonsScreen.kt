@@ -49,6 +49,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.domain.calculator.HonoursCalculator
 import com.lingubible.app.domain.calculator.HonoursCalculator.HonoursTier
@@ -59,12 +61,16 @@ import com.lingubible.app.ui.viewmodels.GpaHonsViewModel
 import com.lingubible.app.ui.viewmodels.GpaTerm
 import com.lingubible.app.ui.viewmodels.TermPart
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modifier = Modifier) {
+    val settings = koinInject<AppSettingsManager>()
+    val language by settings.appLanguage.collectAsStateWithLifecycle()
+    val isZh = language == AppLanguage.ZH_TW
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var statistics by rememberSaveable { mutableStateOf(false) }
     var showResetDialog by rememberSaveable { mutableStateOf(false) }
@@ -106,9 +112,13 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     text = {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(zh, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(en, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        if (isZh) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(zh, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(en, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                        } else {
+                            Text(en, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 )
@@ -144,36 +154,47 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     item("summary") {
-                        GpaSectionTitle("GPA 與榮譽規劃", "GPA & Honours Planner")
-                        Text("資料只儲存於本機 · Saved on this device", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        GpaSectionTitle(
+                            if (isZh) "GPA 與榮譽規劃" else "GPA & Honours Planner",
+                            if (isZh) "GPA & Honours Planner" else ""
+                        )
+                        Text(
+                            if (isZh) "資料只儲存於本機 · Saved on this device" else "Saved on this device",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Spacer(Modifier.height(12.dp))
-                        GpaSummary(state = state, onOpenGpaGod = { showGpaGodModal = true })
+                        GpaSummary(state = state, isZh = isZh, onOpenGpaGod = { showGpaGodModal = true })
                     }
                     item("backup") {
                         Surface(shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
                             Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text("備份與匯出 · Backup & export", style = MaterialTheme.typography.titleSmall)
-                                Text("JSON 可還原完整資料；CSV 可用於試算表。\nRestore with JSON; view CSV in a spreadsheet.",
-                                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(if (isZh) "備份與匯出 · Backup & export" else "Backup & export", style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    if (isZh) "JSON 可還原完整資料；CSV 可用於試算表。\nRestore with JSON; view CSV in a spreadsheet."
+                                    else "Restore with JSON; view CSV in a spreadsheet.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     FilledTonalButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { jsonExport.launch(exportName("json")) }, enabled = !state.backupBusy) {
                                         Icon(Icons.Outlined.SaveAlt, contentDescription = null, modifier = Modifier.size(18.dp))
                                         Spacer(Modifier.width(6.dp))
-                                        Text("備份 Backup")
+                                        Text(if (isZh) "備份 Backup" else "Backup")
                                     }
                                     OutlinedButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { csvExport.launch(exportName("csv")) }, enabled = !state.backupBusy) {
-                                        Text("匯出 CSV")
+                                        Text(if (isZh) "匯出 CSV" else "Export CSV")
                                     }
                                     TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { importBackup.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }, enabled = !state.backupBusy) {
-                                        Text("還原 Restore")
+                                        Text(if (isZh) "還原 Restore" else "Restore")
                                     }
                                 }
                                 if (state.backupBusy) LinearProgressIndicator(Modifier.fillMaxWidth())
                             }
                         }
                     }
-                    item("trend") { GpaTrendCard(state) }
-                    item("target") { GpaTargetCard(state, viewModel::setTargetCgpa, viewModel::setRemainingCredits) }
+                    item("trend") { GpaTrendCard(state, isZh = isZh) }
+                    item("target") { GpaTargetCard(state, viewModel::setTargetCgpa, viewModel::setRemainingCredits, isZh = isZh) }
                     item("editor_title") {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -181,7 +202,10 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                GpaSectionTitle("學期與課程", "Terms & Courses")
+                                GpaSectionTitle(
+                                    if (isZh) "學期與課程" else "Terms & Courses",
+                                    if (isZh) "Terms & Courses" else ""
+                                )
                             }
                             Surface(
                                 color = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -207,7 +231,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                     ) {
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.Undo,
-                                            contentDescription = "復原 Undo",
+                                            contentDescription = if (isZh) "復原 Undo" else "Undo",
                                             tint = if (state.canUndo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
                                             modifier = Modifier.size(18.dp)
                                         )
@@ -219,7 +243,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                     ) {
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.Redo,
-                                            contentDescription = "重做 Redo",
+                                            contentDescription = if (isZh) "重做 Redo" else "Redo",
                                             tint = if (state.canRedo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
                                             modifier = Modifier.size(18.dp)
                                         )
@@ -234,7 +258,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.RestartAlt,
-                                            contentDescription = "重設 Reset",
+                                            contentDescription = if (isZh) "重設 Reset" else "Reset",
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(18.dp)
                                         )
@@ -256,7 +280,8 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                         ) {
                             AcademicYearSelector(
                                 selected = state.document.yearAcademic[year] ?: "${2021 + year}-${2022 + year}",
-                                onSelect = { viewModel.setAcademicYear(year, it) }
+                                onSelect = { viewModel.setAcademicYear(year, it) },
+                                isZh = isZh
                             )
                             YearCard(
                                 year = year,
@@ -270,7 +295,8 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                 onAddTerm = { viewModel.addTerm(year) },
                                 onRemoveTerm = viewModel::removeTerm,
                                 onRemoveYear = { viewModel.removeYear(year) },
-                                canRemoveYear = years.size > 1
+                                canRemoveYear = years.size > 1,
+                                isZh = isZh
                             )
                         }
                     }
@@ -302,7 +328,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    text = "新增學年 · Add Academic Year",
+                                    text = if (isZh) "新增學年 · Add Academic Year" else "Add Academic Year",
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
@@ -311,7 +337,15 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
                         }
                     }
                     item("rules") {
-                        Text("年度榮譽榜：全年至少 24 學分、其中一學期至少 12 學分，且無 F／FAIL／U／I。校長榜 ≥ 3.70；院長榜 ≥ 3.30。\nAnnual awards also require the credit and grade conditions above; chart reference lines alone do not establish eligibility.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            if (isZh) {
+                                "年度榮譽榜：全年至少 24 學分、其中一學期至少 12 學分，且無 F／FAIL／U／I。校長榜 ≥ 3.70；院長榜 ≥ 3.30。\nAnnual awards also require the credit and grade conditions above; chart reference lines alone do not establish eligibility."
+                            } else {
+                                "Annual awards require at least 24 credits for the year, at least 12 credits in a single term, and no F, FAIL, U, or I grades. President's List ≥ 3.70; Dean's List ≥ 3.30. Chart reference lines alone do not establish eligibility."
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
                 }
@@ -325,18 +359,31 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
         val courses = restored.document.terms.sumOf { it.courses.size }
         AlertDialog(
             onDismissRequest = viewModel::dismissCalculatorRestore,
-            title = { Text("還原計算器備份？\nRestore calculator backup?") },
-            text = { Text("備份包含 $terms 個學期、$courses 個課程。將取代目前的計算器資料及目標設定，可按「復原 Undo」還原。\n$terms terms and $courses courses will replace the current entries and goals. You can Undo this change.") },
-            confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::confirmCalculatorRestore)) { Text("還原 Restore") } },
-            dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::dismissCalculatorRestore)) { Text("取消 Cancel") } }
+            title = { Text(if (isZh) "還原計算器備份？\nRestore calculator backup?" else "Restore calculator backup?") },
+            text = {
+                Text(
+                    if (isZh) {
+                        "備份包含 $terms 個學期、$courses 個課程。將取代目前的計算器資料及目標設定，可按「復原 Undo」還原。\n$terms terms and $courses courses will replace the current entries and goals. You can Undo this change."
+                    } else {
+                        "$terms terms and $courses courses will replace the current entries and goals. You can Undo this change."
+                    }
+                )
+            },
+            confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::confirmCalculatorRestore)) { Text(if (isZh) "還原 Restore" else "Restore") } },
+            dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick(viewModel::dismissCalculatorRestore)) { Text(if (isZh) "取消 Cancel" else "Cancel") } }
         )
     }
     if (showResetDialog) AlertDialog(
         onDismissRequest = { showResetDialog = false },
-        title = { Text("重設所有成績？ Reset planner?") },
-        text = { Text("學期、課程和成績將回復初始狀態。可按「復原 Undo」還原。") },
-        confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.resetAll(); showResetDialog = false }) { Text("重設 Reset") } },
-        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showResetDialog = false }) { Text("取消 Cancel") } }
+        title = { Text(if (isZh) "重設所有成績？ Reset planner?" else "Reset planner?") },
+        text = {
+            Text(
+                if (isZh) "學期、課程和成績將回復初始狀態。可按「復原 Undo」還原。"
+                else "All terms, courses, and grades will be reset to their initial state. You can Undo this change."
+            )
+        },
+        confirmButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { viewModel.resetAll(); showResetDialog = false }) { Text(if (isZh) "重設 Reset" else "Reset") } },
+        dismissButton = { TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showResetDialog = false }) { Text(if (isZh) "取消 Cancel" else "Cancel") } }
     )
     if (showGpaGodModal) {
         GpaGodFortuneModal(
@@ -347,7 +394,7 @@ fun GpaHonsScreen(viewModel: GpaHonsViewModel = koinViewModel(), modifier: Modif
 }
 
 @Composable
-private fun AcademicYearSelector(selected: String, onSelect: (String) -> Unit) {
+private fun AcademicYearSelector(selected: String, onSelect: (String) -> Unit, isZh: Boolean) {
     var expanded by remember { mutableStateOf(false) }
     val borderColor = MaterialTheme.colorScheme.outlineVariant
     val surfaceColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -398,7 +445,7 @@ private fun AcademicYearSelector(selected: String, onSelect: (String) -> Unit) {
                     }
                     Column {
                         Text(
-                            text = "學年 · Academic Year",
+                            text = if (isZh) "學年 · Academic Year" else "Academic Year",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -468,7 +515,8 @@ fun YearCard(
     onAddTerm: () -> Unit,
     onRemoveTerm: (String) -> Unit,
     onRemoveYear: () -> Unit,
-    canRemoveYear: Boolean
+    canRemoveYear: Boolean,
+    isZh: Boolean = true
 ) {
     val cardBg = MaterialTheme.colorScheme.surfaceContainer
     val borderColor = MaterialTheme.colorScheme.outlineVariant
@@ -521,7 +569,7 @@ fun YearCard(
 
                     Column {
                         Text(
-                            text = "第 $year 學年 · Year $year",
+                            text = if (isZh) "第 $year 學年 · Year $year" else "Year $year",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -582,7 +630,7 @@ fun YearCard(
                                                 modifier = Modifier.size(12.dp)
                                             )
                                             Text(
-                                                text = yearStat.award.titleZh,
+                                                text = if (isZh) yearStat.award.titleZh else yearStat.award.titleEn,
                                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
                                                 fontWeight = FontWeight.Bold,
                                                 style = MaterialTheme.typography.labelSmall
@@ -626,7 +674,8 @@ fun YearCard(
                     onAddCourse = { onAddCourse(term.id) },
                     onRemoveCourse = { cId -> onRemoveCourse(term.id, cId) },
                     onRemoveTerm = { onRemoveTerm(term.id) },
-                    canRemoveTerm = terms.size > 1
+                    canRemoveTerm = terms.size > 1,
+                    isZh = isZh
                 )
                 if (index < terms.lastIndex) {
                     HorizontalDivider(
@@ -664,7 +713,7 @@ fun YearCard(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "新增此學年學期 · Add Term",
+                            text = if (isZh) "新增此學年學期 · Add Term" else "Add Term",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -685,7 +734,8 @@ fun TermSection(
     onAddCourse: () -> Unit,
     onRemoveCourse: (String) -> Unit,
     onRemoveTerm: () -> Unit,
-    canRemoveTerm: Boolean
+    canRemoveTerm: Boolean,
+    isZh: Boolean = true
 ) {
     val textMuted = MaterialTheme.colorScheme.onSurfaceVariant
 
@@ -705,7 +755,7 @@ fun TermSection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "${term.part.titleZh} · ${term.part.titleEn}",
+                    text = if (isZh) "${term.part.titleZh} · ${term.part.titleEn}" else term.part.titleEn,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -714,7 +764,7 @@ fun TermSection(
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        text = "${term.courses.size}/${term.part.maxCourses} 門課",
+                        text = if (isZh) "${term.courses.size}/${term.part.maxCourses} 門課" else "${term.courses.size}/${term.part.maxCourses} courses",
                         style = MaterialTheme.typography.labelSmall,
                         color = textMuted,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -753,7 +803,8 @@ fun TermSection(
                     onUpdateGrade = { onUpdateCourse(course.id, null, null, null, it) },
                     onPickCourse = { onPickCourse(course.id, it) },
                     onRemove = { onRemoveCourse(course.id) },
-                    canRemove = term.courses.size > 1
+                    canRemove = term.courses.size > 1,
+                    isZh = isZh
                 )
                 if (index < term.courses.lastIndex) {
                     HorizontalDivider(
@@ -790,7 +841,7 @@ fun TermSection(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "新增課程 · Add Course",
+                        text = if (isZh) "新增課程 · Add Course" else "Add Course",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -812,7 +863,8 @@ fun CourseRow(
     onUpdateGrade: (String) -> Unit,
     onPickCourse: (com.lingubible.app.domain.model.Course) -> Unit,
     onRemove: () -> Unit,
-    canRemove: Boolean
+    canRemove: Boolean,
+    isZh: Boolean = true
 ) {
     val textMuted = MaterialTheme.colorScheme.onSurfaceVariant
 
@@ -843,7 +895,7 @@ fun CourseRow(
                 },
                 placeholder = {
                     Text(
-                        text = "課程代號 · Course Code (例: BUS1102)",
+                        text = if (isZh) "課程代號 · Course Code (例: BUS1102)" else "Course Code (e.g. BUS1102)",
                         fontSize = 12.sp,
                         color = textMuted,
                         maxLines = 1,
@@ -883,7 +935,7 @@ fun CourseRow(
                             Column {
                                 Text(text = match.code, fontWeight = FontWeight.Bold)
                                 Text(
-                                    text = if (match.titleZh.isNotBlank()) "${match.titleZh} ${match.titleEn}" else match.titleEn,
+                                    text = if (isZh && match.titleZh.isNotBlank()) "${match.titleZh} ${match.titleEn}" else match.titleEn,
                                     style = MaterialTheme.typography.labelSmall,
                                     color = textMuted
                                 )
@@ -920,7 +972,7 @@ fun CourseRow(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "${course.credits} 學分 · Credits",
+                            text = if (isZh) "${course.credits} 學分 · Credits" else "${course.credits} Credits",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.labelMedium
                         )
@@ -944,7 +996,7 @@ fun CourseRow(
                         DropdownMenuItem(
                             text = {
                                 Text(
-                                    text = "$cr 學分 · Credits",
+                                    text = if (isZh) "$cr 學分 · Credits" else "$cr Credits",
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                     color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
@@ -976,7 +1028,7 @@ fun CourseRow(
                 val displayGrade = if (hasGrade) {
                     if (isBearing && gp != null) "${course.grade} (${String.format(java.util.Locale.US, "%.2f", gp)})"
                     else course.grade
-                } else "成績 · Grade"
+                } else if (isZh) "成績 · Grade" else "Grade"
 
                 Surface(
                     onClick = hapticClick { showGradeMenu = true },
@@ -1020,7 +1072,7 @@ fun CourseRow(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Text(
-                        text = "計入 GPA 之成績 · GPA Bearing",
+                        text = if (isZh) "計入 GPA 之成績 · GPA Bearing" else "GPA Bearing",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
@@ -1069,7 +1121,7 @@ fun CourseRow(
                         modifier = Modifier.padding(vertical = 4.dp)
                     )
                     Text(
-                        text = "不計入 GPA 之成績 · Non-GPA",
+                        text = if (isZh) "不計入 GPA 之成績 · Non-GPA" else "Non-GPA",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = textMuted,

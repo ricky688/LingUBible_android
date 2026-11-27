@@ -36,10 +36,31 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.domain.model.AcademicEvent
 import com.lingubible.app.domain.model.CalendarCategory
+import org.koin.compose.koinInject
 import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
+
+private fun formatEnDateRange(event: AcademicEvent): String {
+    return try {
+        val start = LocalDate.parse(event.start)
+        val sText = "${start.month.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)} ${start.dayOfMonth}"
+        if (!event.isMultiDay || event.end == null) {
+            sText
+        } else {
+            val end = LocalDate.parse(event.end)
+            val eText = "${end.month.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)} ${end.dayOfMonth}"
+            "$sText – $eText"
+        }
+    } catch (e: Exception) {
+        event.dateRangeDisplay
+    }
+}
 
 /**
  * School Calendar (校歷日程) Screen Content.
@@ -67,6 +88,9 @@ fun SchoolCalendarView(
     modifier: Modifier = Modifier
 ) {
     val isDark = com.lingubible.app.core.theme.isAppDarkTheme()
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val cardBg = if (isDark) md_theme_dark_surfaceContainer else Color.White
     val cardBorder = if (isDark) md_theme_dark_outlineVariant else Color(0xFFE2E8F0)
     val textMuted = if (isDark) md_theme_dark_onSurfaceVariant else Color(0xFF64748B)
@@ -84,7 +108,7 @@ fun SchoolCalendarView(
                     .padding(horizontal = 20.dp, vertical = 2.dp)
             ) {
                 Text(
-                    text = "嶺南大學學年的重要日期與活動",
+                    text = if (isZh) "嶺南大學學年的重要日期與活動" else "Important dates and events for the Lingnan University academic year",
                     style = MaterialTheme.typography.bodyMedium,
                     color = textMuted,
                     fontSize = 13.sp
@@ -101,7 +125,7 @@ fun SchoolCalendarView(
                         tint = textMuted
                     )
                     Text(
-                        text = "僅供參考，以官方公佈為準",
+                        text = if (isZh) "僅供參考，以官方公佈為準" else "For reference only; subject to official announcements",
                         style = MaterialTheme.typography.labelSmall,
                         color = textMuted,
                         fontSize = 11.sp
@@ -119,7 +143,7 @@ fun SchoolCalendarView(
                         tint = textMuted
                     )
                     Text(
-                        text = "資料更新日期: 2026/07/24",
+                        text = if (isZh) "資料更新日期: 2026/07/24" else "Last updated: 2026/07/24",
                         style = MaterialTheme.typography.labelSmall,
                         color = textMuted,
                         fontSize = 11.sp
@@ -147,19 +171,23 @@ fun SchoolCalendarView(
 
         // 3. "所選日期" (Selected Date) Details Card matching media_1789044938073.jpg
         item(key = "selected_day_card") {
-            val formattedDate = remember(selectedDate) {
+            val formattedDate = remember(selectedDate, isZh) {
                 try {
                     val date = LocalDate.parse(selectedDate)
-                    val weekdayZh = when (date.dayOfWeek.value) {
-                        1 -> "星期一"
-                        2 -> "星期二"
-                        3 -> "星期三"
-                        4 -> "星期四"
-                        5 -> "星期五"
-                        6 -> "星期六"
-                        else -> "星期日"
+                    if (isZh) {
+                        val weekdayZh = when (date.dayOfWeek.value) {
+                            1 -> "星期一"
+                            2 -> "星期二"
+                            3 -> "星期三"
+                            4 -> "星期四"
+                            5 -> "星期五"
+                            6 -> "星期六"
+                            else -> "星期日"
+                        }
+                        "${date.year}年${date.monthValue}月${date.dayOfMonth}日 $weekdayZh"
+                    } else {
+                        "${date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)}, ${date.month.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)} ${date.dayOfMonth}, ${date.year}"
                     }
-                    "${date.year}年${date.monthValue}月${date.dayOfMonth}日 $weekdayZh"
                 } catch (e: Exception) {
                     selectedDate
                 }
@@ -190,7 +218,7 @@ fun SchoolCalendarView(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "所選日期",
+                                text = if (isZh) "所選日期" else "Selected Date",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = if (isDark) Color(0xFFCBD5E1) else Color(0xFF475569)
@@ -208,7 +236,7 @@ fun SchoolCalendarView(
 
                         if (selectedDayEvents.isEmpty()) {
                             Text(
-                                text = "所選日期當天沒有特定校歷日程\nNo events scheduled on this day",
+                                text = if (isZh) "所選日期當天沒有特定校歷日程\nNo events scheduled on this day" else "No events scheduled on this day",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = textMuted,
                                 textAlign = TextAlign.Center,
@@ -226,6 +254,7 @@ fun SchoolCalendarView(
                                         event = event,
                                         groupIndex = index,
                                         groupSize = selectedDayEvents.size,
+                                        isZh = isZh,
                                         isDark = isDark,
                                         textMuted = textMuted,
                                         onExportIcs = onExportIcs,
@@ -266,7 +295,7 @@ fun SchoolCalendarView(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "圖例",
+                                text = if (isZh) "圖例" else "Legend",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = if (isDark) Color(0xFFCBD5E1) else Color(0xFF475569)
@@ -278,7 +307,7 @@ fun SchoolCalendarView(
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
                             ) {
                                 Text(
-                                    text = "顯示全部",
+                                    text = if (isZh) "顯示全部" else "Show All",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (hiddenCategories.isNotEmpty()) MaterialTheme.colorScheme.primary else textMuted.copy(alpha = 0.4f)
@@ -314,6 +343,7 @@ fun SchoolCalendarView(
                                     LegendCategoryItem(
                                         category = cat,
                                         isHidden = hiddenCategories.contains(cat),
+                                        isZh = isZh,
                                         isDark = isDark,
                                         textMuted = textMuted,
                                         onToggle = { onToggleCategory(cat) }
@@ -332,6 +362,7 @@ fun SchoolCalendarView(
                                     LegendCategoryItem(
                                         category = cat,
                                         isHidden = hiddenCategories.contains(cat),
+                                        isZh = isZh,
                                         isDark = isDark,
                                         textMuted = textMuted,
                                         onToggle = { onToggleCategory(cat) }
@@ -359,6 +390,7 @@ private fun WebCalendarEventItem(
     event: AcademicEvent,
     groupIndex: Int,
     groupSize: Int,
+    isZh: Boolean,
     isDark: Boolean,
     textMuted: Color,
     onExportIcs: (AcademicEvent) -> Unit,
@@ -401,7 +433,7 @@ private fun WebCalendarEventItem(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = event.displayTitle,
+                        text = if (isZh) event.displayTitle else event.title,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
@@ -416,7 +448,7 @@ private fun WebCalendarEventItem(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = event.formatWebDateRange(),
+                            text = if (isZh) event.formatWebDateRange() else formatEnDateRange(event),
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Medium,
                             color = textMuted,
@@ -429,7 +461,7 @@ private fun WebCalendarEventItem(
                             shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
-                                text = event.category.labelZh,
+                                text = if (isZh) event.category.labelZh else event.category.labelEn,
                                 color = event.category.composeColor,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 11.sp,
@@ -443,7 +475,7 @@ private fun WebCalendarEventItem(
                                 shape = RoundedCornerShape(4.dp)
                             ) {
                                 Text(
-                                    text = event.category2.labelZh,
+                                    text = if (isZh) event.category2.labelZh else event.category2.labelEn,
                                     color = event.category2.composeColor,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 11.sp,
@@ -484,7 +516,7 @@ private fun WebCalendarEventItem(
                                 modifier = Modifier.size(12.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text(".ics 匯出", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                            Text(if (isZh) ".ics 匯出" else "Export .ics", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                         }
 
                         Spacer(modifier = Modifier.width(8.dp))
@@ -507,7 +539,7 @@ private fun WebCalendarEventItem(
                                 modifier = Modifier.size(12.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("加入日曆 Add", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(if (isZh) "加入日曆 Add" else "Add to Calendar", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -523,6 +555,7 @@ private fun WebCalendarEventItem(
 private fun LegendCategoryItem(
     category: CalendarCategory,
     isHidden: Boolean,
+    isZh: Boolean,
     isDark: Boolean,
     textMuted: Color,
     onToggle: () -> Unit,
@@ -547,7 +580,7 @@ private fun LegendCategoryItem(
         Spacer(modifier = Modifier.width(8.dp))
 
         Text(
-            text = category.labelZh,
+            text = if (isZh) category.labelZh else category.labelEn,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
             color = if (isHidden) textMuted.copy(alpha = 0.45f) else (if (isDark) Color(0xFFE2E8F0) else Color(0xFF1E293B)),

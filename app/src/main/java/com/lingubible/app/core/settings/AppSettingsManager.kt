@@ -10,7 +10,9 @@ import java.util.Locale
 enum class ThemeMode(val code: String, val titleZh: String, val titleEn: String) {
     SYSTEM("system", "系統", "System"),
     LIGHT("light", "淺色", "Light"),
-    DARK("dark", "深色", "Dark")
+    DARK("dark", "深色", "Dark");
+
+    fun label(isZh: Boolean): String = if (isZh) titleZh else titleEn
 }
 
 enum class AppLanguage(val code: String, val locale: Locale, val label: String) {
@@ -88,6 +90,10 @@ class AppSettingsManager(context: Context) {
     )
     val appLanguage: StateFlow<AppLanguage> = _appLanguage.asStateFlow()
 
+    init {
+        currentLanguage = _appLanguage.value
+    }
+
     private val _isOledBlack = MutableStateFlow(
         prefs.getBoolean(KEY_OLED_BLACK, true)
     )
@@ -154,6 +160,7 @@ class AppSettingsManager(context: Context) {
 
     fun setLanguage(lang: AppLanguage) {
         _appLanguage.value = lang
+        currentLanguage = lang
         prefs.edit().putString(KEY_APP_LANGUAGE, lang.code).apply()
     }
 
@@ -228,6 +235,13 @@ class AppSettingsManager(context: Context) {
     }
 
     companion object {
+        @Volatile
+        var currentLanguage: AppLanguage = AppLanguage.ZH_TW
+            private set
+
+        val isZh: Boolean
+            get() = currentLanguage == AppLanguage.ZH_TW
+
         private const val KEY_GUIDE_SEEN = "getting_started_seen"
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_APP_LANGUAGE = "app_language"

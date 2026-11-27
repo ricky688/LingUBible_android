@@ -5,6 +5,8 @@ import java.time.LocalDate
 import kotlin.math.pow
 
 val TIMETABLE_FIELDS = linkedMapOf("code" to "課程代碼 Code", "title" to "課程名稱 Title", "crn" to "CRN", "session" to "組別／課節 Section/session", "venue" to "地點 Location", "time" to "時間 Time", "instructors" to "講師 Instructors", "credits" to "學分 Credits")
+val TIMETABLE_FIELDS_EN = linkedMapOf("code" to "Code", "title" to "Title", "crn" to "CRN", "session" to "Section/session", "venue" to "Location", "time" to "Time", "instructors" to "Instructors", "credits" to "Credits")
+fun timetableFields(isZh: Boolean): Map<String, String> = if (isZh) TIMETABLE_FIELDS else TIMETABLE_FIELDS_EN
 val TIMETABLE_DAYS = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
 
 @Serializable
@@ -17,14 +19,21 @@ data class TimetableAppearance(
 ) {
     val orderedDays: List<String> get() = (if (mondayFirst) TIMETABLE_DAYS.drop(1) + "SUN" else TIMETABLE_DAYS).filter { it in days }
 }
-fun timetableAppearanceError(options: TimetableAppearance, term: TimetableTerm): String? = when {
-    options.title.length > 120 || options.title.any { it.isISOControl() } -> "標題上限 120 字元 Title: maximum 120 characters"
-    options.days.isEmpty() || !TIMETABLE_DAYS.containsAll(options.days) -> "請選擇至少一天 Select at least one day"
-    options.fields.none { it in setOf("code", "title") } || !TIMETABLE_FIELDS.keys.containsAll(options.fields) -> "保留課程代碼或名稱 Keep course code or title"
-    options.startMinutes !in 0..1439 || options.endMinutes !in 1..1440 || options.endMinutes <= options.startMinutes -> "結束時間須晚於開始時間 End time must follow start time"
-    options.resolution !in 1..3 -> "解像度無效 Invalid resolution"
-    options.colors.any { (code, hex) -> code.length !in 1..32 || !hex.matches(Regex("#[0-9a-fA-F]{6}")) } -> "顏色須為 #RRGGBB Use a #RRGGBB color"
-    runCatching { LocalDate.parse(options.icsEnd.ifBlank { term.endDate }) < LocalDate.parse(options.icsStart.ifBlank { term.startDate }) }.getOrDefault(true) -> "日曆日期無效或次序錯誤 Invalid calendar dates or date order"
+fun timetableAppearanceError(options: TimetableAppearance, term: TimetableTerm, isZh: Boolean = com.lingubible.app.core.settings.AppSettingsManager.isZh): String? = when {
+    options.title.length > 120 || options.title.any { it.isISOControl() } ->
+        if (isZh) "標題上限 120 字元 Title: maximum 120 characters" else "Title: maximum 120 characters"
+    options.days.isEmpty() || !TIMETABLE_DAYS.containsAll(options.days) ->
+        if (isZh) "請選擇至少一天 Select at least one day" else "Select at least one day"
+    options.fields.none { it in setOf("code", "title") } || !TIMETABLE_FIELDS.keys.containsAll(options.fields) ->
+        if (isZh) "保留課程代碼或名稱 Keep course code or title" else "Keep course code or title"
+    options.startMinutes !in 0..1439 || options.endMinutes !in 1..1440 || options.endMinutes <= options.startMinutes ->
+        if (isZh) "結束時間須晚於開始時間 End time must follow start time" else "End time must follow start time"
+    options.resolution !in 1..3 ->
+        if (isZh) "解像度無效 Invalid resolution" else "Invalid resolution"
+    options.colors.any { (code, hex) -> code.length !in 1..32 || !hex.matches(Regex("#[0-9a-fA-F]{6}")) } ->
+        if (isZh) "顏色須為 #RRGGBB Use a #RRGGBB color" else "Use a #RRGGBB color"
+    runCatching { LocalDate.parse(options.icsEnd.ifBlank { term.endDate }) < LocalDate.parse(options.icsStart.ifBlank { term.startDate }) }.getOrDefault(true) ->
+        if (isZh) "日曆日期無效或次序錯誤 Invalid calendar dates or date order" else "Invalid calendar dates or date order"
     else -> null
 }
 fun timetableMinuteRange(sections: List<TimetableSection>, options: TimetableAppearance): Pair<Int, Int> {
@@ -41,7 +50,7 @@ fun parseTimetableClock(text: String): Int? {
     if (!text.matches(Regex("(?:[01][0-9]|2[0-3]):[0-5][0-9]|24:00"))) return null
     return text.take(2).toInt() * 60 + text.takeLast(2).toInt()
 }
-fun timetableBlockLines(section: TimetableSection, meeting: TimetableMeeting, options: TimetableAppearance, credits: Int?): List<String> = buildList {
+fun timetableBlockLines(section: TimetableSection, meeting: TimetableMeeting, options: TimetableAppearance, credits: Int?, isZh: Boolean = true): List<String> = buildList {
     if ("code" in options.fields) add(section.courseCode)
     if ("title" in options.fields) add(section.courseTitle.ifBlank { section.courseTitleZh })
     val details = buildList {
@@ -49,10 +58,13 @@ fun timetableBlockLines(section: TimetableSection, meeting: TimetableMeeting, op
         if ("crn" in options.fields && section.crn.isNotBlank()) add("CRN ${section.crn}")
     }
     if (details.isNotEmpty()) add(details.joinToString(" · "))
-    if ("venue" in options.fields) add(meeting.venue.ifBlank { "待定 TBD" })
+    if ("venue" in options.fields) add(meeting.venue.ifBlank { if (isZh) "待定 TBD" else "TBD" })
     if ("time" in options.fields) add("${meeting.start}–${meeting.end}")
     if ("instructors" in options.fields) add(section.instructors.joinToString())
-    if ("credits" in options.fields) add(credits?.let { "$it 學分 Credits" } ?: "學分未知 Credits unknown")
+    if ("credits" in options.fields) add(
+        if (isZh) (credits?.let { "$it 學分 Credits" } ?: "學分未知 Credits unknown")
+        else (credits?.let { "$it credits" } ?: "Credits unknown")
+    )
 }.filter { it.isNotBlank() }
 fun timetableUsesLightText(hex: String): Boolean {
     fun channel(offset: Int): Double {

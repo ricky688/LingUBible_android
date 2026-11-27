@@ -51,6 +51,7 @@ fun GuideEntry(onClick: () -> Unit, isZh: Boolean) {
 fun GettingStartedGuideSheet(onDismiss: () -> Unit, onNavigate: (Screen) -> Unit) {
     val settings = koinInject<AppSettingsManager>()
     val language by settings.appLanguage.collectAsStateWithLifecycle()
+    val isZh = language == AppLanguage.ZH_TW
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -61,8 +62,8 @@ fun GettingStartedGuideSheet(onDismiss: () -> Unit, onNavigate: (Screen) -> Unit
         CompositionLocalProvider(LocalScreenBottomClearance provides 0.dp) {
             Column(Modifier.fillMaxWidth().fillMaxHeight(.94f)) {
                 Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (language == AppLanguage.ZH_TW) "入門指南 Getting started" else "Getting started", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                    IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick(onDismiss)) { Icon(Icons.Default.Close, "關閉指南 Close guide") }
+                    Text(if (isZh) "入門指南 Getting started" else "Getting started", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                    IconButton(shapes = AppButtonDefaults.iconShapes(), onClick = hapticClick(onDismiss)) { Icon(Icons.Default.Close, if (isZh) "關閉指南 Close guide" else "Close guide") }
                 }
                 GettingStartedGuide(onClose = onDismiss, onNavigate = onNavigate, modifier = Modifier.weight(1f))
             }
@@ -97,7 +98,7 @@ fun GettingStartedGuide(onClose: () -> Unit, onNavigate: (Screen) -> Unit, modif
                             Text(if (isZh) "重看 Replay" else "Replay")
                         }
                     }
-                    LinearProgressIndicator(progress = { (current + 1f) / steps.size }, modifier = Modifier.fillMaxWidth().semantics { contentDescription = "指南進度 Guide progress" })
+                    LinearProgressIndicator(progress = { (current + 1f) / steps.size }, modifier = Modifier.fillMaxWidth().semantics { contentDescription = if (isZh) "指南進度 Guide progress" else "Guide progress" })
                     ExposedDropdownMenuBox(expanded, { expanded = !expanded }) {
                         OutlinedTextField(step.title.primary(isZh), {}, readOnly = true, label = { Text(if (isZh) "導覽主題 Guide topics" else "Guide topics") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) }, maxLines = 2,

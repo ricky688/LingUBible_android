@@ -29,11 +29,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.core.theme.*
 import com.lingubible.app.domain.model.Review
 import com.lingubible.app.domain.model.REVIEW_REQUIREMENTS
 import com.lingubible.app.ui.common.mousePointer
 import com.lingubible.app.ui.common.rememberCardPressShape
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +50,9 @@ fun ReviewCard(
     groupSize: Int = 1
 ) {
     val isDark = isAppDarkTheme()
+    val settingsManager = koinInject<AppSettingsManager>()
+    val appLanguage by settingsManager.appLanguage.collectAsStateWithLifecycle()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val bgColor = MaterialTheme.colorScheme.surfaceContainer
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.35f else 0.5f)
 
@@ -55,21 +62,44 @@ fun ReviewCard(
         Column(Modifier.fillMaxWidth().weight(1f, fill = false).fadingVerticalScroll(androidx.compose.foundation.rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("${review.courseCode} · ${if (review.grade == "-1") "N/A" else review.grade}", style = MaterialTheme.typography.headlineSmall)
             Text("${review.term} · ${review.language}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("課程評價 Course comments", style = MaterialTheme.typography.titleMedium)
+            Text(if (isZh) "課程評價 Course comments" else "Course comments", style = MaterialTheme.typography.titleMedium)
             Text(review.comment)
-            Text("工作量 Workload: ${review.workloadRating.displayRating()} · 難度 Difficulty: ${review.difficultyRating.displayRating()} · 實用性 Usefulness: ${review.usefulnessRating.displayRating()}")
+            Text(
+                if (isZh) {
+                    "工作量 Workload: ${review.workloadRating.displayRating()} · 難度 Difficulty: ${review.difficultyRating.displayRating()} · 實用性 Usefulness: ${review.usefulnessRating.displayRating()}"
+                } else {
+                    "Workload: ${review.workloadRating.displayRating()} · Difficulty: ${review.difficultyRating.displayRating()} · Usefulness: ${review.usefulnessRating.displayRating()}"
+                }
+            )
             review.instructors.forEach { instructor ->
                 HorizontalDivider()
                 Text("${instructor.name} · ${instructor.session}", style = MaterialTheme.typography.titleMedium)
-                Text("教學 Teaching: ${if (instructor.notAttended) "未曾上課 Not attended" else (instructor.teaching ?: -1.0).displayRating()} · 給分 Grading: ${(instructor.grading ?: -1.0).displayRating()}")
-                if (instructor.requirements.isNotEmpty()) Text(instructor.requirements.mapNotNull { REVIEW_REQUIREMENTS[it] }.joinToString(" · "))
+                Text(
+                    if (isZh) {
+                        "教學 Teaching: ${if (instructor.notAttended) "未曾上課 Not attended" else (instructor.teaching ?: -1.0).displayRating()} · 給分 Grading: ${(instructor.grading ?: -1.0).displayRating()}"
+                    } else {
+                        "Teaching: ${if (instructor.notAttended) "Not attended" else (instructor.teaching ?: -1.0).displayRating()} · Grading: ${(instructor.grading ?: -1.0).displayRating()}"
+                    }
+                )
+                if (instructor.requirements.isNotEmpty()) Text(
+                    instructor.requirements.mapNotNull { key ->
+                        REVIEW_REQUIREMENTS[key]?.let { reviewRequirementLabel(key, it, isZh) }
+                    }.joinToString(" · ")
+                )
                 Text(instructor.comment)
                 if (instructor.serviceLearning != "none") {
-                    Text("服務學習 Service learning · ${if (instructor.serviceLearning == "compulsory") "必修 Compulsory" else "選修 Optional"}", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        if (isZh) {
+                            "服務學習 Service learning · ${if (instructor.serviceLearning == "compulsory") "必修 Compulsory" else "選修 Optional"}"
+                        } else {
+                            "Service learning · ${if (instructor.serviceLearning == "compulsory") "Compulsory" else "Optional"}"
+                        },
+                        style = MaterialTheme.typography.titleSmall
+                    )
                     if (instructor.serviceDescription.isNotBlank()) Text(instructor.serviceDescription)
                 }
             }
-            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showDetails = false }, modifier = Modifier.align(Alignment.End)) { Text("關閉 Close") }
+            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showDetails = false }, modifier = Modifier.align(Alignment.End)) { Text(if (isZh) "關閉 Close" else "Close") }
             Spacer(Modifier.height(16.dp))
         }
     }
@@ -120,7 +150,7 @@ fun ReviewCard(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             if (review.instructorName.isNotBlank()) {
-                                val instDisplay = if (review.instructorNameZh.isNotBlank()) {
+                                val instDisplay = if (isZh && review.instructorNameZh.isNotBlank()) {
                                     " • ${review.instructorName} (${review.instructorNameZh})"
                                 } else {
                                     " • ${review.instructorName}"
@@ -135,7 +165,7 @@ fun ReviewCard(
                             }
                         }
                         if (review.courseTitle.isNotBlank() && review.courseTitle != review.courseCode) {
-                            val courseTitleDisplay = if (review.courseTitleZh.isNotBlank()) {
+                            val courseTitleDisplay = if (isZh && review.courseTitleZh.isNotBlank()) {
                                 "${review.courseTitle}  ${review.courseTitleZh}"
                             } else {
                                 review.courseTitle
@@ -154,7 +184,11 @@ fun ReviewCard(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text(
-                                text = if (review.isAnonymous) "匿名同學" else "嶺南人",
+                                text = if (review.isAnonymous) {
+                                    if (isZh) "匿名同學" else "Anonymous"
+                                } else {
+                                    if (isZh) "嶺南人" else "Lingnanian"
+                                },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -202,10 +236,10 @@ fun ReviewCard(
                         .padding(horizontal = 8.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    RatingItem("教學", review.teachingRating)
-                    RatingItem("給分", review.gradingRating)
-                    RatingItem("工作量", review.workloadRating)
-                    RatingItem("難度", review.difficultyRating)
+                    RatingItem(if (isZh) "教學" else "Teaching", review.teachingRating)
+                    RatingItem(if (isZh) "給分" else "Grading", review.gradingRating)
+                    RatingItem(if (isZh) "工作量" else "Workload", review.workloadRating)
+                    RatingItem(if (isZh) "難度" else "Difficulty", review.difficultyRating)
                 }
             }
 
@@ -226,7 +260,11 @@ fun ReviewCard(
 
                     if (review.comment.length > 120) {
                         Text(
-                            text = if (isExpanded) "收起" else "閱讀更多",
+                            text = if (isExpanded) {
+                                if (isZh) "收起" else "Show less"
+                            } else {
+                                if (isZh) "閱讀更多" else "Read more"
+                            },
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold,
@@ -240,7 +278,15 @@ fun ReviewCard(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showDetails = true }) { Text("完整評價 Full review · ${review.instructors.size} 講師／課節") }
+            TextButton(shapes = AppButtonDefaults.shapes(), onClick = hapticClick { showDetails = true }) {
+                Text(
+                    if (isZh) {
+                        "完整評價 Full review · ${review.instructors.size} 講師／課節"
+                    } else {
+                        "Full review · ${review.instructors.size} ${if (review.instructors.size == 1) "instructor/session" else "instructors/sessions"}"
+                    }
+                )
+            }
             HorizontalDivider()
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -252,7 +298,7 @@ fun ReviewCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = review.createdAt.take(10).ifBlank { "最近" },
+                    text = review.createdAt.take(10).ifBlank { if (isZh) "最近" else "Recent" },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -342,3 +388,18 @@ private fun RatingItem(label: String, rating: Double) {
 }
 
 private fun Double.displayRating(): String = if (this < 0) "N/A" else toString()
+
+internal fun reviewRequirementLabel(key: String, defaultLabel: String, isZh: Boolean): String {
+    if (isZh) return defaultLabel
+    return when (key) {
+        "has_midterm" -> "Midterm"
+        "has_final" -> "Final"
+        "has_quiz" -> "Quiz"
+        "has_group_project" -> "Group project"
+        "has_individual_assignment" -> "Individual assignment"
+        "has_presentation" -> "Presentation"
+        "has_reading" -> "Reading"
+        "has_attendance_requirement" -> "Attendance"
+        else -> defaultLabel
+    }
+}

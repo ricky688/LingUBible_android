@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -23,7 +24,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import com.lingubible.app.domain.model.CourseSyllabus
+import org.koin.compose.koinInject
 
 /**
  * Material 3 Expressive Action Button for viewing the Course Syllabus PDF.
@@ -42,6 +46,9 @@ fun CourseSyllabusButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val settingsManager: AppSettingsManager = koinInject()
+    val appLanguage by settingsManager.appLanguage.collectAsState()
+    val isZh = appLanguage == AppLanguage.ZH_TW
     val isEnabled = !isLoading && syllabus != null
     val interactionSource = remember { MutableInteractionSource() }
     val cornerRadius by AppButtonDefaults.pressCorner(interactionSource, 12.dp)
@@ -103,9 +110,9 @@ fun CourseSyllabusButton(
                 Column(modifier = Modifier.weight(1f, fill = false)) {
                     Text(
                         text = when {
-                            isLoading -> "正在載入大綱... / Loading Syllabus..."
-                            syllabus != null -> "課程大綱 / Syllabus"
-                            else -> "暫無課程大綱 / No Syllabus"
+                            isLoading -> if (isZh) "正在載入大綱... / Loading Syllabus..." else "Loading Syllabus..."
+                            syllabus != null -> if (isZh) "課程大綱 / Syllabus" else "Syllabus"
+                            else -> if (isZh) "暫無課程大綱 / No Syllabus" else "No Syllabus"
                         },
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
@@ -131,7 +138,7 @@ fun CourseSyllabusButton(
                         )
                     } else if (!isLoading) {
                         Text(
-                            text = "未提供電子大綱 • Not Available",
+                            text = if (isZh) "未提供電子大綱 • Not Available" else "Not Available",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.65f),
                             fontSize = 11.sp,

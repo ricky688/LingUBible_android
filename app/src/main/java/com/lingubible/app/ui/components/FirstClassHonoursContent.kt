@@ -42,10 +42,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lingubible.app.core.settings.AppLanguage
+import com.lingubible.app.core.settings.AppSettingsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.koin.compose.koinInject
 import java.util.Locale
 
 @Serializable
@@ -81,6 +85,9 @@ private fun change(current: Double?, previous: Double?, percentagePoints: Boolea
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FirstClassHonoursContent(listState: LazyListState) {
+    val settings = koinInject<AppSettingsManager>()
+    val language by settings.appLanguage.collectAsStateWithLifecycle()
+    val isZh = language == AppLanguage.ZH_TW
     val context = LocalContext.current.applicationContext
     var reference by remember { mutableStateOf<HonoursReference?>(null) }
     var error by remember { mutableStateOf(false) }
@@ -110,7 +117,7 @@ fun FirstClassHonoursContent(listState: LazyListState) {
         ) {
             if (error) {
                 Text(
-                    text = "無法載入統計資料 · Unable to load reference data",
+                    text = if (isZh) "無法載入統計資料 · Unable to load reference data" else "Unable to load reference data",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -168,13 +175,16 @@ fun FirstClassHonoursContent(listState: LazyListState) {
                     .animateContentSize(AppMotion.spatial()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                GpaSectionTitle("甲等榮譽統計", "First Class Honours Statistics")
+                GpaSectionTitle(
+                    if (isZh) "甲等榮譽統計" else "First Class Honours Statistics",
+                    if (isZh) "First Class Honours Statistics" else ""
+                )
 
                 // Cohort year selector
                 StatisticsDropdown(
-                    label = "畢業年度 · Cohort year",
+                    label = if (isZh) "畢業年度 · Cohort year" else "Cohort year",
                     selectedKey = selectedYear,
-                    options = data.summary.keys.sorted().associateWith { "$it 屆 · Class of $it" },
+                    options = data.summary.keys.sorted().associateWith { if (isZh) "$it 屆 · Class of $it" else "Class of $it" },
                     onSelect = { selectedYear = it }
                 )
 
@@ -182,8 +192,8 @@ fun FirstClassHonoursContent(listState: LazyListState) {
                 ExpressiveSwitchRow(
                     checked = showChange,
                     onCheckedChange = { showChange = it },
-                    title = "年度變化",
-                    subtitle = "Year-over-year comparison"
+                    title = if (isZh) "年度變化" else "Year-over-year comparison",
+                    subtitle = if (isZh) "Year-over-year comparison" else ""
                 )
 
                 AnimatedVisibility(
@@ -194,14 +204,18 @@ fun FirstClassHonoursContent(listState: LazyListState) {
                         shrinkVertically(AppMotion.spatial())
                 ) {
                     Text(
-                        text = previousYear?.let { "與 $it 比較 · Compared with $it" } ?: "沒有上一屆資料 · No earlier cohort",
+                        text = if (isZh) {
+                            previousYear?.let { "與 $it 比較 · Compared with $it" } ?: "沒有上一屆資料 · No earlier cohort"
+                        } else {
+                            previousYear?.let { "Compared with $it" } ?: "No earlier cohort"
+                        },
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
                 // Expressive 3-metric summary dashboard
-                HonoursSummary(summary = summary, previous = previous, showChange = showChange)
+                HonoursSummary(summary = summary, previous = previous, showChange = showChange, isZh = isZh)
 
                 // Search bar and expandable filter disclosure
                 StatisticsFilterBar(
@@ -223,7 +237,8 @@ fun FirstClassHonoursContent(listState: LazyListState) {
                         metric = "rate"
                         sortByName = false
                         groupByFaculty = false
-                    }
+                    },
+                    isZh = isZh
                 )
             }
         }
@@ -237,7 +252,8 @@ fun FirstClassHonoursContent(listState: LazyListState) {
                         metric = "rate"
                         sortByName = false
                         groupByFaculty = false
-                    }
+                    },
+                    isZh = isZh
                 )
             }
         }
@@ -251,6 +267,7 @@ fun FirstClassHonoursContent(listState: LazyListState) {
                 previousYear = previousYear,
                 metric = metric,
                 showChange = showChange,
+                isZh = isZh,
                 modifier = Modifier.animateItem(
                     fadeInSpec = AppMotion.effects(),
                     placementSpec = AppMotion.spatial(),
@@ -266,7 +283,11 @@ fun FirstClassHonoursContent(listState: LazyListState) {
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
             ) {
                 Text(
-                    text = "資料來源：與網頁版相同的 Graduate Lists 整理資料（2024–2025）。\nSource: the web app's bundled graduate-list statistics. — 表示缺少資料；pp 表示百分點。按學院統計受目前搜尋及篩選影響。",
+                    text = if (isZh) {
+                        "資料來源：與網頁版相同的 Graduate Lists 整理資料（2024–2025）。\nSource: the web app's bundled graduate-list statistics. — 表示缺少資料；pp 表示百分點。按學院統計受目前搜尋及篩選影響。"
+                    } else {
+                        "Source: the web app's bundled graduate-list statistics (2024–2025). — indicates missing data; pp indicates percentage points. Faculty totals reflect current search and filters."
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(14.dp)
@@ -281,7 +302,8 @@ fun FirstClassHonoursContent(listState: LazyListState) {
 private fun HonoursSummary(
     summary: HonoursCohort?,
     previous: HonoursCohort?,
-    showChange: Boolean
+    showChange: Boolean,
+    isZh: Boolean
 ) {
     val stackedMetrics = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale >= 1.5f
     Card(
@@ -313,8 +335,8 @@ private fun HonoursSummary(
             val prevPctVal = previous?.pct
 
             HonoursMetricTile(
-                title = "畢業生",
-                subtitle = "Grads",
+                title = if (isZh) "畢業生" else "Graduates",
+                subtitle = if (isZh) "Grads" else "",
                 value = total?.toString() ?: "—",
                 deltaStr = change(total?.toDouble(), prevTotal?.toDouble()),
                 deltaNum = if (total != null && prevTotal != null) (total - prevTotal).toDouble() else null,
@@ -325,8 +347,8 @@ private fun HonoursSummary(
             )
 
             HonoursMetricTile(
-                title = "甲等榮譽",
-                subtitle = "First Class",
+                title = if (isZh) "甲等榮譽" else "First Class",
+                subtitle = if (isZh) "First Class" else "",
                 value = first?.toString() ?: "—",
                 deltaStr = change(first?.toDouble(), prevFirst?.toDouble()),
                 deltaNum = if (first != null && prevFirst != null) (first - prevFirst).toDouble() else null,
@@ -337,8 +359,8 @@ private fun HonoursSummary(
             )
 
             HonoursMetricTile(
-                title = "甲等比例",
-                subtitle = "Share",
+                title = if (isZh) "甲等比例" else "Share",
+                subtitle = if (isZh) "Share" else "",
                 value = percentage(pctVal),
                 deltaStr = change(pctVal, prevPctVal, percentagePoints = true),
                 deltaNum = if (pctVal != null && prevPctVal != null) (pctVal - prevPctVal) else null,
@@ -407,14 +429,16 @@ private fun HonoursMetricTile(
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    if (subtitle.isNotBlank()) {
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
 
@@ -503,7 +527,8 @@ private fun StatisticsFilterBar(
     onGroupByFacultyChange: (Boolean) -> Unit,
     filtersExpanded: Boolean,
     onFiltersExpandedToggle: () -> Unit,
-    onResetFilters: () -> Unit
+    onResetFilters: () -> Unit,
+    isZh: Boolean
 ) {
     val activeFilterCount = (if (faculty.isNotEmpty()) 1 else 0) +
         (if (metric != "rate") 1 else 0) +
@@ -528,7 +553,7 @@ private fun StatisticsFilterBar(
             OutlinedTextField(
                 value = query,
                 onValueChange = onQueryChange,
-                placeholder = { Text("搜尋課程 · Search programmes", style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                placeholder = { Text(if (isZh) "搜尋課程 · Search programmes" else "Search programmes", style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
@@ -628,7 +653,7 @@ private fun StatisticsFilterBar(
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = "篩選與排序 · Filter & Sort",
+                                text = if (isZh) "篩選與排序 · Filter & Sort" else "Filter & Sort",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold
                             )
@@ -641,7 +666,7 @@ private fun StatisticsFilterBar(
                             ) {
                                 Icon(Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(14.dp))
                                 Spacer(Modifier.width(4.dp))
-                                Text("重設 Reset", style = MaterialTheme.typography.labelMedium)
+                                Text(if (isZh) "重設 Reset" else "Reset", style = MaterialTheme.typography.labelMedium)
                             }
                         }
                     }
@@ -649,7 +674,7 @@ private fun StatisticsFilterBar(
                     // Faculty chips
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
-                            text = "學院 · Faculty",
+                            text = if (isZh) "學院 · Faculty" else "Faculty",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -661,12 +686,12 @@ private fun StatisticsFilterBar(
                                 FilterChip(
                                     selected = faculty.isEmpty(),
                                     onClick = hapticClick { onFacultyChange("") },
-                                    label = { Text("全部 All") },
+                                    label = { Text(if (isZh) "全部 All" else "All") },
                                     shape = RoundedCornerShape(12.dp)
                                 )
                             }
                             items(faculties.toList()) { (key, name) ->
-                                val shortTitle = name.substringBefore(" · ")
+                                val shortTitle = if (isZh) name.substringBefore(" · ") else (facultyInfoMap[key]?.en ?: name.substringAfter(" · "))
                                 FilterChip(
                                     selected = faculty == key,
                                     onClick = hapticClick { onFacultyChange(key) },
@@ -683,13 +708,21 @@ private fun StatisticsFilterBar(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         StatisticsDropdown(
-                            label = "指標 · Metric",
+                            label = if (isZh) "指標 · Metric" else "Metric",
                             selectedKey = metric,
-                            options = linkedMapOf(
-                                "rate" to "甲等比例 · Share",
-                                "first" to "甲等人數 · Count",
-                                "total" to "畢業人數 · Total"
-                            ),
+                            options = if (isZh) {
+                                linkedMapOf(
+                                    "rate" to "甲等比例 · Share",
+                                    "first" to "甲等人數 · Count",
+                                    "total" to "畢業人數 · Total"
+                                )
+                            } else {
+                                linkedMapOf(
+                                    "rate" to "First Class Share",
+                                    "first" to "First Class Count",
+                                    "total" to "Total Graduates"
+                                )
+                            },
                             onSelect = onMetricChange,
                             modifier = Modifier.weight(1.3f)
                         )
@@ -708,7 +741,7 @@ private fun StatisticsFilterBar(
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Text(
-                                    text = "排序 · Sort",
+                                    text = if (isZh) "排序 · Sort" else "Sort",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -721,7 +754,11 @@ private fun StatisticsFilterBar(
                                     label = "sortModeText"
                                 ) { isByName ->
                                     Text(
-                                        text = if (isByName) "名稱 Name A-Z" else "數值 Value ↓",
+                                        text = if (isZh) {
+                                            if (isByName) "名稱 Name A-Z" else "數值 Value ↓"
+                                        } else {
+                                            if (isByName) "Name A–Z" else "Value ↓"
+                                        },
                                         style = MaterialTheme.typography.bodySmall,
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -735,8 +772,8 @@ private fun StatisticsFilterBar(
                     ExpressiveSwitchRow(
                         checked = groupByFaculty,
                         onCheckedChange = onGroupByFacultyChange,
-                        title = "按學院合併課程",
-                        subtitle = "Combine programmes by faculty"
+                        title = if (isZh) "按學院合併課程" else "Combine programmes by faculty",
+                        subtitle = if (isZh) "Combine programmes by faculty" else ""
                     )
                 }
             }
@@ -754,6 +791,7 @@ private fun HonoursProgrammeCard(
     previousYear: String?,
     metric: String,
     showChange: Boolean,
+    isZh: Boolean,
     modifier: Modifier = Modifier
 ) {
     val stackedHeading = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale >= 1.5f
@@ -806,17 +844,26 @@ private fun HonoursProgrammeCard(
                     modifier = Modifier.weight(1f).padding(end = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    Text(
-                        text = entry.tc,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = entry.en,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (isZh) {
+                        Text(
+                            text = entry.tc,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = entry.en,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        Text(
+                            text = entry.en,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
 
                 facInfo?.let { info ->
@@ -825,7 +872,7 @@ private fun HonoursProgrammeCard(
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = "${info.tc} · ${info.en}",
+                            text = if (isZh) "${info.tc} · ${info.en}" else info.en,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = facColor,
@@ -851,7 +898,7 @@ private fun HonoursProgrammeCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "人 · graduates",
+                        text = if (isZh) "人 · graduates" else "graduates",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -930,7 +977,7 @@ private fun HonoursProgrammeCard(
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
-                            text = "年度變化 YoY: $delta",
+                            text = if (isZh) "年度變化 YoY: $delta" else "YoY: $delta",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = pillColor
@@ -944,7 +991,8 @@ private fun HonoursProgrammeCard(
 
 @Composable
 private fun HonoursEmptyState(
-    onResetFilters: () -> Unit
+    onResetFilters: () -> Unit,
+    isZh: Boolean
 ) {
     Card(
         modifier = Modifier
@@ -977,13 +1025,13 @@ private fun HonoursEmptyState(
                 )
             }
             Text(
-                text = "找不到符合條件的課程",
+                text = if (isZh) "找不到符合條件的課程" else "No matching programmes",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
-                text = "請嘗試更改搜尋關鍵字或清除篩選條件。\nTry adjusting your search terms or clearing filters.",
+                text = if (isZh) "請嘗試更改搜尋關鍵字或清除篩選條件。\nTry adjusting your search terms or clearing filters." else "Try adjusting your search terms or clearing filters.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -994,7 +1042,7 @@ private fun HonoursEmptyState(
             ) {
                 Icon(Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("重設全部篩選 · Reset all")
+                Text(if (isZh) "重設全部篩選 · Reset all" else "Reset all")
             }
         }
     }
@@ -1028,11 +1076,13 @@ private fun ExpressiveSwitchRow(
         ) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (subtitle.isNotBlank()) {
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
             Switch(
                 checked = checked,
