@@ -104,6 +104,8 @@ fun CourseDetailScreen(
     }
 
     Scaffold(
+        modifier = Modifier.containerTransform("course/$courseCode", detail = true),
+        containerColor = androidx.compose.ui.graphics.Color.Transparent, // containerTransform paints the page
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             if (selectedTab == 0 && !uiState.isLoading && uiState.course != null) {
@@ -135,6 +137,7 @@ fun CourseDetailScreen(
             )
         } else {
             val course = uiState.course
+            val entrance = rememberStaggeredEntrance(3)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -145,7 +148,8 @@ fun CourseDetailScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .staggeredEntrance(entrance, 0),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -302,7 +306,8 @@ fun CourseDetailScreen(
                     items = sectionItems,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                        .staggeredEntrance(entrance, 1),
                     height = 38.dp,
                     spacing = 5.dp
                 )
@@ -327,7 +332,8 @@ fun CourseDetailScreen(
                     },
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .staggeredEntrance(entrance, 2),
                     label = "courseDetailTabTransition"
                 ) { tabIndex ->
                     when (tabIndex) {

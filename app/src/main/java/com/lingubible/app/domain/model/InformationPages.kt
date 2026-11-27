@@ -35,6 +35,10 @@ internal val ANDROID_FAQ = listOf(
 )
 
 internal val ANDROID_CHANGELOG = listOf(
+    InformationSection("1.0.10", InformationText("v1.0.10 · 容器轉場動效、講師評價加速與 App Links 優化", "v1.0.10 · Container Transform, Faster Instructor Reviews & App Links"), listOf(
+        InformationText("課程與講師列表點擊進入詳情頁新增 Material 3 容器轉場（Container Transform）動畫。", "Added Material 3 Container Transform transitions when opening course and instructor detail screens."),
+        InformationText("優化講師評價與投票資料查詢，大幅縮短講師詳情頁載入時間。", "Optimized instructor review and vote queries for significantly faster instructor detail loading."),
+        InformationText("補齊課表與重設密碼深層連結 autoVerify 設定。", "Completed App Links autoVerify declarations for timetable and password reset routes."))),
     InformationSection("1.0.9", InformationText("v1.0.9 · 用戶設定載入指標與擴散動效", "v1.0.9 · Settings Loading Indicator & Spreading Motion"), listOf(
         InformationText("用戶設定頁面新增 Material 3 Expressive 變形載入指示器（LoadingIndicator），首次啟動清晰反饋。", "Added official Material 3 Expressive LoadingIndicator on User Settings for clear initial feedback."),
         InformationText("帳戶載入完成後採用向外擴散（spreading）彈簧轉場動效，平滑無縫展現個人資料。", "Introduced an outward spreading spring transition animation when profile data finishes loading."),

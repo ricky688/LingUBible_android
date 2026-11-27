@@ -1,3 +1,10 @@
+## 2026-11-27 — Release v1.0.10 (Code 11): Container Transform, Query Optimization & App Links
+
+- **Material 3 Container Transform**: Added `ContainerTransform.kt` and integrated shared container transform transitions across `NavGraph.kt`, `CoursesScreen.kt`, `CourseDetailScreen.kt`, `InstructorsScreen.kt`, and `InstructorDetailScreen.kt`.
+- **Instructor Review & Vote Query Optimization**: Updated `AppwriteReviewRepository.kt` to narrow instructor review queries server-side (`Query.contains("instructor_details", ...)`) with automatic fallback, and batch vote queries by review IDs (`<= 300` reviews) instead of full collection scans.
+- **App Links**: Added `docs/assetlinks.json` and `android:autoVerify="true"` on `/planner` and `/reset-password` routes in `AndroidManifest.xml`.
+- **R8 Release Build & Verification**: Built signed release APK and AAB with R8 (`isMinifyEnabled = true`, `isShrinkResources = true`), verified via unit tests and `tools/verify-play-release.py`.
+
 ## 2026-10-22 — Release v1.0.9 (Code 10): Settings Loading Indicator & Spreading Motion
 
 - **M3 Expressive Loading Indicator**: Added official `@OptIn(ExperimentalMaterial3ExpressiveApi::class) LoadingIndicator` to the Account card in `ProfileScreen.kt` while initial auth/session data is being retrieved.

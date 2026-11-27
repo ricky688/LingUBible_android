@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.containerTransform
+
 import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.core.theme.AppMotion
 import com.lingubible.app.ui.components.FadingLazyColumn
@@ -461,6 +463,7 @@ fun CoursesScreen(
                             itemsIndexed(uiState.courses, key = { _, it -> it.code }) { index, course ->
                                 PopularCourseCard(
                                     course = course,
+                                    modifier = Modifier.containerTransform("course/${course.code}"),
                                     groupIndex = index,
                                     groupSize = uiState.courses.size,
 

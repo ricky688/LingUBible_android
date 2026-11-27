@@ -82,11 +82,17 @@ class AppwriteReviewRepository(
     override suspend fun getReviewsForCourse(courseCode: String): Result<List<Review>> =
         getAllReviews(listOf(Query.equal("course_code", courseCode.trim().uppercase())))
 
-    override suspend fun getReviewsForInstructor(instructorName: String): Result<List<Review>> =
-        getAllReviewsForBrowsing().map { reviews -> reviews.filter { review ->
-            review.instructors.any { it.name.equals(instructorName.trim(), true) } ||
-                review.instructorName.equals(instructorName.trim(), true)
+    private var reviewsContainsSupported = true
+
+    // Same as web getInstructorReviewsFromDetails: let the server narrow by instructor_details, scan only if unsupported.
+    override suspend fun getReviewsForInstructor(instructorName: String): Result<List<Review>> {
+        val name = instructorName.trim()
+        var result = if (reviewsContainsSupported && name.isNotEmpty()) getAllReviews(listOf(Query.contains("instructor_details", name))) else null
+        if ((result?.exceptionOrNull() as? io.appwrite.exceptions.AppwriteException)?.code == 400) { reviewsContainsSupported = false; result = null }
+        return (result ?: getAllReviewsForBrowsing()).map { reviews -> reviews.filter { review ->
+            review.instructors.any { it.name.equals(name, true) } || review.instructorName.equals(name, true)
         } }
+    }
 
     override suspend fun getLatestReviews(limit: Int): Result<List<Review>> =
         attachVotes(getReviews(listOf(Query.orderDesc("\$createdAt"), Query.limit(limit))))
@@ -114,13 +120,13 @@ class AppwriteReviewRepository(
         return attachVotes(Result.success(reviews.distinctBy { it.id }))
     }
 
-    private suspend fun readVotes(reviewId: String? = null): List<io.appwrite.models.Document<Map<String, Any>>> {
+    private suspend fun readVotes(reviewIds: List<String>? = null): List<io.appwrite.models.Document<Map<String, Any>>> {
         val db = requireNotNull(clientProvider.databases)
         val votes = mutableListOf<io.appwrite.models.Document<Map<String, Any>>>()
         var cursor: String? = null
         do {
             val page = db.listDocuments(dbId, votesCol, buildList {
-                reviewId?.let { add(Query.equal("review_id", it)) }
+                reviewIds?.let { add(Query.equal("review_id", it)) }
                 add(Query.limit(100)); add(Query.orderAsc("\$id"))
                 add(Query.select(listOf("\$id", "review_id", "vote_type", "user_id")))
                 cursor?.let { add(Query.cursorAfter(it)) }
@@ -135,7 +141,10 @@ class AppwriteReviewRepository(
         return try {
             val catalog = courseRepository?.getCourses()?.getOrThrow()?.associateBy { it.code }.orEmpty()
             val owner = authRepository?.currentUser?.value?.id
-            val grouped = readVotes().groupBy { it.data["review_id"] as? String }
+            val ids = result.getOrThrow().map { it.id }
+            // Few reviews (a course / instructor page): fetch only their votes, 100 ids per query. Browsing all: one full scan is cheaper.
+            val votes = if (ids.size > 300) readVotes() else ids.chunked(100).flatMap { readVotes(it) }
+            val grouped = votes.groupBy { it.data["review_id"] as? String }
             Result.success(result.getOrThrow().map { review ->
                 val votes = grouped[review.id].orEmpty()
                 val course = catalog[review.courseCode]
@@ -246,7 +255,7 @@ class AppwriteReviewRepository(
                 voteType
             }
 
-            val allVotes = readVotes(reviewId)
+            val allVotes = readVotes(listOf(reviewId))
 
             val upCount = allVotes.count { it.data["vote_type"] == "up" }
             val downCount = allVotes.count { it.data["vote_type"] == "down" }

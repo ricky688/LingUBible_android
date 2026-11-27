@@ -4,6 +4,11 @@ import com.lingubible.app.core.theme.AppMotion
 
 import androidx.compose.animation.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.navigation.NavBackStackEntry
+import com.lingubible.app.ui.components.LocalNavAnimatedScope
+import com.lingubible.app.ui.components.LocalSharedTransitionScope
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import com.lingubible.app.domain.model.parsePublicDetailLink
@@ -26,6 +31,15 @@ import com.lingubible.app.ui.screens.*
 
 private const val OPEN_INSTRUCTOR_REVIEWS = "openInstructorReviews"
 
+// Courses/Instructors list <-> detail: crossfade the pages so the card's container transform carries the motion.
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.isContainerTransform(): Boolean {
+    fun pair(a: NavBackStackEntry, b: NavBackStackEntry) =
+        (a.destination.hasRoute<Screen.Courses>() && b.destination.hasRoute<Screen.CourseDetail>()) ||
+            (a.destination.hasRoute<Screen.Instructors>() && b.destination.hasRoute<Screen.InstructorDetail>())
+    return pair(initialState, targetState) || pair(targetState, initialState)
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun LingUBibleNavHost(
     navController: NavHostController,
@@ -63,11 +77,13 @@ fun LingUBibleNavHost(
         activity?.addOnNewIntentListener(listener)
         onDispose { activity?.removeOnNewIntentListener(listener) }
     }
+    SharedTransitionLayout(modifier) { CompositionLocalProvider(LocalSharedTransitionScope provides this) {
     NavHost(
         navController = navController,
         startDestination = Screen.Home,
-        modifier = modifier,
-        enterTransition = {
+        modifier = Modifier.fillMaxSize(),
+        enterTransition = enter@{
+            if (isContainerTransform()) return@enter fadeIn(animationSpec = AppMotion.effects())
             val fromIndex = BottomNavDestination.entries.indexOfFirst { initialState.destination.hasRoute(it.screen::class) }
             val toIndex = BottomNavDestination.entries.indexOfFirst { targetState.destination.hasRoute(it.screen::class) }
             if (fromIndex != -1 && toIndex != -1) {
@@ -83,7 +99,8 @@ fun LingUBibleNavHost(
                 ) + fadeIn(animationSpec = AppMotion.effects())
             }
         },
-        exitTransition = {
+        exitTransition = exit@{
+            if (isContainerTransform()) return@exit fadeOut(animationSpec = AppMotion.effects())
             val fromIndex = BottomNavDestination.entries.indexOfFirst { initialState.destination.hasRoute(it.screen::class) }
             val toIndex = BottomNavDestination.entries.indexOfFirst { targetState.destination.hasRoute(it.screen::class) }
             if (fromIndex != -1 && toIndex != -1) {
@@ -100,13 +117,13 @@ fun LingUBibleNavHost(
             }
         },
         popEnterTransition = {
-            slideInHorizontally(
+            if (isContainerTransform()) fadeIn(animationSpec = AppMotion.effects()) else slideInHorizontally(
                 initialOffsetX = { (-it * 0.2f).toInt() },
                 animationSpec = AppMotion.page()
             ) + fadeIn(animationSpec = AppMotion.effects())
         },
         popExitTransition = {
-            slideOutHorizontally(
+            if (isContainerTransform()) fadeOut(animationSpec = AppMotion.effects()) else slideOutHorizontally(
                 targetOffsetX = { (it * 0.3f).toInt() },
                 animationSpec = AppMotion.page()
             ) + fadeOut(animationSpec = AppMotion.effects())
@@ -155,13 +172,15 @@ fun LingUBibleNavHost(
         }
 
         composable<Screen.Courses> {
+            CompositionLocalProvider(LocalNavAnimatedScope provides this) {
             CoursesScreen(
                 onNavigateToCourse = { code -> navController.navigate(Screen.CourseDetail(code)) }
-            )
+            ) }
         }
 
         composable<Screen.CourseDetail> { backStackEntry ->
             val route = backStackEntry.toRoute<Screen.CourseDetail>()
+            CompositionLocalProvider(LocalNavAnimatedScope provides this) {
             CourseDetailScreen(
                 courseCode = route.courseCode,
                 initialTab = route.initialTab,
@@ -172,26 +191,28 @@ fun LingUBibleNavHost(
                     navController.currentBackStackEntry?.savedStateHandle?.set(OPEN_INSTRUCTOR_REVIEWS, true)
                 },
                 onNavigateToAuth = { navController.navigate(Screen.Auth("login")) }
-            )
+            ) }
         }
 
         composable<Screen.Instructors> {
+            CompositionLocalProvider(LocalNavAnimatedScope provides this) {
             InstructorsScreen(
                 onNavigateToInstructor = { name -> navController.navigate(Screen.InstructorDetail(name)) }
-            )
+            ) }
         }
 
         composable<Screen.InstructorDetail> { backStackEntry ->
             val route = backStackEntry.toRoute<Screen.InstructorDetail>()
             // Keep the existing route identity; save the requested section with this entry.
             val showReviews by backStackEntry.savedStateHandle.getStateFlow(OPEN_INSTRUCTOR_REVIEWS, false).collectAsStateWithLifecycle()
+            CompositionLocalProvider(LocalNavAnimatedScope provides this) {
             InstructorDetailScreen(
                 instructorName = route.name,
                 initialTab = route.initialTab,
                 onCourse = { navController.navigate(Screen.CourseDetail(it)) },
                 showReviews = showReviews,
                 onNavigateBack = { navController.popBackStack() }
-            )
+            ) }
         }
 
         composable<Screen.Reviews> {
@@ -272,4 +293,5 @@ fun LingUBibleNavHost(
             )
         }
     }
+    } }
 }

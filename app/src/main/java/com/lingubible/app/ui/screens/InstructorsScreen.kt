@@ -1,5 +1,7 @@
 package com.lingubible.app.ui.screens
 
+import com.lingubible.app.ui.components.containerTransform
+
 import com.lingubible.app.ui.components.AppButtonDefaults
 import com.lingubible.app.core.theme.AppMotion
 import com.lingubible.app.ui.components.DirectoryLoadingSkeleton
@@ -164,6 +166,7 @@ fun InstructorsScreen(
                                 itemsIndexed(uiState.instructors, key = { _, it -> it.id }) { index, instructor ->
                                     PopularInstructorCard(
                                         instructor = instructor,
+                                        modifier = Modifier.containerTransform("instructor/${instructor.name}"),
                                         groupIndex = index,
                                         groupSize = uiState.instructors.size,
 
